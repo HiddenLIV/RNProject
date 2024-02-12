@@ -8,15 +8,15 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
  */
 export type RootStackParam = {
   Home: undefined;
-  Main: undefined;
+  Main: any;
 }
 
-export const MainScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParam>>();
+export const MainScreen = ({navigation, route} : any) => {
+  // const navigation = useNavigation<NativeStackNavigationProp<RootStackParam>>();
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-      <Text style={{ color: 'black', fontSize: 30 }}>MainScreen</Text>
+      <Text style={{ color: 'black', fontSize: 30 }}>{route.params.title}</Text>
       <Button
         title="Go to HomeScreen" 
         onPress={() => navigation.navigate('Home')} 

@@ -8,7 +8,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
  */
 export type RootStackParam = {
   Home: undefined;
-  Main: undefined;
+  Main: any;
 }
 
 export const HomeScreen = () => {
@@ -19,7 +19,7 @@ export const HomeScreen = () => {
       <Text style={{ color: 'black', fontSize: 30 }}>HomeScreen</Text>
       <Button
         title="Go to MainScreen" 
-        onPress={() => navigation.navigate('Main')} 
+        onPress={() => navigation.navigate('Main',{title : 'HelloWorld'})} 
       />
     </View>
 
