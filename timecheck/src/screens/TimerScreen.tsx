@@ -53,7 +53,14 @@ export default function TimerScreen() {
     player.play();
   };
 
-  useEffect(() => releaseBell, []);
+  // 화면 이탈(홈·기록 탭 이동) 시 진행 중이던 음성·벨을 즉시 중단한다
+  useEffect(
+    () => () => {
+      stopFeedback();
+      releaseBell();
+    },
+    []
+  );
 
   const timer = useHangTimer({
     onCountdownSecond: speakCountdown,
@@ -91,6 +98,18 @@ export default function TimerScreen() {
     activateKeepAwakeAsync();
     return () => {
       deactivateKeepAwake();
+    };
+  }, [isMeasuring]);
+
+  // 측정 중 무음 루프를 재생해 오디오 포커스를 계속 점유한다 —
+  // doNotMix 모드와 함께 다른 앱의 음악·영상이 측정 시작 시 일시정지되고 측정 내내 재개되지 않는다
+  useEffect(() => {
+    if (!isMeasuring) return;
+    const holder = createAudioPlayer(require('../../assets/sounds/silence.wav'));
+    holder.loop = true;
+    holder.play();
+    return () => {
+      holder.release();
     };
   }, [isMeasuring]);
 

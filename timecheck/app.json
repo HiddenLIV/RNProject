@@ -7,7 +7,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.timecheck"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,6 +23,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
       "package": "com.anonymous.timecheck"
     },
     "web": {
