@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 export type RootStackParam = {
   Home: undefined;
   Main: any;
+  Stt: any;
 }
 
 export const MainScreen = ({navigation, route} : any) => {
