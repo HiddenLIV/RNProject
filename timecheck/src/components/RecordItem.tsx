@@ -8,10 +8,11 @@ type Props = {
   onDelete: (id: string) => void;
 };
 
+// 날짜는 섹션 헤더가 보여주므로 행에는 시각만 표시한다
 function formatMeasuredAt(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export default function RecordItem({ record, isBest, onDelete }: Props) {

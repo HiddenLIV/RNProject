@@ -1,7 +1,8 @@
 import { setAudioModeAsync } from 'expo-audio';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import RecordsScreen from './src/screens/RecordsScreen';
 import TimerScreen from './src/screens/TimerScreen';
 
@@ -16,18 +17,20 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>{tab === 'timer' ? <TimerScreen /> : <RecordsScreen />}</View>
-      <View style={styles.tabBar}>
-        <Pressable style={styles.tabButton} onPress={() => setTab('timer')}>
-          <Text style={[styles.tabText, tab === 'timer' && styles.tabTextActive]}>타이머</Text>
-        </Pressable>
-        <Pressable style={styles.tabButton} onPress={() => setTab('records')}>
-          <Text style={[styles.tabText, tab === 'records' && styles.tabTextActive]}>기록</Text>
-        </Pressable>
-      </View>
-      <StatusBar style="auto" />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+        <View style={styles.content}>{tab === 'timer' ? <TimerScreen /> : <RecordsScreen />}</View>
+        <View style={styles.tabBar}>
+          <Pressable style={styles.tabButton} onPress={() => setTab('timer')}>
+            <Text style={[styles.tabText, tab === 'timer' && styles.tabTextActive]}>타이머</Text>
+          </Pressable>
+          <Pressable style={styles.tabButton} onPress={() => setTab('records')}>
+            <Text style={[styles.tabText, tab === 'records' && styles.tabTextActive]}>기록</Text>
+          </Pressable>
+        </View>
+        <StatusBar style="auto" />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

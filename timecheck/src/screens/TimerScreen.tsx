@@ -1,9 +1,11 @@
-import { useAudioPlayer } from 'expo-audio';
-import { useEffect, useState } from 'react';
+import { AudioPlayer, createAudioPlayer } from 'expo-audio';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import SecondsStepper from '../components/SecondsStepper';
 import TimeDisplay from '../components/TimeDisplay';
 import { speakCountdown, speakSecond, speakStart, stopFeedback } from '../lib/feedback';
+import { QUOTES } from '../lib/quotes';
 import { addRecord, createRecordId, getSettings, saveSettings } from '../lib/storage';
 import {
   BELL_INTERVAL_MAX_SECONDS,
@@ -34,12 +36,24 @@ export default function TimerScreen() {
     });
   };
 
-  const bellPlayer = useAudioPlayer(require('../../assets/sounds/bell.wav'));
+  // 공유 플레이어를 pause/seek로 재사용하면 안드로이드(삼성)에서 첫 재생의
+  // AudioTrack이 열리지 않아 무음이 되는 문제가 있다(logcat으로 확인).
+  // 벨마다 새 플레이어를 만들어 재생하고 이전 것은 해제한다.
+  const bellRef = useRef<AudioPlayer | null>(null);
 
-  const playBellSound = async () => {
-    await bellPlayer.seekTo(0);
-    bellPlayer.play();
+  const releaseBell = () => {
+    bellRef.current?.release();
+    bellRef.current = null;
   };
+
+  const playBellSound = () => {
+    releaseBell();
+    const player = createAudioPlayer(require('../../assets/sounds/bell.wav'));
+    bellRef.current = player;
+    player.play();
+  };
+
+  useEffect(() => releaseBell, []);
 
   const timer = useHangTimer({
     onCountdownSecond: speakCountdown,
@@ -53,9 +67,36 @@ export default function TimerScreen() {
     },
   });
 
+  // 측정 중 3초마다 동기부여 문구를 랜덤 교체 (직전 문구는 반복하지 않음)
+  const [quote, setQuote] = useState('');
+  useEffect(() => {
+    if (timer.phase !== 'running') return;
+    const pickNext = (prev: string) => {
+      if (QUOTES.length < 2) return QUOTES[0] ?? '';
+      let next = prev;
+      while (next === prev) {
+        next = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+      }
+      return next;
+    };
+    setQuote((prev) => pickNext(prev));
+    const id = setInterval(() => setQuote((prev) => pickNext(prev)), 3000);
+    return () => clearInterval(id);
+  }, [timer.phase]);
+
+  // 측정·카운트다운 중 화면이 자동 잠금되면 JS 타이머가 멈춰 음성·벨이 끊기므로 화면을 깨워 둔다
+  const isMeasuring = timer.phase === 'countdown' || timer.phase === 'running';
+  useEffect(() => {
+    if (!isMeasuring) return;
+    activateKeepAwakeAsync();
+    return () => {
+      deactivateKeepAwake();
+    };
+  }, [isMeasuring]);
+
   const stopAllSound = () => {
     stopFeedback();
-    bellPlayer.pause();
+    releaseBell();
   };
 
   const handleCancel = () => {
@@ -86,6 +127,7 @@ export default function TimerScreen() {
               value={settings.countdownSeconds}
               min={COUNTDOWN_MIN_SECONDS}
               max={COUNTDOWN_MAX_SECONDS}
+              editable
               onChange={(v) => updateSettings({ countdownSeconds: v })}
             />
             <SecondsStepper
@@ -97,8 +139,8 @@ export default function TimerScreen() {
               onChange={(v) => updateSettings({ bellIntervalSeconds: v })}
             />
           </View>
-          <Pressable style={styles.startButton} onPress={() => timer.start(settings.countdownSeconds)}>
-            <Text style={styles.startButtonText}>시작</Text>
+          <Pressable style={[styles.button, styles.buttonPrimary]} onPress={() => timer.start(settings.countdownSeconds)}>
+            <Text style={styles.buttonText}>시작</Text>
           </Pressable>
         </>
       )}
@@ -107,8 +149,8 @@ export default function TimerScreen() {
         <>
           <Text style={styles.label}>준비</Text>
           <Text style={styles.countdown}>{timer.countdownRemainingSec}</Text>
-          <Pressable style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.cancelButtonText}>취소</Text>
+          <Pressable style={[styles.button, styles.buttonSecondary]} onPress={handleCancel}>
+            <Text style={[styles.buttonText, styles.buttonTextSecondary]}>취소</Text>
           </Pressable>
         </>
       )}
@@ -117,8 +159,9 @@ export default function TimerScreen() {
         <>
           <Text style={styles.label}>측정 중</Text>
           <TimeDisplay ms={timer.elapsedMs} />
-          <Pressable style={styles.stopButton} onPress={handleStop}>
-            <Text style={styles.stopButtonText}>정지</Text>
+          <Text style={styles.quote}>{quote}</Text>
+          <Pressable style={[styles.button, styles.buttonDanger]} onPress={handleStop}>
+            <Text style={styles.buttonText}>정지</Text>
           </Pressable>
         </>
       )}
@@ -130,9 +173,17 @@ export default function TimerScreen() {
           {timer.elapsedMs < MIN_RECORD_MS && (
             <Text style={styles.notSaved}>1초 미만이라 기록되지 않았습니다</Text>
           )}
-          <Pressable style={styles.startButton} onPress={timer.reset}>
-            <Text style={styles.startButtonText}>확인</Text>
-          </Pressable>
+          <View style={styles.buttonRow}>
+            <Pressable
+              style={[styles.button, styles.buttonPrimary, styles.buttonRowItem]}
+              onPress={() => timer.start(settings.countdownSeconds)}
+            >
+              <Text style={styles.buttonText}>다시 시작</Text>
+            </Pressable>
+            <Pressable style={[styles.button, styles.buttonSecondary, styles.buttonRowItem]} onPress={timer.reset}>
+              <Text style={[styles.buttonText, styles.buttonTextSecondary]}>메인으로</Text>
+            </Pressable>
+          </View>
         </>
       )}
     </View>
@@ -166,43 +217,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9ca3af',
   },
+  quote: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2563eb',
+    textAlign: 'center',
+    minHeight: 48,
+    paddingHorizontal: 16,
+  },
   countdown: {
     fontSize: 96,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
     color: '#111',
   },
-  startButton: {
+  button: {
+    minWidth: 180,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonPrimary: {
     backgroundColor: '#2563eb',
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 999,
   },
-  startButtonText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  cancelButton: {
+  buttonSecondary: {
     backgroundColor: '#e5e7eb',
-    paddingHorizontal: 48,
-    paddingVertical: 16,
-    borderRadius: 999,
   },
-  cancelButtonText: {
-    color: '#374151',
+  buttonDanger: {
+    backgroundColor: '#dc2626',
+  },
+  buttonText: {
+    color: '#fff',
     fontSize: 20,
     fontWeight: '600',
   },
-  stopButton: {
-    backgroundColor: '#dc2626',
-    paddingHorizontal: 64,
-    paddingVertical: 20,
-    borderRadius: 999,
+  buttonTextSecondary: {
+    color: '#374151',
   },
-  stopButtonText: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignSelf: 'stretch',
+    paddingHorizontal: 8,
+  },
+  buttonRowItem: {
+    flex: 1,
+    minWidth: 0,
   },
 });
