@@ -6,7 +6,7 @@ import SecondsStepper from '../components/SecondsStepper';
 import TimeDisplay from '../components/TimeDisplay';
 import { speakCountdown, speakSecond, speakStart, stopFeedback } from '../lib/feedback';
 import { QUOTES } from '../lib/quotes';
-import { addRecord, createRecordId, getSettings, saveSettings } from '../lib/storage';
+import { addRecord, createRecordId, getSettings, removeRecord, saveSettings, updateRecord } from '../lib/storage';
 import {
   BELL_INTERVAL_MAX_SECONDS,
   BELL_INTERVAL_MIN_SECONDS,
@@ -17,9 +17,17 @@ import {
   Settings,
 } from '../lib/types';
 import { useHangTimer } from '../lib/useHangTimer';
+import { buttonShadow, colors, fontSize, radius, spacing } from '../theme';
 
 // 1초 미만 정지는 오조작으로 보고 기록하지 않는다
 const MIN_RECORD_MS = 1000;
+
+type PendingResult = {
+  // 1초 이상이 되어 실제로 저장된 적이 있으면 그 기록의 id, 아직 저장 대상이 아니면 null
+  id: string | null;
+  durationMs: number;
+  measuredAt: string; // 정지 시각(ISO) — 보정 중 시간이 흘러도 측정 일시는 그대로 유지
+};
 
 export default function TimerScreen() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -123,16 +131,49 @@ export default function TimerScreen() {
     stopAllSound();
   };
 
+  // 1초 이상이 되는 순간 즉시 저장하고, 이후 보정(±1초)마다 그 기록을 계속 갱신한다 —
+  // 메모리에만 있는 "아직 저장 안 된" 구간을 최소화해 앱이 백그라운드에서 종료돼도
+  // 직전까지 보정한 값이 이미 기기에 남아있게 한다.
+  const [pending, setPending] = useState<PendingResult | null>(null);
+
   const handleStop = () => {
     const durationMs = timer.stop();
     stopAllSound();
-    if (durationMs != null && durationMs >= MIN_RECORD_MS) {
-      addRecord({
-        id: createRecordId(),
-        measuredAt: new Date().toISOString(),
-        durationMs,
-      });
+    if (durationMs == null) return;
+    const measuredAt = new Date().toISOString();
+    if (durationMs >= MIN_RECORD_MS) {
+      const id = createRecordId();
+      addRecord({ id, measuredAt, durationMs });
+      setPending({ id, durationMs, measuredAt });
+    } else {
+      setPending({ id: null, durationMs, measuredAt });
     }
+  };
+
+  const adjustPending = (deltaMs: number) => {
+    if (!pending) return;
+    const durationMs = Math.max(0, pending.durationMs + deltaMs);
+    if (durationMs >= MIN_RECORD_MS) {
+      if (pending.id) {
+        updateRecord(pending.id, { durationMs });
+        setPending({ ...pending, durationMs });
+      } else {
+        const id = createRecordId();
+        addRecord({ id, measuredAt: pending.measuredAt, durationMs });
+        setPending({ ...pending, id, durationMs });
+      }
+    } else {
+      if (pending.id) removeRecord(pending.id);
+      setPending({ ...pending, id: null, durationMs });
+    }
+  };
+
+  const handleRestart = () => {
+    timer.start(settings.countdownSeconds);
+  };
+
+  const handleGoMain = () => {
+    timer.reset();
   };
 
   return (
@@ -176,30 +217,39 @@ export default function TimerScreen() {
 
       {timer.phase === 'running' && (
         <>
+          <Text style={styles.quote}>{quote}</Text>
           <Text style={styles.label}>측정 중</Text>
           <TimeDisplay ms={timer.elapsedMs} />
-          <Text style={styles.quote}>{quote}</Text>
           <Pressable style={[styles.button, styles.buttonDanger]} onPress={handleStop}>
             <Text style={styles.buttonText}>정지</Text>
           </Pressable>
         </>
       )}
 
-      {timer.phase === 'finished' && (
+      {timer.phase === 'finished' && pending && (
         <>
           <Text style={styles.label}>결과</Text>
-          <TimeDisplay ms={timer.elapsedMs} />
-          {timer.elapsedMs < MIN_RECORD_MS && (
+          <TimeDisplay ms={pending.durationMs} />
+          <View style={styles.adjustRow}>
+            <Pressable
+              style={[styles.adjustButton, pending.durationMs < MIN_RECORD_MS && styles.adjustButtonDisabled]}
+              onPress={() => adjustPending(-1000)}
+              disabled={pending.durationMs < MIN_RECORD_MS}
+            >
+              <Text style={styles.adjustButtonText}>−1초</Text>
+            </Pressable>
+            <Pressable style={styles.adjustButton} onPress={() => adjustPending(1000)}>
+              <Text style={styles.adjustButtonText}>+1초</Text>
+            </Pressable>
+          </View>
+          {pending.durationMs < MIN_RECORD_MS && (
             <Text style={styles.notSaved}>1초 미만이라 기록되지 않았습니다</Text>
           )}
           <View style={styles.buttonRow}>
-            <Pressable
-              style={[styles.button, styles.buttonPrimary, styles.buttonRowItem]}
-              onPress={() => timer.start(settings.countdownSeconds)}
-            >
+            <Pressable style={[styles.button, styles.buttonPrimary, styles.buttonRowItem]} onPress={handleRestart}>
               <Text style={styles.buttonText}>다시 시작</Text>
             </Pressable>
-            <Pressable style={[styles.button, styles.buttonSecondary, styles.buttonRowItem]} onPress={timer.reset}>
+            <Pressable style={[styles.button, styles.buttonSecondary, styles.buttonRowItem]} onPress={handleGoMain}>
               <Text style={[styles.buttonText, styles.buttonTextSecondary]}>메인으로</Text>
             </Pressable>
           </View>
@@ -214,72 +264,103 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 24,
-    padding: 24,
-    backgroundColor: '#fff',
+    gap: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: colors.background,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#111',
+    fontSize: fontSize.xl,
+    fontWeight: '800',
+    color: colors.text,
   },
   settings: {
     alignSelf: 'stretch',
-    gap: 16,
-    paddingHorizontal: 8,
+    gap: spacing.md,
+    paddingHorizontal: spacing.md + 4,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.card,
+    borderRadius: radius.md,
   },
   label: {
-    fontSize: 20,
-    color: '#666',
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: colors.textMuted,
   },
   notSaved: {
-    fontSize: 14,
-    color: '#9ca3af',
+    fontSize: fontSize.sm,
+    color: colors.textFaint,
+  },
+  adjustRow: {
+    flexDirection: 'row',
+    gap: spacing.smd,
+  },
+  adjustButton: {
+    paddingHorizontal: spacing.md + 4,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  adjustButtonDisabled: {
+    opacity: 0.4,
+  },
+  adjustButtonText: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: colors.primary,
   },
   quote: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#2563eb',
+    fontSize: fontSize.lg,
+    fontWeight: '800',
+    color: colors.primary,
     textAlign: 'center',
-    minHeight: 48,
-    paddingHorizontal: 16,
+    minHeight: 64,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.smd,
+    backgroundColor: colors.accentSoft,
+    borderRadius: radius.md,
+    overflow: 'hidden',
   },
   countdown: {
-    fontSize: 96,
-    fontWeight: '700',
+    fontSize: fontSize.countdown,
+    fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    color: '#111',
+    color: colors.primary,
   },
   button: {
     minWidth: 180,
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 999,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonPrimary: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.primary,
+    ...buttonShadow,
   },
   buttonSecondary: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.card,
   },
   buttonDanger: {
-    backgroundColor: '#dc2626',
+    backgroundColor: colors.danger,
+    ...buttonShadow,
+    shadowColor: colors.danger,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
+    color: colors.white,
+    fontSize: fontSize.lg,
+    fontWeight: '700',
   },
   buttonTextSecondary: {
-    color: '#374151',
+    color: colors.text,
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.smd,
     alignSelf: 'stretch',
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.md - 8,
   },
   buttonRowItem: {
     flex: 1,

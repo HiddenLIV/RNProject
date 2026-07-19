@@ -1,4 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors, fontSize, radius, spacing } from '../theme';
 import { HangRecord } from '../lib/types';
 import { formatDuration } from './TimeDisplay';
 
@@ -23,12 +25,22 @@ export default function RecordItem({ record, isBest, onDelete }: Props) {
           <Text style={[styles.duration, isBest && styles.bestDuration]}>
             {formatDuration(record.durationMs)}
           </Text>
-          {isBest && <Text style={styles.bestBadge}>최고</Text>}
+          {isBest && (
+            <View style={styles.bestBadge}>
+              <Ionicons name="trophy" size={12} color={colors.white} />
+              <Text style={styles.bestBadgeText}>최고</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.date}>{formatMeasuredAt(record.measuredAt)}</Text>
       </View>
-      <Pressable style={styles.deleteButton} onPress={() => onDelete(record.id)}>
-        <Text style={styles.deleteText}>삭제</Text>
+      <Pressable
+        style={styles.deleteButton}
+        onPress={() => onDelete(record.id)}
+        hitSlop={8}
+        accessibilityLabel="기록 삭제"
+      >
+        <Ionicons name="trash-outline" size={18} color={colors.danger} />
       </Pressable>
     </View>
   );
@@ -39,13 +51,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#f3f4f6',
+    paddingVertical: spacing.smd,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.sm,
+    backgroundColor: colors.card,
   },
   bestRow: {
-    backgroundColor: '#dbeafe',
+    backgroundColor: colors.accentSoft,
   },
   info: {
     gap: 2,
@@ -53,37 +65,37 @@ const styles = StyleSheet.create({
   durationLine: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   duration: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: fontSize.xl - 2,
+    fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    color: '#111',
+    color: colors.text,
   },
   bestDuration: {
-    color: '#1d4ed8',
+    color: colors.primaryPressed,
   },
   bestBadge: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#fff',
-    backgroundColor: '#2563eb',
-    paddingHorizontal: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 999,
-    overflow: 'hidden',
+    borderRadius: radius.pill,
+  },
+  bestBadgeText: {
+    fontSize: fontSize.xs,
+    fontWeight: '700',
+    color: colors.white,
   },
   date: {
-    fontSize: 13,
-    color: '#6b7280',
+    fontSize: fontSize.sm - 1,
+    color: colors.textMuted,
   },
   deleteButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  deleteText: {
-    fontSize: 14,
-    color: '#dc2626',
+    paddingHorizontal: spacing.smd,
+    paddingVertical: spacing.sm,
   },
 });

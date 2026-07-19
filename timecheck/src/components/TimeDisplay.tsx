@@ -1,4 +1,5 @@
 import { StyleSheet, Text } from 'react-native';
+import { colors, fontSize } from '../theme';
 
 export function formatDuration(ms: number): string {
   const clamped = Math.max(0, ms);
@@ -18,9 +19,9 @@ export default function TimeDisplay({ ms }: Props) {
 
 const styles = StyleSheet.create({
   time: {
-    fontSize: 72,
-    fontWeight: '700',
+    fontSize: fontSize.display,
+    fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    color: '#111',
+    color: colors.text,
   },
 });

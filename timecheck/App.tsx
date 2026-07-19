@@ -5,6 +5,7 @@ import { BackHandler, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import HangScreen from './src/screens/HangScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import { colors } from './src/theme';
 
 type Screen = 'home' | 'hang';
 
@@ -50,6 +51,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
 });

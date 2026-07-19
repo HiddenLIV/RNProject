@@ -1,5 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { colors, fontSize, radius, spacing } from '../theme';
 
 type Props = {
   label: string;
@@ -42,8 +44,8 @@ export default function SecondsStepper({ label, value, min, max, step = 1, edita
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.controls}>
-        <Pressable style={styles.button} onPress={decrease}>
-          <Text style={styles.buttonText}>−</Text>
+        <Pressable style={styles.button} onPress={decrease} hitSlop={4}>
+          <Ionicons name="remove" size={20} color={colors.primary} />
         </Pressable>
         {editing ? (
           <TextInput
@@ -62,8 +64,8 @@ export default function SecondsStepper({ label, value, min, max, step = 1, edita
             <Text style={[styles.value, editable && styles.valueEditable]}>{`${value}초`}</Text>
           </Pressable>
         )}
-        <Pressable style={styles.button} onPress={increase}>
-          <Text style={styles.buttonText}>+</Text>
+        <Pressable style={styles.button} onPress={increase} hitSlop={4}>
+          <Ionicons name="add" size={20} color={colors.primary} />
         </Pressable>
       </View>
     </View>
@@ -78,43 +80,40 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   label: {
-    fontSize: 16,
-    color: '#374151',
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.textMuted,
   },
   controls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.smd,
   },
   button: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#e5e7eb',
+    borderRadius: radius.pill,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonText: {
-    fontSize: 22,
-    color: '#111',
-    lineHeight: 26,
-  },
   value: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111',
-    minWidth: 48,
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: colors.text,
+    minWidth: 52,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
   },
   valueEditable: {
     textDecorationLine: 'underline',
+    textDecorationColor: colors.primary,
   },
   input: {
     paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderWidth: 1,
-    borderColor: '#2563eb',
-    borderRadius: 8,
+    paddingHorizontal: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: radius.sm - 4,
   },
 });

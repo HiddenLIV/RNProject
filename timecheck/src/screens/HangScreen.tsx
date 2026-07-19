@@ -1,7 +1,9 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import RecordsScreen from './RecordsScreen';
 import TimerScreen from './TimerScreen';
+import { colors, fontSize, spacing } from '../theme';
 
 type Tab = 'timer' | 'records';
 
@@ -16,7 +18,7 @@ export default function HangScreen({ onBack }: Props) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={onBack} hitSlop={8}>
-          <Text style={styles.backText}>‹</Text>
+          <Ionicons name="chevron-back" size={26} color={colors.primary} />
         </Pressable>
         <Text style={styles.headerTitle}>매달리기</Text>
         <View style={styles.headerSpacer} />
@@ -24,9 +26,19 @@ export default function HangScreen({ onBack }: Props) {
       <View style={styles.content}>{tab === 'timer' ? <TimerScreen /> : <RecordsScreen />}</View>
       <View style={styles.tabBar}>
         <Pressable style={styles.tabButton} onPress={() => setTab('timer')}>
+          <Ionicons
+            name={tab === 'timer' ? 'timer' : 'timer-outline'}
+            size={22}
+            color={tab === 'timer' ? colors.primary : colors.textFaint}
+          />
           <Text style={[styles.tabText, tab === 'timer' && styles.tabTextActive]}>타이머</Text>
         </Pressable>
         <Pressable style={styles.tabButton} onPress={() => setTab('records')}>
+          <Ionicons
+            name={tab === 'records' ? 'list' : 'list-outline'}
+            size={22}
+            color={tab === 'records' ? colors.primary : colors.textFaint}
+          />
           <Text style={[styles.tabText, tab === 'records' && styles.tabTextActive]}>기록</Text>
         </Pressable>
       </View>
@@ -37,13 +49,13 @@ export default function HangScreen({ onBack }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
   },
   backButton: {
     width: 40,
@@ -51,17 +63,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backText: {
-    fontSize: 32,
-    lineHeight: 36,
-    color: '#2563eb',
-  },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111',
+    fontSize: fontSize.md,
+    fontWeight: '700',
+    color: colors.text,
   },
   headerSpacer: {
     width: 40,
@@ -72,19 +79,21 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#d1d5db',
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
   },
   tabButton: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 14,
+    gap: 2,
+    paddingVertical: spacing.smd,
   },
   tabText: {
-    fontSize: 16,
-    color: '#9ca3af',
-    fontWeight: '600',
+    fontSize: fontSize.sm,
+    color: colors.textFaint,
+    fontWeight: '700',
   },
   tabTextActive: {
-    color: '#2563eb',
+    color: colors.primary,
   },
 });

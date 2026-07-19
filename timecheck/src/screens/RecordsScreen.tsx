@@ -1,9 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { SectionList, StyleSheet, Text, View } from 'react-native';
 import RecordItem from '../components/RecordItem';
 import { formatDuration } from '../components/TimeDisplay';
 import { getRecords, removeRecord } from '../lib/storage';
 import { HangRecord } from '../lib/types';
+import { cardShadow, colors, fontSize, radius, spacing } from '../theme';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -50,14 +52,18 @@ export default function RecordsScreen() {
       <Text style={styles.title}>기록</Text>
       {records.length === 0 ? (
         <View style={styles.empty}>
+          <Ionicons name="body-outline" size={40} color={colors.textFaint} />
           <Text style={styles.emptyText}>아직 기록이 없습니다.{'\n'}타이머로 첫 측정을 해보세요.</Text>
         </View>
       ) : (
         <>
           {bestRecord && (
             <View style={styles.bestCard}>
-              <View>
-                <Text style={styles.bestLabel}>최고 기록</Text>
+              <View style={styles.bestInfo}>
+                <View style={styles.bestLabelRow}>
+                  <Ionicons name="trophy" size={14} color={colors.white} />
+                  <Text style={styles.bestLabel}>최고 기록</Text>
+                </View>
                 <Text style={styles.bestDate}>{formatDateTitle(bestRecord.measuredAt)}</Text>
               </View>
               <Text style={styles.bestValue}>{formatDuration(bestRecord.durationMs)}</Text>
@@ -84,59 +90,69 @@ export default function RecordsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.md,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#111',
-    marginVertical: 16,
+    fontSize: fontSize.xl,
+    fontWeight: '800',
+    color: colors.text,
+    marginVertical: spacing.md,
   },
   list: {
-    gap: 8,
-    paddingBottom: 24,
+    gap: spacing.sm,
+    paddingBottom: spacing.lg,
   },
   sectionHeader: {
-    fontSize: 14,
+    fontSize: fontSize.sm,
     fontWeight: '700',
-    color: '#6b7280',
-    marginTop: 8,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
   },
   bestCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#2563eb',
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginBottom: 16,
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md + 4,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+    ...cardShadow,
+  },
+  bestInfo: {
+    gap: 2,
+  },
+  bestLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   bestLabel: {
-    fontSize: 14,
+    fontSize: fontSize.sm,
     fontWeight: '700',
-    color: '#bfdbfe',
+    color: colors.white,
   },
   bestDate: {
-    fontSize: 12,
-    color: '#bfdbfe',
+    fontSize: fontSize.xs,
+    color: colors.accentSoft,
     marginTop: 2,
   },
   bestValue: {
-    fontSize: 32,
-    fontWeight: '700',
+    fontSize: fontSize.xl + 4,
+    fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    color: '#fff',
+    color: colors.white,
   },
   empty: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.smd,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#6b7280',
+    fontSize: fontSize.base,
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 24,
   },
