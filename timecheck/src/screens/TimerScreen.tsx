@@ -2,11 +2,11 @@ import { AudioPlayer, createAudioPlayer } from 'expo-audio';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import SecondsStepper from '../components/SecondsStepper';
+import NumberStepper from '../components/NumberStepper';
 import TimeDisplay from '../components/TimeDisplay';
 import { speakCountdown, speakSecond, speakStart, stopFeedback } from '../lib/feedback';
 import { QUOTES } from '../lib/quotes';
-import { addRecord, createRecordId, getSettings, removeRecord, saveSettings, updateRecord } from '../lib/storage';
+import { addRecord, createId, getSettings, removeRecord, saveSettings, updateRecord } from '../lib/storage';
 import {
   BELL_INTERVAL_MAX_SECONDS,
   BELL_INTERVAL_MIN_SECONDS,
@@ -14,6 +14,7 @@ import {
   COUNTDOWN_MAX_SECONDS,
   COUNTDOWN_MIN_SECONDS,
   DEFAULT_SETTINGS,
+  Exercise,
   Settings,
 } from '../lib/types';
 import { useHangTimer } from '../lib/useHangTimer';
@@ -29,17 +30,21 @@ type PendingResult = {
   measuredAt: string; // 정지 시각(ISO) — 보정 중 시간이 흘러도 측정 일시는 그대로 유지
 };
 
-export default function TimerScreen() {
+type Props = {
+  exercise: Exercise;
+};
+
+export default function TimerScreen({ exercise }: Props) {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
-    getSettings().then(setSettings);
-  }, []);
+    getSettings(exercise.id).then(setSettings);
+  }, [exercise.id]);
 
   const updateSettings = (patch: Partial<Settings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...patch };
-      saveSettings(next);
+      saveSettings(exercise.id, next);
       return next;
     });
   };
@@ -142,8 +147,8 @@ export default function TimerScreen() {
     if (durationMs == null) return;
     const measuredAt = new Date().toISOString();
     if (durationMs >= MIN_RECORD_MS) {
-      const id = createRecordId();
-      addRecord({ id, measuredAt, durationMs });
+      const id = createId();
+      addRecord(exercise.id, { id, measuredAt, durationMs });
       setPending({ id, durationMs, measuredAt });
     } else {
       setPending({ id: null, durationMs, measuredAt });
@@ -155,15 +160,15 @@ export default function TimerScreen() {
     const durationMs = Math.max(0, pending.durationMs + deltaMs);
     if (durationMs >= MIN_RECORD_MS) {
       if (pending.id) {
-        updateRecord(pending.id, { durationMs });
+        updateRecord(exercise.id, pending.id, { durationMs });
         setPending({ ...pending, durationMs });
       } else {
-        const id = createRecordId();
-        addRecord({ id, measuredAt: pending.measuredAt, durationMs });
+        const id = createId();
+        addRecord(exercise.id, { id, measuredAt: pending.measuredAt, durationMs });
         setPending({ ...pending, id, durationMs });
       }
     } else {
-      if (pending.id) removeRecord(pending.id);
+      if (pending.id) removeRecord(exercise.id, pending.id);
       setPending({ ...pending, id: null, durationMs });
     }
   };
@@ -180,9 +185,9 @@ export default function TimerScreen() {
     <View style={styles.container}>
       {timer.phase === 'idle' && (
         <>
-          <Text style={styles.title}>매달리기 타이머</Text>
+          <Text style={styles.title}>{exercise.name} 타이머</Text>
           <View style={styles.settings}>
-            <SecondsStepper
+            <NumberStepper
               label="준비 카운트다운"
               value={settings.countdownSeconds}
               min={COUNTDOWN_MIN_SECONDS}
@@ -190,7 +195,7 @@ export default function TimerScreen() {
               editable
               onChange={(v) => updateSettings({ countdownSeconds: v })}
             />
-            <SecondsStepper
+            <NumberStepper
               label="벨 간격"
               value={settings.bellIntervalSeconds}
               min={BELL_INTERVAL_MIN_SECONDS}

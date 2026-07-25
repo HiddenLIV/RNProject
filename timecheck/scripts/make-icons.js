@@ -1,4 +1,6 @@
-// timecheck 앱 아이콘 생성: 봉에 매달린 사람 실루엣 (데드행)
+// timecheck 앱 아이콘 생성: 아령 실루엣 (매달리기 전용에서 범용 운동 일지로 확장됨에 따라
+// 데드행 전용 모티프 대신 모든 운동을 아우르는 아령으로 교체, 색상도 src/theme.ts의
+// 네이비(primary)+웜크림(background) 팔레트로 통일)
 // 실행: node scripts/make-icons.js  (→ assets/ 아래 6개 PNG 재생성)
 // 의존성 없이 PNG를 직접 인코딩한다 (RGBA, zlib은 node 내장)
 const fs = require('fs');
@@ -59,24 +61,28 @@ function distSeg(px, py, ax, ay, bx, by) {
   return Math.hypot(dx, dy);
 }
 
-// 봉 + 매달린 사람. 반환: 흰색 커버리지에 쓸 signed distance (음수 = 내부)
+function sdRoundBox(x, y, cx, cy, halfW, halfH, r) {
+  const qx = Math.abs(x - cx) - halfW + r;
+  const qy = Math.abs(y - cy) - halfH + r;
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
+}
+
+// 아령(바 + 안쪽/바깥쪽 2단 원판). 반환: 흰색 커버리지에 쓸 signed distance (음수 = 내부)
 function motifSdf(x, y) {
   const shapes = [
-    distSeg(x, y, 150, 275, 874, 275) - 27, // 철봉
-    distSeg(x, y, 375, 285, 470, 575) - 23, // 왼팔
-    distSeg(x, y, 649, 285, 554, 575) - 23, // 오른팔
-    Math.hypot(x - 512, y - 452) - 66, // 머리
-    distSeg(x, y, 512, 500, 512, 755) - 32, // 몸통 (머리 아래까지 이어 목 틈을 없앤다)
-    distSeg(x, y, 506, 748, 464, 928) - 25, // 왼다리
-    distSeg(x, y, 518, 748, 560, 928) - 25, // 오른다리
+    distSeg(x, y, 344, 512, 680, 512) - 22, // 바 (얇게, 원판과 대비)
+    sdRoundBox(x, y, 310, 512, 34, 96, 18), // 왼쪽 안쪽 원판
+    sdRoundBox(x, y, 210, 512, 56, 150, 28), // 왼쪽 바깥쪽 원판
+    sdRoundBox(x, y, 714, 512, 34, 96, 18), // 오른쪽 안쪽 원판
+    sdRoundBox(x, y, 814, 512, 56, 150, 28), // 오른쪽 바깥쪽 원판
   ];
   return Math.min(...shapes);
 }
 
 function gradientBg(y, size) {
   const t = y / size;
-  const top = [0x3b, 0x82, 0xf6];
-  const bottom = [0x1e, 0x40, 0xaf];
+  const top = [0x22, 0x34, 0x4f]; // colors.primary
+  const bottom = [0x18, 0x25, 0x34]; // colors.primaryPressed
   return top.map((c, i) => Math.round(c + (bottom[i] - c) * t));
 }
 
@@ -119,8 +125,8 @@ const jobs = [
   ['android-icon-background.png', render(1024, 'background')],
   ['android-icon-monochrome.png', render(1024, 'monochrome', 0.62)],
   ['favicon.png', render(196, 'icon')],
-  // 스플래시 배경은 흰색이므로 실루엣을 브랜드 파랑으로
-  ['splash-icon.png', render(1024, 'foreground', 0.62, [30, 64, 175])],
+  // 스플래시 배경은 흰색이므로 실루엣을 브랜드 네이비로
+  ['splash-icon.png', render(1024, 'foreground', 0.62, [0x22, 0x34, 0x4f])],
 ];
 for (const [name, buf] of jobs) {
   fs.writeFileSync(path.join(outDir, name), buf);

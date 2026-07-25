@@ -1,18 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Exercise } from '../lib/types';
 import RecordsScreen from './RecordsScreen';
+import RepsScreen from './RepsScreen';
 import TimerScreen from './TimerScreen';
 import { colors, fontSize, spacing } from '../theme';
 
-type Tab = 'timer' | 'records';
+type Tab = 'measure' | 'records';
 
 type Props = {
+  exercise: Exercise;
   onBack: () => void;
 };
 
-export default function HangScreen({ onBack }: Props) {
-  const [tab, setTab] = useState<Tab>('timer');
+export default function ExerciseScreen({ exercise, onBack }: Props) {
+  const [tab, setTab] = useState<Tab>('measure');
 
   return (
     <View style={styles.container}>
@@ -20,18 +23,28 @@ export default function HangScreen({ onBack }: Props) {
         <Pressable style={styles.backButton} onPress={onBack} hitSlop={8}>
           <Ionicons name="chevron-back" size={26} color={colors.primary} />
         </Pressable>
-        <Text style={styles.headerTitle}>매달리기</Text>
+        <Text style={styles.headerTitle}>{exercise.name}</Text>
         <View style={styles.headerSpacer} />
       </View>
-      <View style={styles.content}>{tab === 'timer' ? <TimerScreen /> : <RecordsScreen />}</View>
+      <View style={styles.content}>
+        {tab === 'measure' ? (
+          exercise.measureType === 'time' ? (
+            <TimerScreen exercise={exercise} />
+          ) : (
+            <RepsScreen exercise={exercise} />
+          )
+        ) : (
+          <RecordsScreen exercise={exercise} />
+        )}
+      </View>
       <View style={styles.tabBar}>
-        <Pressable style={styles.tabButton} onPress={() => setTab('timer')}>
+        <Pressable style={styles.tabButton} onPress={() => setTab('measure')}>
           <Ionicons
-            name={tab === 'timer' ? 'timer' : 'timer-outline'}
+            name={tab === 'measure' ? 'timer' : 'timer-outline'}
             size={22}
-            color={tab === 'timer' ? colors.primary : colors.textFaint}
+            color={tab === 'measure' ? colors.primary : colors.textFaint}
           />
-          <Text style={[styles.tabText, tab === 'timer' && styles.tabTextActive]}>타이머</Text>
+          <Text style={[styles.tabText, tab === 'measure' && styles.tabTextActive]}>측정</Text>
         </Pressable>
         <Pressable style={styles.tabButton} onPress={() => setTab('records')}>
           <Ionicons

@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { SectionList, StyleSheet, Text, View } from 'react-native';
 import RecordItem from '../components/RecordItem';
+import RepsRecordItem, { totalReps } from '../components/RepsRecordItem';
 import { formatDuration } from '../components/TimeDisplay';
-import { getRecords, removeRecord } from '../lib/storage';
-import { HangRecord } from '../lib/types';
+import { getRecords, getRepsRecords, removeRecord, removeRepsRecord } from '../lib/storage';
+import { Exercise, RepsRecord, TimeRecord } from '../lib/types';
 import { cardShadow, colors, fontSize, radius, spacing } from '../theme';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
@@ -15,74 +16,135 @@ function formatDateTitle(iso: string): string {
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${WEEKDAYS[d.getDay()]})`;
 }
 
-export default function RecordsScreen() {
-  const [records, setRecords] = useState<HangRecord[]>([]);
+// 기록이 최신순이므로 삽입 순서를 보존하는 Map으로 묶으면 섹션도 최신 날짜부터 나온다
+function groupByDate<T extends { measuredAt: string }>(records: T[]): { title: string; data: T[] }[] {
+  const byDate = new Map<string, T[]>();
+  for (const record of records) {
+    const title = formatDateTitle(record.measuredAt);
+    const group = byDate.get(title);
+    if (group) {
+      group.push(record);
+    } else {
+      byDate.set(title, [record]);
+    }
+  }
+  return [...byDate.entries()].map(([title, data]) => ({ title, data }));
+}
+
+type Props = {
+  exercise: Exercise;
+};
+
+export default function RecordsScreen({ exercise }: Props) {
+  if (exercise.measureType === 'time') {
+    return <TimeRecordsScreen exercise={exercise} />;
+  }
+  return <RepsRecordsScreen exercise={exercise} />;
+}
+
+function TimeRecordsScreen({ exercise }: Props) {
+  const [records, setRecords] = useState<TimeRecord[]>([]);
 
   useEffect(() => {
-    getRecords().then(setRecords);
-  }, []);
+    getRecords(exercise.id).then(setRecords);
+  }, [exercise.id]);
 
   const handleDelete = async (id: string) => {
-    const next = await removeRecord(id);
+    const next = await removeRecord(exercise.id, id);
     setRecords(next);
   };
 
   const bestRecord =
-    records.length > 0
-      ? records.reduce((best, r) => (r.durationMs > best.durationMs ? r : best))
-      : null;
+    records.length > 0 ? records.reduce((best, r) => (r.durationMs > best.durationMs ? r : best)) : null;
 
-  // 기록이 최신순이므로 삽입 순서를 보존하는 Map으로 묶으면 섹션도 최신 날짜부터 나온다
-  const sections = useMemo(() => {
-    const byDate = new Map<string, HangRecord[]>();
-    for (const record of records) {
-      const title = formatDateTitle(record.measuredAt);
-      const group = byDate.get(title);
-      if (group) {
-        group.push(record);
-      } else {
-        byDate.set(title, [record]);
-      }
-    }
-    return [...byDate.entries()].map(([title, data]) => ({ title, data }));
-  }, [records]);
+  const sections = useMemo(() => groupByDate(records), [records]);
 
+  return (
+    <RecordsScaffold empty={records.length === 0}>
+      {bestRecord && (
+        <BestCard label="최고 기록" date={formatDateTitle(bestRecord.measuredAt)} value={formatDuration(bestRecord.durationMs)} />
+      )}
+      <SectionList
+        sections={sections}
+        keyExtractor={(r) => r.id}
+        contentContainerStyle={styles.list}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{section.title}</Text>}
+        renderItem={({ item }) => (
+          <RecordItem record={item} isBest={item.id === bestRecord?.id} onDelete={handleDelete} />
+        )}
+      />
+    </RecordsScaffold>
+  );
+}
+
+function RepsRecordsScreen({ exercise }: Props) {
+  const [records, setRecords] = useState<RepsRecord[]>([]);
+
+  useEffect(() => {
+    getRepsRecords(exercise.id).then(setRecords);
+  }, [exercise.id]);
+
+  const handleDelete = async (id: string) => {
+    const next = await removeRepsRecord(exercise.id, id);
+    setRecords(next);
+  };
+
+  const bestRecord =
+    records.length > 0 ? records.reduce((best, r) => (totalReps(r) > totalReps(best) ? r : best)) : null;
+
+  const sections = useMemo(() => groupByDate(records), [records]);
+
+  return (
+    <RecordsScaffold empty={records.length === 0}>
+      {bestRecord && (
+        <BestCard
+          label="최고 기록"
+          date={formatDateTitle(bestRecord.measuredAt)}
+          value={`${bestRecord.sets.length}세트 · ${totalReps(bestRecord)}회`}
+        />
+      )}
+      <SectionList
+        sections={sections}
+        keyExtractor={(r) => r.id}
+        contentContainerStyle={styles.list}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{section.title}</Text>}
+        renderItem={({ item }) => (
+          <RepsRecordItem record={item} isBest={item.id === bestRecord?.id} onDelete={handleDelete} />
+        )}
+      />
+    </RecordsScaffold>
+  );
+}
+
+function RecordsScaffold({ empty, children }: { empty: boolean; children: ReactNode }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>기록</Text>
-      {records.length === 0 ? (
+      {empty ? (
         <View style={styles.empty}>
           <Ionicons name="body-outline" size={40} color={colors.textFaint} />
-          <Text style={styles.emptyText}>아직 기록이 없습니다.{'\n'}타이머로 첫 측정을 해보세요.</Text>
+          <Text style={styles.emptyText}>아직 기록이 없습니다.{'\n'}측정으로 첫 기록을 남겨보세요.</Text>
         </View>
       ) : (
-        <>
-          {bestRecord && (
-            <View style={styles.bestCard}>
-              <View style={styles.bestInfo}>
-                <View style={styles.bestLabelRow}>
-                  <Ionicons name="trophy" size={14} color={colors.white} />
-                  <Text style={styles.bestLabel}>최고 기록</Text>
-                </View>
-                <Text style={styles.bestDate}>{formatDateTitle(bestRecord.measuredAt)}</Text>
-              </View>
-              <Text style={styles.bestValue}>{formatDuration(bestRecord.durationMs)}</Text>
-            </View>
-          )}
-          <SectionList
-            sections={sections}
-            keyExtractor={(r) => r.id}
-            contentContainerStyle={styles.list}
-            stickySectionHeadersEnabled={false}
-            renderSectionHeader={({ section }) => (
-              <Text style={styles.sectionHeader}>{section.title}</Text>
-            )}
-            renderItem={({ item }) => (
-              <RecordItem record={item} isBest={item.id === bestRecord?.id} onDelete={handleDelete} />
-            )}
-          />
-        </>
+        children
       )}
+    </View>
+  );
+}
+
+function BestCard({ label, date, value }: { label: string; date: string; value: string }) {
+  return (
+    <View style={styles.bestCard}>
+      <View style={styles.bestInfo}>
+        <View style={styles.bestLabelRow}>
+          <Ionicons name="trophy" size={14} color={colors.white} />
+          <Text style={styles.bestLabel}>{label}</Text>
+        </View>
+        <Text style={styles.bestDate}>{date}</Text>
+      </View>
+      <Text style={styles.bestValue}>{value}</Text>
     </View>
   );
 }

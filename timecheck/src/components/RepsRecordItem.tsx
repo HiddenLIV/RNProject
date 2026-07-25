@@ -1,29 +1,39 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { RepsRecord } from '../lib/types';
 import { colors, fontSize, radius, spacing } from '../theme';
-import { TimeRecord } from '../lib/types';
-import { formatDuration } from './TimeDisplay';
 
 type Props = {
-  record: TimeRecord;
+  record: RepsRecord;
   isBest: boolean;
   onDelete: (id: string) => void;
 };
 
-// 날짜는 섹션 헤더가 보여주므로 행에는 시각만 표시한다
 function formatMeasuredAt(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function RecordItem({ record, isBest, onDelete }: Props) {
+export function totalReps(record: RepsRecord): number {
+  return record.sets.reduce((sum, s) => sum + s.reps, 0);
+}
+
+function formatSet(set: RepsRecord['sets'][number], weightUnit?: 'kg' | 'lb'): string {
+  if (set.weight != null && weightUnit) {
+    const unitLabel = weightUnit === 'lb' ? '파운드' : 'kg';
+    return `${set.weight}${unitLabel}×${set.reps}회`;
+  }
+  return `${set.reps}회`;
+}
+
+export default function RepsRecordItem({ record, isBest, onDelete }: Props) {
   return (
     <View style={[styles.row, isBest && styles.bestRow]}>
       <View style={styles.info}>
         <View style={styles.durationLine}>
           <Text style={[styles.duration, isBest && styles.bestDuration]}>
-            {formatDuration(record.durationMs)}
+            {record.sets.length}세트 · {totalReps(record)}회
           </Text>
           {isBest && (
             <View style={styles.bestBadge}>
@@ -32,6 +42,9 @@ export default function RecordItem({ record, isBest, onDelete }: Props) {
             </View>
           )}
         </View>
+        <Text style={styles.setsText}>
+          {record.sets.map((s) => formatSet(s, record.weightUnit)).join(', ')}
+        </Text>
         <Text style={styles.date}>{formatMeasuredAt(record.measuredAt)}</Text>
       </View>
       <Pressable
@@ -61,6 +74,7 @@ const styles = StyleSheet.create({
   },
   info: {
     gap: 2,
+    flexShrink: 1,
   },
   durationLine: {
     flexDirection: 'row',
@@ -89,6 +103,10 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     fontWeight: '700',
     color: colors.white,
+  },
+  setsText: {
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
   },
   date: {
     fontSize: fontSize.sm - 1,

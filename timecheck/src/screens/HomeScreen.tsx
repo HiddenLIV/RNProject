@@ -1,43 +1,82 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { EXERCISE_MENUS } from '../lib/menu';
+import EditExerciseModal from '../components/EditExerciseModal';
+import MeasureTypeTag from '../components/MeasureTypeTag';
+import { getExercises } from '../lib/storage';
+import { Exercise } from '../lib/types';
 import { cardShadow, colors, fontSize, radius, spacing } from '../theme';
 
-export default function HomeScreen({ onSelect }: { onSelect: (menuId: string) => void }) {
+type Props = {
+  onSelectExercise: (exercise: Exercise) => void;
+  onAddExercise: () => void;
+};
+
+export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+
+  const loadExercises = () => {
+    getExercises().then(setExercises);
+  };
+
+  useEffect(() => {
+    loadExercises();
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>오늘도 화이팅!</Text>
+      <Text style={styles.title}>나의 운동 일지</Text>
       <Text style={styles.subtitle}>운동을 골라 시작해 보세요</Text>
       <FlatList
-        data={EXERCISE_MENUS}
-        keyExtractor={(menu) => menu.id}
+        data={exercises}
+        keyExtractor={(exercise) => exercise.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <Pressable
-            style={({ pressed }) => [
-              styles.card,
-              !item.available && styles.cardDisabled,
-              pressed && item.available && styles.cardPressed,
-            ]}
-            disabled={!item.available}
-            onPress={() => onSelect(item.id)}
+            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            onPress={() => onSelectExercise(item)}
           >
             <View style={styles.iconBadge}>
               <Ionicons name={item.icon} size={26} color={colors.primary} />
             </View>
             <View style={styles.cardInfo}>
-              <Text style={[styles.cardTitle, !item.available && styles.cardTitleDisabled]}>
-                {item.title}
-              </Text>
-              <Text style={styles.cardDescription}>{item.description}</Text>
+              <Text style={styles.cardTitle}>{item.name}</Text>
+              <MeasureTypeTag measureType={item.measureType} />
             </View>
-            {item.available ? (
-              <Ionicons name="chevron-forward" size={22} color={colors.textFaint} style={styles.chevron} />
-            ) : (
-              <Text style={styles.comingSoon}>준비 중</Text>
+            {!item.builtin && (
+              <Pressable
+                style={styles.editButton}
+                onPress={() => setEditingExercise(item)}
+                hitSlop={8}
+                accessibilityLabel={`${item.name} 수정`}
+              >
+                <Ionicons name="pencil" size={18} color={colors.textMuted} />
+              </Pressable>
             )}
+            <Ionicons name="chevron-forward" size={22} color={colors.textFaint} style={styles.chevron} />
           </Pressable>
         )}
+        ListFooterComponent={
+          <Pressable
+            style={({ pressed }) => [styles.addCard, pressed && styles.cardPressed]}
+            onPress={onAddExercise}
+          >
+            <View style={[styles.iconBadge, styles.addIconBadge]}>
+              <Ionicons name="add" size={26} color={colors.accent} />
+            </View>
+            <Text style={styles.addCardText}>운동 추가</Text>
+          </Pressable>
+        }
+      />
+      <EditExerciseModal
+        exercise={editingExercise}
+        existingNames={exercises.filter((e) => e.id !== editingExercise?.id).map((e) => e.name)}
+        onClose={() => setEditingExercise(null)}
+        onSaved={() => {
+          setEditingExercise(null);
+          loadExercises();
+        }}
       />
     </View>
   );
@@ -78,10 +117,24 @@ const styles = StyleSheet.create({
   cardPressed: {
     opacity: 0.85,
   },
-  cardDisabled: {
-    opacity: 0.5,
-    shadowOpacity: 0,
-    elevation: 0,
+  addCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.cardMuted,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    paddingHorizontal: spacing.md + 4,
+    paddingVertical: spacing.md + 2,
+  },
+  addIconBadge: {
+    backgroundColor: colors.accentSoft,
+  },
+  addCardText: {
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: colors.text,
   },
   iconBadge: {
     width: 48,
@@ -100,27 +153,13 @@ const styles = StyleSheet.create({
   chevron: {
     marginLeft: spacing.smd,
   },
+  editButton: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+  },
   cardTitle: {
     fontSize: fontSize.lg,
     fontWeight: '700',
     color: colors.text,
-  },
-  cardTitleDisabled: {
-    color: colors.textMuted,
-  },
-  cardDescription: {
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-  },
-  comingSoon: {
-    fontSize: fontSize.xs + 1,
-    fontWeight: '700',
-    color: colors.textMuted,
-    backgroundColor: colors.cardMuted,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-    overflow: 'hidden',
-    marginLeft: spacing.smd,
   },
 });

@@ -3,14 +3,16 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { BackHandler, StyleSheet } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import HangScreen from './src/screens/HangScreen';
+import AddExerciseScreen from './src/screens/AddExerciseScreen';
+import ExerciseScreen from './src/screens/ExerciseScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import { Exercise } from './src/lib/types';
 import { colors } from './src/theme';
 
-type Screen = 'home' | 'hang';
+type Screen = { name: 'home' } | { name: 'exercise'; exercise: Exercise } | { name: 'addExercise' };
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('home');
+  const [screen, setScreen] = useState<Screen>({ name: 'home' });
 
   useEffect(() => {
     // playsInSilentMode: 무음 스위치가 켜져 있어도 초 읽기 음성이 나오도록
@@ -18,11 +20,11 @@ export default function App() {
     setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'doNotMix' });
   }, []);
 
-  // 안드로이드 하드웨어/제스처 뒤로 가기: 메뉴 화면에서는 홈으로, 홈에서는 기본 동작(앱 종료)
+  // 안드로이드 하드웨어/제스처 뒤로 가기: 홈이 아니면 홈으로, 홈에서는 기본 동작(앱 종료)
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (screen !== 'home') {
-        setScreen('home');
+      if (screen.name !== 'home') {
+        setScreen({ name: 'home' });
         return true;
       }
       return false;
@@ -30,17 +32,23 @@ export default function App() {
     return () => sub.remove();
   }, [screen]);
 
-  const handleSelectMenu = (menuId: string) => {
-    if (menuId === 'hang') setScreen('hang');
-  };
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
-        {screen === 'home' ? (
-          <HomeScreen onSelect={handleSelectMenu} />
-        ) : (
-          <HangScreen onBack={() => setScreen('home')} />
+        {screen.name === 'home' && (
+          <HomeScreen
+            onSelectExercise={(exercise) => setScreen({ name: 'exercise', exercise })}
+            onAddExercise={() => setScreen({ name: 'addExercise' })}
+          />
+        )}
+        {screen.name === 'exercise' && (
+          <ExerciseScreen exercise={screen.exercise} onBack={() => setScreen({ name: 'home' })} />
+        )}
+        {screen.name === 'addExercise' && (
+          <AddExerciseScreen
+            onBack={() => setScreen({ name: 'home' })}
+            onCreated={() => setScreen({ name: 'home' })}
+          />
         )}
         <StatusBar style="auto" />
       </SafeAreaView>
