@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HELP_SECTIONS } from '../lib/helpContent';
+import { useAccentColors } from '../lib/ThemeContext';
 import { colors, fontSize, radius, spacing } from '../theme';
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function HelpModal({ visible, onClose }: Props) {
+  const accent = useAccentColors();
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       {/* RN Modal은 App.tsx 최상위 SafeAreaView 바깥의 별도 레이어에 뜨기 때문에
@@ -25,8 +27,8 @@ export default function HelpModal({ visible, onClose }: Props) {
         <ScrollView contentContainerStyle={styles.content}>
           {HELP_SECTIONS.map((section) => (
             <View key={section.title} style={styles.section}>
-              <View style={styles.iconBadge}>
-                <Ionicons name={section.icon} size={26} color={colors.primary} />
+              <View style={[styles.iconBadge, { backgroundColor: accent.primarySoft }]}>
+                <Ionicons name={section.icon} size={26} color={accent.primary} />
               </View>
               <View style={styles.sectionText}>
                 <Text style={styles.sectionTitle}>{section.title}</Text>
@@ -83,7 +85,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },

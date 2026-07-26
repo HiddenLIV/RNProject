@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import { useAccentColors } from '../lib/ThemeContext';
 import { colors, fontSize, radius, spacing } from '../theme';
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 
 // 링크가 없는 운동에는 버튼조차 보이지 않는다 (스펙 요구사항 4)
 export default function GuideVideoPanel({ videoId }: Props) {
+  const accent = useAccentColors();
   const [expanded, setExpanded] = useState(false);
 
   if (!videoId) return null;
@@ -17,8 +19,8 @@ export default function GuideVideoPanel({ videoId }: Props) {
   return (
     <View style={styles.container}>
       <Pressable style={styles.toggle} onPress={() => setExpanded((v) => !v)}>
-        <Ionicons name={expanded ? 'chevron-up' : 'play-circle-outline'} size={18} color={colors.accent} />
-        <Text style={styles.toggleText}>자세 영상 보기</Text>
+        <Ionicons name={expanded ? 'chevron-up' : 'play-circle-outline'} size={18} color={accent.accent} />
+        <Text style={[styles.toggleText, { color: accent.accent }]}>자세 영상 보기</Text>
       </Pressable>
       {expanded && (
         <View style={styles.player}>
@@ -46,7 +48,6 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.accent,
   },
   player: {
     marginTop: spacing.sm,

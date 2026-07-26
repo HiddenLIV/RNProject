@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useAccentColors } from '../lib/ThemeContext';
 import { colors, fontSize, radius, spacing } from '../theme';
 
 type Props = {
@@ -30,6 +31,7 @@ export default function NumberStepper({
   compact = false,
   onChange,
 }: Props) {
+  const accent = useAccentColors();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
 
@@ -68,12 +70,16 @@ export default function NumberStepper({
     <View style={[styles.row, compact && styles.rowCompact]}>
       {label !== '' && <Text style={styles.label}>{label}</Text>}
       <View style={[styles.controls, compact && styles.controlsCompact]}>
-        <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={decrease} hitSlop={4}>
-          <Ionicons name="remove" size={compact ? 15 : 20} color={colors.primary} />
+        <Pressable
+          style={[styles.button, { backgroundColor: accent.primarySoft }, compact && styles.buttonCompact]}
+          onPress={decrease}
+          hitSlop={4}
+        >
+          <Ionicons name="remove" size={compact ? 15 : 20} color={accent.primary} />
         </Pressable>
         {editing ? (
           <TextInput
-            style={[styles.value, compact && styles.valueCompact, styles.input]}
+            style={[styles.value, compact && styles.valueCompact, styles.input, { borderColor: accent.primary }]}
             value={draft}
             onChangeText={handleDraftChange}
             keyboardType="number-pad"
@@ -85,11 +91,21 @@ export default function NumberStepper({
           />
         ) : (
           <Pressable onPress={startEditing}>
-            <Text style={[styles.value, compact && styles.valueCompact, editable && styles.valueEditable]}>{`${value}${unit}`}</Text>
+            <Text
+              style={[
+                styles.value,
+                compact && styles.valueCompact,
+                editable && { textDecorationLine: 'underline', textDecorationColor: accent.primary },
+              ]}
+            >{`${value}${unit}`}</Text>
           </Pressable>
         )}
-        <Pressable style={[styles.button, compact && styles.buttonCompact]} onPress={increase} hitSlop={4}>
-          <Ionicons name="add" size={compact ? 15 : 20} color={colors.primary} />
+        <Pressable
+          style={[styles.button, { backgroundColor: accent.primarySoft }, compact && styles.buttonCompact]}
+          onPress={increase}
+          hitSlop={4}
+        >
+          <Ionicons name="add" size={compact ? 15 : 20} color={accent.primary} />
         </Pressable>
       </View>
     </View>
@@ -123,7 +139,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -143,15 +158,10 @@ const styles = StyleSheet.create({
     minWidth: 36,
     fontSize: fontSize.sm,
   },
-  valueEditable: {
-    textDecorationLine: 'underline',
-    textDecorationColor: colors.primary,
-  },
   input: {
     paddingVertical: 4,
     paddingHorizontal: spacing.sm,
     borderWidth: 1.5,
-    borderColor: colors.primary,
     borderRadius: radius.sm - 4,
   },
 });

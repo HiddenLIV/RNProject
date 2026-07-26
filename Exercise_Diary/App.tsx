@@ -6,12 +6,21 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AddExerciseScreen from './src/screens/AddExerciseScreen';
 import ExerciseScreen from './src/screens/ExerciseScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import { ThemeProvider } from './src/lib/ThemeContext';
 import { Exercise } from './src/lib/types';
 import { colors } from './src/theme';
 
 type Screen = { name: 'home' } | { name: 'exercise'; exercise: Exercise } | { name: 'addExercise' };
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
 
   useEffect(() => {

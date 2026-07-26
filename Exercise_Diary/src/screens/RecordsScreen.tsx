@@ -5,6 +5,7 @@ import RecordItem from '../components/RecordItem';
 import RepsRecordItem, { totalReps } from '../components/RepsRecordItem';
 import { formatDuration } from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
+import { useAccentColors } from '../lib/ThemeContext';
 import { getRecords, getRepsRecords, removeRecord, removeRepsRecord } from '../lib/storage';
 import { Exercise, RepsRecord, TimeRecord } from '../lib/types';
 import { cardShadow, colors, fontSize, radius, spacing } from '../theme';
@@ -150,16 +151,17 @@ function RecordsScaffold({ empty, children }: { empty: boolean; children: ReactN
 }
 
 function BestCard({ label, date, value }: { label: string; date: string; value: string }) {
+  const accent = useAccentColors();
   return (
-    <View style={styles.bestCard}>
+    <View style={[styles.bestCard, { backgroundColor: accent.primary }]}>
       <View style={styles.bestInfo}>
         <View style={styles.bestLabelRow}>
-          <Ionicons name="trophy" size={14} color={colors.white} />
-          <Text style={styles.bestLabel}>{label}</Text>
+          <Ionicons name="trophy" size={14} color={accent.onPrimary} />
+          <Text style={[styles.bestLabel, { color: accent.onPrimary }]}>{label}</Text>
         </View>
-        <Text style={styles.bestDate}>{date}</Text>
+        <Text style={[styles.bestDate, { color: accent.accentSoft }]}>{date}</Text>
       </View>
-      <Text style={styles.bestValue}>{value}</Text>
+      <Text style={[styles.bestValue, { color: accent.onPrimary }]}>{value}</Text>
     </View>
   );
 }
@@ -190,7 +192,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.primary,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md + 4,
     paddingVertical: spacing.md,
@@ -212,7 +213,6 @@ const styles = StyleSheet.create({
   },
   bestDate: {
     fontSize: fontSize.xs,
-    color: colors.accentSoft,
     marginTop: 2,
   },
   bestValue: {

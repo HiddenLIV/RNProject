@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DEFAULT_SETTINGS, Exercise, RepsRecord, Settings, TimeRecord } from './types';
+import { DEFAULT_SETTINGS, Exercise, RepsRecord, Settings, ThemePresetId, TimeRecord } from './types';
 
 const EXERCISES_KEY = 'timecheck:exercises:v1';
+const THEME_KEY = 'timecheck:theme:v1';
 
 // id: 'hang'인 운동은 앱의 기존(최초) 데이터가 쓰던 고정 키를 그대로 쓴다 —
 // 그 덕분에 이번 기능을 위한 별도 마이그레이션이 필요 없다.
@@ -124,4 +125,16 @@ export async function saveSettings(exerciseId: string, settings: Settings): Prom
 
 export function createId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+const VALID_THEME_PRESET_IDS: ThemePresetId[] = ['default', 'orange', 'mint', 'red', 'blue'];
+
+export async function getThemePreset(): Promise<ThemePresetId> {
+  const raw = await readJson<ThemePresetId | null>(THEME_KEY, null);
+  return raw && VALID_THEME_PRESET_IDS.includes(raw) ? raw : 'default';
+}
+
+// 다른 값과 합쳐 쓰는 read-modify-write가 아니라 단순 덮어쓰기라 enqueueWrite 큐가 필요 없다.
+export function setThemePreset(id: ThemePresetId): Promise<void> {
+  return AsyncStorage.setItem(THEME_KEY, JSON.stringify(id));
 }

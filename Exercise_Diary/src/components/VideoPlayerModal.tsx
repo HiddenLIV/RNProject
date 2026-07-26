@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { useAccentColors } from '../lib/ThemeContext';
 import { resolveVideoUri } from '../lib/video';
 import { colors, fontSize, radius, spacing } from '../theme';
 
@@ -12,6 +13,7 @@ type Props = {
 
 // uri: undefined=조회 중, null=못 찾음(권한 없음·삭제됨), string=재생 가능
 export default function VideoPlayerModal({ assetId, onClose }: Props) {
+  const accent = useAccentColors();
   const [uri, setUri] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function VideoPlayerModal({ assetId, onClose }: Props) {
             <Ionicons name="close" size={22} color={colors.text} />
           </Pressable>
           <View style={styles.videoArea}>
-            {uri === undefined && <ActivityIndicator color={colors.primary} />}
+            {uri === undefined && <ActivityIndicator color={accent.primary} />}
             {uri === null && <Text style={styles.notFound}>영상을 찾을 수 없습니다</Text>}
             {uri && <VideoView player={player} style={styles.video} nativeControls />}
           </View>

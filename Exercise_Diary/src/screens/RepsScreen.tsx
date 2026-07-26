@@ -6,10 +6,11 @@ import CaptureVideoRow from '../components/CaptureVideoRow';
 import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import VideoPlayerModal from '../components/VideoPlayerModal';
+import { useAccentColors } from '../lib/ThemeContext';
 import { addRepsRecord, createId } from '../lib/storage';
 import { Exercise, RepsSet, VideoRef } from '../lib/types';
 import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from '../lib/video';
-import { buttonShadow, colors, fontSize, radius, spacing } from '../theme';
+import { buttonShadowShape, colors, fontSize, radius, spacing } from '../theme';
 
 type Props = {
   exercise: Exercise;
@@ -31,6 +32,7 @@ function newSet(prev?: EditableSet): EditableSet {
 }
 
 export default function RepsScreen({ exercise }: Props) {
+  const accent = useAccentColors();
   const [sets, setSets] = useState<EditableSet[]>([newSet()]);
   const [error, setError] = useState('');
   const [justSaved, setJustSaved] = useState(false);
@@ -198,17 +200,25 @@ export default function RepsScreen({ exercise }: Props) {
           ))}
 
           <Pressable style={styles.addSetRow} onPress={addSet}>
-            <Ionicons name="add" size={16} color={colors.primary} />
-            <Text style={styles.addSetText}>세트 추가</Text>
+            <Ionicons name="add" size={16} color={accent.primary} />
+            <Text style={[styles.addSetText, { color: accent.primary }]}>세트 추가</Text>
           </Pressable>
         </View>
 
         {error !== '' && <Text style={styles.error}>{error}</Text>}
-        {justSaved && <Text style={styles.saved}>저장되었습니다</Text>}
+        {justSaved && <Text style={[styles.saved, { color: accent.primary }]}>저장되었습니다</Text>}
       </ScrollView>
 
-      <Pressable style={[styles.saveButton, saving && styles.saveButtonDisabled]} onPress={handleSave} disabled={saving}>
-        <Text style={styles.saveButtonText}>기록 저장</Text>
+      <Pressable
+        style={[
+          styles.saveButton,
+          { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary },
+          saving && styles.saveButtonDisabled,
+        ]}
+        onPress={handleSave}
+        disabled={saving}
+      >
+        <Text style={[styles.saveButtonText, { color: accent.onPrimary }]}>기록 저장</Text>
       </Pressable>
 
       <CameraPermissionModal
@@ -333,7 +343,6 @@ const styles = StyleSheet.create({
   addSetText: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.primary,
   },
   error: {
     fontSize: fontSize.sm,
@@ -343,17 +352,14 @@ const styles = StyleSheet.create({
   saved: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.primary,
     textAlign: 'center',
   },
   saveButton: {
     marginBottom: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: radius.pill,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    ...buttonShadow,
   },
   saveButtonDisabled: {
     opacity: 0.6,

@@ -4,6 +4,8 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import EditExerciseModal from '../components/EditExerciseModal';
 import HelpModal from '../components/HelpModal';
 import MeasureTypeTag from '../components/MeasureTypeTag';
+import ThemeSwatchRow from '../components/ThemeSwatchRow';
+import { useAccentColors } from '../lib/ThemeContext';
 import { getExercises } from '../lib/storage';
 import { Exercise } from '../lib/types';
 import { cardShadow, colors, fontSize, radius, spacing } from '../theme';
@@ -14,6 +16,7 @@ type Props = {
 };
 
 export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
+  const accent = useAccentColors();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [helpVisible, setHelpVisible] = useState(false);
@@ -29,18 +32,21 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>나의 운동 일지</Text>
-          <Text style={styles.subtitle}>운동을 골라 시작해 보세요</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>나의 운동 일지</Text>
+            <Text style={styles.subtitle}>운동을 골라 시작해 보세요</Text>
+          </View>
+          <Pressable
+            style={styles.helpButton}
+            onPress={() => setHelpVisible(true)}
+            hitSlop={8}
+            accessibilityLabel="도움말"
+          >
+            <Ionicons name="help-circle-outline" size={28} color={accent.primary} />
+          </Pressable>
         </View>
-        <Pressable
-          style={styles.helpButton}
-          onPress={() => setHelpVisible(true)}
-          hitSlop={8}
-          accessibilityLabel="도움말"
-        >
-          <Ionicons name="help-circle-outline" size={28} color={colors.primary} />
-        </Pressable>
+        <ThemeSwatchRow />
       </View>
       <FlatList
         data={exercises}
@@ -51,8 +57,8 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
             style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
             onPress={() => onSelectExercise(item)}
           >
-            <View style={styles.iconBadge}>
-              <Ionicons name={item.icon} size={26} color={colors.primary} />
+            <View style={[styles.iconBadge, { backgroundColor: accent.primarySoft }]}>
+              <Ionicons name={item.icon} size={26} color={accent.primary} />
             </View>
             <View style={styles.cardInfo}>
               <Text style={styles.cardTitle}>{item.name}</Text>
@@ -74,8 +80,8 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
             style={({ pressed }) => [styles.addCard, pressed && styles.cardPressed]}
             onPress={onAddExercise}
           >
-            <View style={[styles.iconBadge, styles.addIconBadge]}>
-              <Ionicons name="add" size={26} color={colors.accent} />
+            <View style={[styles.iconBadge, { backgroundColor: accent.accentSoft }]}>
+              <Ionicons name="add" size={26} color={accent.accent} />
             </View>
             <Text style={styles.addCardText}>운동 추가</Text>
           </Pressable>
@@ -102,11 +108,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   header: {
+    marginTop: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginTop: spacing.lg,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   headerText: {
     flexShrink: 1,
@@ -152,9 +161,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md + 4,
     paddingVertical: spacing.md + 2,
   },
-  addIconBadge: {
-    backgroundColor: colors.accentSoft,
-  },
   addCardText: {
     fontSize: fontSize.lg,
     fontWeight: '700',
@@ -164,7 +170,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,

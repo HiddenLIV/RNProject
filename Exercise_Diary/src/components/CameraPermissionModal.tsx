@@ -1,4 +1,5 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAccentColors } from '../lib/ThemeContext';
 import { PermissionState } from '../lib/video';
 import { colors, fontSize, radius, spacing } from '../theme';
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function CameraPermissionModal({ state, onGrant, onOpenSettings, onClose }: Props) {
+  const accent = useAccentColors();
   if (!state || state === 'granted') return null;
   const blocked = state === 'blocked';
 
@@ -26,10 +28,10 @@ export default function CameraPermissionModal({ state, onGrant, onOpenSettings, 
               <Text style={styles.secondaryButtonText}>취소</Text>
             </Pressable>
             <Pressable
-              style={[styles.button, styles.primaryButton]}
+              style={[styles.button, { backgroundColor: accent.primary }]}
               onPress={blocked ? onOpenSettings : onGrant}
             >
-              <Text style={styles.primaryButtonText}>{blocked ? '설정으로 이동' : '권한 허용'}</Text>
+              <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>{blocked ? '설정으로 이동' : '권한 허용'}</Text>
             </Pressable>
           </View>
         </View>
@@ -74,9 +76,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
   },
   primaryButtonText: {
     fontSize: fontSize.base,

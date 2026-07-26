@@ -2,6 +2,11 @@ import { ViewStyle } from 'react-native';
 
 // 다크 + 마젠타 팔레트 — 직전 톤(#E0459B)이 핑크에 가깝다는 피드백으로
 // 빨강·파랑이 균형 잡힌 딥 마젠타(자주)로 교체(팔레트 후보 아티팩트의 B안)
+//
+// primary/primaryPressed/primarySoft/accent/accentSoft는 테마 컬러 커스터마이징 기능으로
+// 화면에서 더 이상 이 static 값을 직접 쓰지 않는다(useAccentColors() 훅 사용) — 아래 값은
+// themePresets.ts의 'default' 프리셋과 동일해야 하는 참고용 상수다. 실제로 적용되는 값을
+// 바꾸려면 themePresets.ts를 수정할 것.
 export const colors = {
   primary: '#9B2791',
   primaryPressed: '#6D1B66',
@@ -49,8 +54,9 @@ export const fontSize = {
   countdown: 96,
 };
 
-export const buttonShadow: ViewStyle = {
-  shadowColor: colors.primary,
+// shadowColor는 프리셋마다 달라지므로 여기 넣지 않는다 — 쓰는 쪽에서
+// `{ ...buttonShadowShape, shadowColor: accent.primary }`처럼 인라인으로 덧붙인다.
+export const buttonShadowShape: ViewStyle = {
   shadowOffset: { width: 0, height: 6 },
   shadowOpacity: 0.35,
   shadowRadius: 14,

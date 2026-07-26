@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { EXERCISE_NAME_MAX_LENGTH } from '../lib/exercisePresets';
+import { useAccentColors } from '../lib/ThemeContext';
 import { removeExercise, updateExercise } from '../lib/storage';
 import { Exercise } from '../lib/types';
 import { extractYoutubeVideoId } from '../lib/youtube';
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function EditExerciseModal({ exercise, existingNames, onClose, onSaved }: Props) {
+  const accent = useAccentColors();
   const [name, setName] = useState('');
   const [usesWeight, setUsesWeight] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg');
@@ -31,6 +33,9 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
   }, [exercise]);
 
   if (!exercise) return null;
+
+  // 무게 단위 세그먼트 버튼이 공통으로 쓰는 선택 상태 색
+  const segmentSelectedStyle = { backgroundColor: accent.primary, borderColor: accent.primary };
 
   const handleSave = async () => {
     const trimmed = name.trim();
@@ -120,22 +125,22 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
                 <Switch
                   value={usesWeight}
                   onValueChange={setUsesWeight}
-                  trackColor={{ true: colors.primary, false: colors.border }}
+                  trackColor={{ true: accent.primary, false: colors.border }}
                 />
               </View>
               {usesWeight && (
                 <View style={styles.segmentRow}>
                   <Pressable
-                    style={[styles.segment, weightUnit === 'kg' && styles.segmentSelected]}
+                    style={[styles.segment, weightUnit === 'kg' && segmentSelectedStyle]}
                     onPress={() => setWeightUnit('kg')}
                   >
-                    <Text style={[styles.segmentText, weightUnit === 'kg' && styles.segmentTextSelected]}>kg</Text>
+                    <Text style={[styles.segmentText, weightUnit === 'kg' && { color: accent.onPrimary }]}>kg</Text>
                   </Pressable>
                   <Pressable
-                    style={[styles.segment, weightUnit === 'lb' && styles.segmentSelected]}
+                    style={[styles.segment, weightUnit === 'lb' && segmentSelectedStyle]}
                     onPress={() => setWeightUnit('lb')}
                   >
-                    <Text style={[styles.segmentText, weightUnit === 'lb' && styles.segmentTextSelected]}>
+                    <Text style={[styles.segmentText, weightUnit === 'lb' && { color: accent.onPrimary }]}>
                       파운드
                     </Text>
                   </Pressable>
@@ -150,8 +155,8 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
             <Pressable style={[styles.button, styles.secondaryButton]} onPress={onClose}>
               <Text style={styles.secondaryButtonText}>취소</Text>
             </Pressable>
-            <Pressable style={[styles.button, styles.primaryButton]} onPress={handleSave}>
-              <Text style={styles.primaryButtonText}>저장</Text>
+            <Pressable style={[styles.button, { backgroundColor: accent.primary }]} onPress={handleSave}>
+              <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>저장</Text>
             </Pressable>
           </View>
           <Pressable style={styles.deleteButton} onPress={handleDelete}>
@@ -222,17 +227,10 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.background,
   },
-  segmentSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
   segmentText: {
     fontSize: fontSize.base,
     fontWeight: '700',
     color: colors.textMuted,
-  },
-  segmentTextSelected: {
-    color: colors.white,
   },
   error: {
     fontSize: fontSize.sm,
@@ -249,9 +247,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  primaryButton: {
-    backgroundColor: colors.primary,
   },
   primaryButtonText: {
     fontSize: fontSize.base,

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAccentColors } from '../lib/ThemeContext';
 import { colors, fontSize, radius, spacing } from '../theme';
 import { TimeRecord } from '../lib/types';
 import { formatDuration } from './TimeDisplay';
@@ -19,17 +20,18 @@ function formatMeasuredAt(iso: string): string {
 }
 
 export default function RecordItem({ record, isBest, onDelete, onViewVideo }: Props) {
+  const accent = useAccentColors();
   return (
-    <View style={[styles.row, isBest && styles.bestRow]}>
+    <View style={[styles.row, isBest && { backgroundColor: accent.accentSoft }]}>
       <View style={styles.info}>
         <View style={styles.durationLine}>
-          <Text style={[styles.duration, isBest && styles.bestDuration]}>
+          <Text style={[styles.duration, isBest && { color: accent.accent }]}>
             {formatDuration(record.durationMs)}
           </Text>
           {isBest && (
-            <View style={styles.bestBadge}>
-              <Ionicons name="trophy" size={12} color={colors.white} />
-              <Text style={styles.bestBadgeText}>최고</Text>
+            <View style={[styles.bestBadge, { backgroundColor: accent.primary }]}>
+              <Ionicons name="trophy" size={12} color={accent.onPrimary} />
+              <Text style={[styles.bestBadgeText, { color: accent.onPrimary }]}>최고</Text>
             </View>
           )}
         </View>
@@ -42,7 +44,7 @@ export default function RecordItem({ record, isBest, onDelete, onViewVideo }: Pr
           hitSlop={8}
           accessibilityLabel="촬영 영상 보기"
         >
-          <Ionicons name="videocam-outline" size={18} color={colors.accent} />
+          <Ionicons name="videocam-outline" size={18} color={accent.accent} />
         </Pressable>
       )}
       <Pressable
@@ -67,9 +69,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     backgroundColor: colors.card,
   },
-  bestRow: {
-    backgroundColor: colors.accentSoft,
-  },
   info: {
     gap: 2,
   },
@@ -84,14 +83,10 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     color: colors.text,
   },
-  bestDuration: {
-    color: colors.accent,
-  },
   bestBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: colors.primary,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radius.pill,

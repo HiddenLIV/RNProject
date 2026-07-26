@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise } from '../lib/types';
 import RecordsScreen from './RecordsScreen';
 import RepsScreen from './RepsScreen';
@@ -15,13 +16,14 @@ type Props = {
 };
 
 export default function ExerciseScreen({ exercise, onBack }: Props) {
+  const accent = useAccentColors();
   const [tab, setTab] = useState<Tab>('measure');
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={onBack} hitSlop={8}>
-          <Ionicons name="chevron-back" size={26} color={colors.primary} />
+          <Ionicons name="chevron-back" size={26} color={accent.primary} />
         </Pressable>
         <Text style={styles.headerTitle}>{exercise.name}</Text>
         <View style={styles.headerSpacer} />
@@ -42,17 +44,17 @@ export default function ExerciseScreen({ exercise, onBack }: Props) {
           <Ionicons
             name={tab === 'measure' ? 'timer' : 'timer-outline'}
             size={22}
-            color={tab === 'measure' ? colors.primary : colors.textFaint}
+            color={tab === 'measure' ? accent.primary : colors.textFaint}
           />
-          <Text style={[styles.tabText, tab === 'measure' && styles.tabTextActive]}>측정</Text>
+          <Text style={[styles.tabText, tab === 'measure' && { color: accent.primary }]}>측정</Text>
         </Pressable>
         <Pressable style={styles.tabButton} onPress={() => setTab('records')}>
           <Ionicons
             name={tab === 'records' ? 'list' : 'list-outline'}
             size={22}
-            color={tab === 'records' ? colors.primary : colors.textFaint}
+            color={tab === 'records' ? accent.primary : colors.textFaint}
           />
-          <Text style={[styles.tabText, tab === 'records' && styles.tabTextActive]}>기록</Text>
+          <Text style={[styles.tabText, tab === 'records' && { color: accent.primary }]}>기록</Text>
         </Pressable>
       </View>
     </View>
@@ -105,8 +107,5 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textFaint,
     fontWeight: '700',
-  },
-  tabTextActive: {
-    color: colors.primary,
   },
 });

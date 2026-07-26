@@ -22,9 +22,10 @@ import {
   Settings,
   VideoRef,
 } from '../lib/types';
+import { useAccentColors } from '../lib/ThemeContext';
 import { useHangTimer } from '../lib/useHangTimer';
 import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from '../lib/video';
-import { buttonShadow, colors, fontSize, radius, spacing } from '../theme';
+import { buttonShadowShape, colors, fontSize, radius, spacing } from '../theme';
 
 // 1초 미만 정지는 오조작으로 보고 기록하지 않는다
 const MIN_RECORD_MS = 1000;
@@ -41,6 +42,7 @@ type Props = {
 };
 
 export default function TimerScreen({ exercise }: Props) {
+  const accent = useAccentColors();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
@@ -291,8 +293,11 @@ export default function TimerScreen({ exercise }: Props) {
               onChange={(v) => updateSettings({ bellIntervalSeconds: v })}
             />
           </View>
-          <Pressable style={[styles.button, styles.buttonPrimary]} onPress={() => timer.start(settings.countdownSeconds)}>
-            <Text style={styles.buttonText}>시작</Text>
+          <Pressable
+            style={[styles.button, { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary }]}
+            onPress={() => timer.start(settings.countdownSeconds)}
+          >
+            <Text style={[styles.buttonText, { color: accent.onPrimary }]}>시작</Text>
           </Pressable>
         </>
       )}
@@ -300,7 +305,7 @@ export default function TimerScreen({ exercise }: Props) {
       {timer.phase === 'countdown' && (
         <>
           <Text style={styles.label}>준비</Text>
-          <Text style={styles.countdown}>{timer.countdownRemainingSec}</Text>
+          <Text style={[styles.countdown, { color: accent.primary }]}>{timer.countdownRemainingSec}</Text>
           <Pressable style={[styles.button, styles.buttonSecondary]} onPress={handleCancel}>
             <Text style={[styles.buttonText, styles.buttonTextSecondary]}>취소</Text>
           </Pressable>
@@ -309,7 +314,7 @@ export default function TimerScreen({ exercise }: Props) {
 
       {timer.phase === 'running' && (
         <>
-          <Text style={styles.quote}>{quote}</Text>
+          <Text style={[styles.quote, { color: accent.accent, backgroundColor: accent.accentSoft }]}>{quote}</Text>
           <Text style={styles.label}>측정 중</Text>
           <TimeDisplay ms={timer.elapsedMs} />
           <Pressable style={[styles.button, styles.buttonDanger]} onPress={handleStop}>
@@ -324,22 +329,33 @@ export default function TimerScreen({ exercise }: Props) {
           <TimeDisplay ms={pending.durationMs} />
           <View style={styles.adjustRow}>
             <Pressable
-              style={[styles.adjustButton, pending.durationMs < MIN_RECORD_MS && styles.adjustButtonDisabled]}
+              style={[
+                styles.adjustButton,
+                { backgroundColor: accent.primarySoft },
+                pending.durationMs < MIN_RECORD_MS && styles.adjustButtonDisabled,
+              ]}
               onPress={() => adjustPending(-1000)}
               disabled={pending.durationMs < MIN_RECORD_MS}
             >
-              <Text style={styles.adjustButtonText}>−1초</Text>
+              <Text style={[styles.adjustButtonText, { color: accent.accent }]}>−1초</Text>
             </Pressable>
-            <Pressable style={styles.adjustButton} onPress={() => adjustPending(1000)}>
-              <Text style={styles.adjustButtonText}>+1초</Text>
+            <Pressable style={[styles.adjustButton, { backgroundColor: accent.primarySoft }]} onPress={() => adjustPending(1000)}>
+              <Text style={[styles.adjustButtonText, { color: accent.accent }]}>+1초</Text>
             </Pressable>
           </View>
           {pending.durationMs < MIN_RECORD_MS && (
             <Text style={styles.notSaved}>1초 미만이라 기록되지 않았습니다</Text>
           )}
           <View style={styles.buttonRow}>
-            <Pressable style={[styles.button, styles.buttonPrimary, styles.buttonRowItem]} onPress={handleRestart}>
-              <Text style={styles.buttonText}>다시 시작</Text>
+            <Pressable
+              style={[
+                styles.button,
+                styles.buttonRowItem,
+                { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary },
+              ]}
+              onPress={handleRestart}
+            >
+              <Text style={[styles.buttonText, { color: accent.onPrimary }]}>다시 시작</Text>
             </Pressable>
             <Pressable style={[styles.button, styles.buttonSecondary, styles.buttonRowItem]} onPress={handleGoMain}>
               <Text style={[styles.buttonText, styles.buttonTextSecondary]}>메인으로</Text>
@@ -405,7 +421,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md + 4,
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -415,17 +430,14 @@ const styles = StyleSheet.create({
   adjustButtonText: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.accent,
   },
   quote: {
     fontSize: fontSize.lg,
     fontWeight: '800',
-    color: colors.accent,
     textAlign: 'center',
     minHeight: 64,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.smd,
-    backgroundColor: colors.accentSoft,
     borderRadius: radius.md,
     overflow: 'hidden',
   },
@@ -433,7 +445,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.countdown,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    color: colors.primary,
   },
   button: {
     minWidth: 180,
@@ -443,16 +454,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonPrimary: {
-    backgroundColor: colors.primary,
-    ...buttonShadow,
-  },
   buttonSecondary: {
     backgroundColor: colors.card,
   },
   buttonDanger: {
     backgroundColor: colors.danger,
-    ...buttonShadow,
+    ...buttonShadowShape,
     shadowColor: colors.danger,
   },
   buttonText: {

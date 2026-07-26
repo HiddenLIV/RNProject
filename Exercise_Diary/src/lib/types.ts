@@ -53,3 +53,17 @@ export const COUNTDOWN_MAX_SECONDS = 30;
 export const BELL_INTERVAL_STEP_SECONDS = 10;
 export const BELL_INTERVAL_MIN_SECONDS = 10;
 export const BELL_INTERVAL_MAX_SECONDS = 120;
+
+// 테마 컬러 커스터마이징 — 포인트 컬러 프리셋
+export type ThemePresetId = 'default' | 'orange' | 'mint' | 'red' | 'blue';
+
+export type ThemePreset = {
+  id: ThemePresetId;
+  name: string; // 스와치 접근성 라벨용 (예: '오렌지')
+  primary: string;
+  primaryPressed: string;
+  primarySoft: string;
+  accent: string;
+  accentSoft: string;
+  onPrimary: string; // primary 배경 위에 얹는 텍스트·아이콘 색 — 밝은 primary(민트 등)에서도 대비 확보
+};
