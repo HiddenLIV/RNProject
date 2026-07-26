@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { fontSize, radius, spacing } from '../theme';
 import { TimeRecord } from '../lib/types';
 import { formatDuration } from './TimeDisplay';
 
@@ -21,39 +22,42 @@ function formatMeasuredAt(iso: string): string {
 
 export default function RecordItem({ record, isBest, onDelete, onViewVideo }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   return (
-    <View style={[styles.row, isBest && { backgroundColor: accent.accentSoft }]}>
+    <View style={[styles.row, { backgroundColor: accent.card }, isBest && { backgroundColor: accent.accentSoft }]}>
       <View style={styles.info}>
         <View style={styles.durationLine}>
-          <Text style={[styles.duration, isBest && { color: accent.accent }]}>
+          <Text style={[styles.duration, { color: accent.text }, isBest && { color: accent.accent }]}>
             {formatDuration(record.durationMs)}
           </Text>
           {isBest && (
             <View style={[styles.bestBadge, { backgroundColor: accent.primary }]}>
               <Ionicons name="trophy" size={12} color={accent.onPrimary} />
-              <Text style={[styles.bestBadgeText, { color: accent.onPrimary }]}>최고</Text>
+              <Text style={[styles.bestBadgeText, { color: accent.onPrimary }]}>{t.records.bestBadge}</Text>
             </View>
           )}
         </View>
-        <Text style={styles.date}>{formatMeasuredAt(record.measuredAt)}</Text>
+        <Text style={[styles.date, { color: accent.textMuted }, isBest && { color: accent.accent }]}>
+          {formatMeasuredAt(record.measuredAt)}
+        </Text>
       </View>
       {record.videoRef && (
         <Pressable
           style={styles.videoButton}
           onPress={() => onViewVideo(record.videoRef!.assetId)}
           hitSlop={8}
-          accessibilityLabel="촬영 영상 보기"
+          accessibilityLabel={t.records.videoAccessibility}
         >
-          <Ionicons name="videocam-outline" size={18} color={accent.accent} />
+          <Ionicons name="videocam-outline" size={18} color={isBest ? accent.accent : accent.accentText} />
         </Pressable>
       )}
       <Pressable
         style={styles.deleteButton}
         onPress={() => onDelete(record.id)}
         hitSlop={8}
-        accessibilityLabel="기록 삭제"
+        accessibilityLabel={t.records.deleteAccessibility}
       >
-        <Ionicons name="trash-outline" size={18} color={colors.danger} />
+        <Ionicons name="trash-outline" size={18} color={accent.danger} />
       </Pressable>
     </View>
   );
@@ -67,7 +71,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.smd,
     paddingHorizontal: spacing.md,
     borderRadius: radius.sm,
-    backgroundColor: colors.card,
   },
   info: {
     gap: 2,
@@ -81,7 +84,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl - 2,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    color: colors.text,
   },
   bestBadge: {
     flexDirection: 'row',
@@ -94,11 +96,9 @@ const styles = StyleSheet.create({
   bestBadgeText: {
     fontSize: fontSize.xs,
     fontWeight: '700',
-    color: colors.white,
   },
   date: {
     fontSize: fontSize.sm - 1,
-    color: colors.textMuted,
   },
   videoButton: {
     paddingHorizontal: spacing.xs,

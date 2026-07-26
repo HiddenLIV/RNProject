@@ -6,21 +6,24 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AddExerciseScreen from './src/screens/AddExerciseScreen';
 import ExerciseScreen from './src/screens/ExerciseScreen';
 import HomeScreen from './src/screens/HomeScreen';
-import { ThemeProvider } from './src/lib/ThemeContext';
+import { LanguageProvider } from './src/lib/i18n';
+import { ThemeProvider, useAccentColors } from './src/lib/ThemeContext';
 import { Exercise } from './src/lib/types';
-import { colors } from './src/theme';
 
 type Screen = { name: 'home' } | { name: 'exercise'; exercise: Exercise } | { name: 'addExercise' };
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 
 function AppContent() {
+  const accent = useAccentColors();
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
 
   useEffect(() => {
@@ -43,7 +46,10 @@ function AppContent() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: accent.background }]}
+        edges={['top', 'bottom', 'left', 'right']}
+      >
         {screen.name === 'home' && (
           <HomeScreen
             onSelectExercise={(exercise) => setScreen({ name: 'exercise', exercise })}
@@ -59,7 +65,7 @@ function AppContent() {
             onCreated={() => setScreen({ name: 'home' })}
           />
         )}
-        <StatusBar style="light" />
+        <StatusBar style="auto" />
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -68,6 +74,5 @@ function AppContent() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
 });

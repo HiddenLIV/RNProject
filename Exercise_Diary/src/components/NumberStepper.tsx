@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAccentColors } from '../lib/ThemeContext';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { fontSize, radius, spacing } from '../theme';
 
 type Props = {
   label: string;
@@ -11,7 +11,7 @@ type Props = {
   max: number;
   /** 증감 단위 (기본 1) */
   step?: number;
-  /** 값 뒤에 붙는 단위 텍스트 (기본 '초') */
+  /** 값 뒤에 붙는 단위 텍스트 */
   unit?: string;
   /** true면 값을 탭해 숫자를 직접 입력할 수 있다 (min~max로 보정) */
   editable?: boolean;
@@ -26,7 +26,7 @@ export default function NumberStepper({
   min,
   max,
   step = 1,
-  unit = '초',
+  unit = '',
   editable = false,
   compact = false,
   onChange,
@@ -68,7 +68,7 @@ export default function NumberStepper({
 
   return (
     <View style={[styles.row, compact && styles.rowCompact]}>
-      {label !== '' && <Text style={styles.label}>{label}</Text>}
+      {label !== '' && <Text style={[styles.label, { color: accent.textMuted }]}>{label}</Text>}
       <View style={[styles.controls, compact && styles.controlsCompact]}>
         <Pressable
           style={[styles.button, { backgroundColor: accent.primarySoft }, compact && styles.buttonCompact]}
@@ -79,7 +79,13 @@ export default function NumberStepper({
         </Pressable>
         {editing ? (
           <TextInput
-            style={[styles.value, compact && styles.valueCompact, styles.input, { borderColor: accent.primary }]}
+            style={[
+              styles.value,
+              { color: accent.text },
+              compact && styles.valueCompact,
+              styles.input,
+              { borderColor: accent.primary },
+            ]}
             value={draft}
             onChangeText={handleDraftChange}
             keyboardType="number-pad"
@@ -94,6 +100,7 @@ export default function NumberStepper({
             <Text
               style={[
                 styles.value,
+                { color: accent.text },
                 compact && styles.valueCompact,
                 editable && { textDecorationLine: 'underline', textDecorationColor: accent.primary },
               ]}
@@ -125,7 +132,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: fontSize.base,
     fontWeight: '600',
-    color: colors.textMuted,
   },
   controls: {
     flexDirection: 'row',
@@ -149,7 +155,6 @@ const styles = StyleSheet.create({
   value: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.text,
     minWidth: 52,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],

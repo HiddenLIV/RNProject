@@ -2,6 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 
 export type MeasureType = 'time' | 'reps';
 
+// 프리셋으로 추가된 운동을 식별하는 키 — 이 값이 있으면 표시할 때 저장된 name 대신
+// 현재 언어의 번역된 프리셋 이름을 쓴다 (사용자가 언어를 바꿔도 이름이 그 언어로 보이게).
+export type PresetKey = 'hang' | 'plank' | 'pullup' | 'pushup' | 'squat' | 'lunge';
+
 export type Exercise = {
   id: string;
   name: string;
@@ -10,6 +14,7 @@ export type Exercise = {
   usesWeight?: boolean; // measureType === 'reps'일 때만 의미 있음
   weightUnit?: 'kg' | 'lb'; // usesWeight가 true일 때만
   guideVideoId?: string; // 자세 안내용 유튜브 영상 ID(11자리). 없으면 측정 화면에 영상 버튼이 안 보임
+  presetKey?: PresetKey;
 };
 
 export type VideoRef = {
@@ -59,11 +64,27 @@ export type ThemePresetId = 'default' | 'orange' | 'mint' | 'red' | 'blue';
 
 export type ThemePreset = {
   id: ThemePresetId;
-  name: string; // 스와치 접근성 라벨용 (예: '오렌지')
   primary: string;
   primaryPressed: string;
   primarySoft: string;
   accent: string;
   accentSoft: string;
   onPrimary: string; // primary 배경 위에 얹는 텍스트·아이콘 색 — 밝은 primary(민트 등)에서도 대비 확보
+};
+
+// 라이트 모드 지원 — 기기 디스플레이 설정에 따라 바뀌는 베이스 톤
+export type ColorScheme = 'light' | 'dark';
+
+export type BaseColors = {
+  background: string;
+  card: string;
+  cardMuted: string;
+  text: string;
+  textMuted: string;
+  textFaint: string;
+  border: string;
+  danger: string;
+  dangerSoft: string;
+  white: string;
+  shadow: string;
 };

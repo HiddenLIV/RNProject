@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { resolveVideoUri } from '../lib/video';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { fontSize, radius, spacing } from '../theme';
 
 type Props = {
   assetId: string | null;
@@ -14,6 +15,7 @@ type Props = {
 // uri: undefined=조회 중, null=못 찾음(권한 없음·삭제됨), string=재생 가능
 export default function VideoPlayerModal({ assetId, onClose }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   const [uri, setUri] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
@@ -41,13 +43,18 @@ export default function VideoPlayerModal({ assetId, onClose }: Props) {
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <View style={styles.card}>
-          <Pressable style={styles.closeButton} onPress={onClose} hitSlop={8} accessibilityLabel="닫기">
-            <Ionicons name="close" size={22} color={colors.text} />
+        <View style={[styles.card, { backgroundColor: accent.background }]}>
+          <Pressable
+            style={styles.closeButton}
+            onPress={onClose}
+            hitSlop={8}
+            accessibilityLabel={t.videoPlayer.closeAccessibility}
+          >
+            <Ionicons name="close" size={22} color={accent.text} />
           </Pressable>
-          <View style={styles.videoArea}>
-            {uri === undefined && <ActivityIndicator color={accent.primary} />}
-            {uri === null && <Text style={styles.notFound}>영상을 찾을 수 없습니다</Text>}
+          <View style={[styles.videoArea, { backgroundColor: accent.card }]}>
+            {uri === undefined && <ActivityIndicator color={accent.primaryText} />}
+            {uri === null && <Text style={[styles.notFound, { color: accent.textMuted }]}>{t.videoPlayer.notFound}</Text>}
             {uri && <VideoView player={player} style={styles.video} nativeControls />}
           </View>
         </View>
@@ -66,7 +73,6 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    backgroundColor: colors.background,
     borderRadius: radius.md,
     padding: spacing.sm,
   },
@@ -79,7 +85,6 @@ const styles = StyleSheet.create({
     aspectRatio: 9 / 16,
     borderRadius: radius.sm,
     overflow: 'hidden',
-    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -89,7 +94,6 @@ const styles = StyleSheet.create({
   },
   notFound: {
     fontSize: fontSize.base,
-    color: colors.textMuted,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
   },

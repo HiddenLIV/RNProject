@@ -6,11 +6,13 @@ import CaptureVideoRow from '../components/CaptureVideoRow';
 import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import VideoPlayerModal from '../components/VideoPlayerModal';
+import { getExerciseDisplayName } from '../lib/exercisePresets';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { addRepsRecord, createId } from '../lib/storage';
 import { Exercise, RepsSet, VideoRef } from '../lib/types';
 import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from '../lib/video';
-import { buttonShadowShape, colors, fontSize, radius, spacing } from '../theme';
+import { buttonShadowShape, fontSize, radius, spacing } from '../theme';
 
 type Props = {
   exercise: Exercise;
@@ -33,6 +35,7 @@ function newSet(prev?: EditableSet): EditableSet {
 
 export default function RepsScreen({ exercise }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   const [sets, setSets] = useState<EditableSet[]>([newSet()]);
   const [error, setError] = useState('');
   const [justSaved, setJustSaved] = useState(false);
@@ -50,7 +53,7 @@ export default function RepsScreen({ exercise }: Props) {
       const result = await captureExerciseVideo();
       if (result.status === 'saved') setCapturedVideo(result.ref);
     } catch {
-      Alert.alert('촬영 실패', '영상을 저장하지 못했습니다. 다시 시도해 주세요.');
+      Alert.alert(t.timer.captureFailedTitle, t.timer.captureFailedBody);
     } finally {
       setVideoBusy(false);
     }
@@ -67,7 +70,7 @@ export default function RepsScreen({ exercise }: Props) {
       }
       await runCapture();
     } catch {
-      Alert.alert('촬영 실패', '권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+      Alert.alert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
     } finally {
       setVideoBusy(false);
     }
@@ -84,7 +87,7 @@ export default function RepsScreen({ exercise }: Props) {
       setPermissionModal(null);
       await runCapture();
     } catch {
-      Alert.alert('촬영 실패', '권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+      Alert.alert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
     } finally {
       setVideoBusy(false);
     }
@@ -114,7 +117,7 @@ export default function RepsScreen({ exercise }: Props) {
   const handleSave = async () => {
     if (saving) return; // 저장 중 연타 방지
     if (sets.some((s) => s.reps < 1)) {
-      setError('모든 세트는 1회 이상이어야 합니다');
+      setError(t.reps.errorMinReps);
       return;
     }
     setSaving(true);
@@ -138,11 +141,11 @@ export default function RepsScreen({ exercise }: Props) {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: accent.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={16}
     >
-      <Text style={styles.title}>{exercise.name}</Text>
+      <Text style={[styles.title, { color: accent.text }]}>{getExerciseDisplayName(exercise, t)}</Text>
       <GuideVideoPanel videoId={exercise.guideVideoId} />
       <CaptureVideoRow
         capturedAssetId={capturedVideo?.assetId}
@@ -152,28 +155,37 @@ export default function RepsScreen({ exercise }: Props) {
       />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <View style={styles.sheet}>
-          <View style={styles.headerRow}>
-            <Text style={[styles.headerCell, styles.colIndex]}>세트</Text>
-            {exercise.usesWeight && <Text style={[styles.headerCell, styles.colWeight]}>무게</Text>}
-            <Text style={[styles.headerCell, styles.colReps]}>횟수</Text>
+        <View style={[styles.sheet, { backgroundColor: accent.card, borderColor: accent.border }]}>
+          <View style={[styles.headerRow, { borderBottomColor: accent.border }]}>
+            <Text style={[styles.headerCell, { color: accent.textFaint }, styles.colIndex]}>{t.reps.setColumn}</Text>
+            {exercise.usesWeight && (
+              <Text style={[styles.headerCell, { color: accent.textFaint }, styles.colWeight]}>
+                {t.reps.weightColumn}
+              </Text>
+            )}
+            <Text style={[styles.headerCell, { color: accent.textFaint }, styles.colReps]}>{t.reps.repsColumn}</Text>
             <View style={styles.colDelete} />
           </View>
 
           {sets.map((set, index) => (
-            <View key={set.id} style={[styles.setRow, index > 0 && styles.setRowDivider]}>
-              <Text style={[styles.setIndex, styles.colIndex]}>{index + 1}</Text>
+            <View
+              key={set.id}
+              style={[styles.setRow, index > 0 && { borderTopWidth: 1, borderTopColor: accent.border }]}
+            >
+              <Text style={[styles.setIndex, { color: accent.textMuted }, styles.colIndex]}>{index + 1}</Text>
               {exercise.usesWeight && (
                 <View style={[styles.weightField, styles.colWeight]}>
                   <TextInput
-                    style={styles.weightInput}
+                    style={[styles.weightInput, { borderBottomColor: accent.border, color: accent.text }]}
                     value={set.weightText}
                     onChangeText={(weightText) => updateSet(index, { weightText })}
                     keyboardType="decimal-pad"
                     placeholder="0"
-                    placeholderTextColor={colors.textFaint}
+                    placeholderTextColor={accent.textFaint}
                   />
-                  <Text style={styles.weightUnit}>{exercise.weightUnit === 'lb' ? 'lb' : 'kg'}</Text>
+                  <Text style={[styles.weightUnit, { color: accent.textMuted }]}>
+                    {exercise.weightUnit === 'lb' ? t.units.lb : t.units.kg}
+                  </Text>
                 </View>
               )}
               <View style={styles.colReps}>
@@ -182,7 +194,7 @@ export default function RepsScreen({ exercise }: Props) {
                   value={set.reps}
                   min={0}
                   max={MAX_REPS}
-                  unit="회"
+                  unit={t.units.reps}
                   editable
                   compact
                   onChange={(reps) => updateSet(index, { reps })}
@@ -193,20 +205,21 @@ export default function RepsScreen({ exercise }: Props) {
                 onPress={() => removeSet(index)}
                 disabled={sets.length <= 1}
                 hitSlop={8}
+                accessibilityLabel={t.reps.removeSetAccessibility}
               >
-                <Ionicons name="close" size={16} color={sets.length <= 1 ? colors.textFaint : colors.danger} />
+                <Ionicons name="close" size={16} color={sets.length <= 1 ? accent.textFaint : accent.danger} />
               </Pressable>
             </View>
           ))}
 
-          <Pressable style={styles.addSetRow} onPress={addSet}>
-            <Ionicons name="add" size={16} color={accent.primary} />
-            <Text style={[styles.addSetText, { color: accent.primary }]}>세트 추가</Text>
+          <Pressable style={[styles.addSetRow, { borderTopColor: accent.border }]} onPress={addSet}>
+            <Ionicons name="add" size={16} color={accent.primaryText} />
+            <Text style={[styles.addSetText, { color: accent.primaryText }]}>{t.reps.addSetButton}</Text>
           </Pressable>
         </View>
 
-        {error !== '' && <Text style={styles.error}>{error}</Text>}
-        {justSaved && <Text style={[styles.saved, { color: accent.primary }]}>저장되었습니다</Text>}
+        {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
+        {justSaved && <Text style={[styles.saved, { color: accent.primaryText }]}>{t.reps.savedNotice}</Text>}
       </ScrollView>
 
       <Pressable
@@ -218,7 +231,7 @@ export default function RepsScreen({ exercise }: Props) {
         onPress={handleSave}
         disabled={saving}
       >
-        <Text style={[styles.saveButtonText, { color: accent.onPrimary }]}>기록 저장</Text>
+        <Text style={[styles.saveButtonText, { color: accent.onPrimary }]}>{t.reps.saveButton}</Text>
       </Pressable>
 
       <CameraPermissionModal
@@ -238,12 +251,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     gap: spacing.md,
-    backgroundColor: colors.background,
   },
   title: {
     fontSize: fontSize.xl,
     fontWeight: '800',
-    color: colors.text,
     textAlign: 'center',
   },
   scroll: {
@@ -254,10 +265,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   sheet: {
-    backgroundColor: colors.card,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     overflow: 'hidden',
   },
   headerRow: {
@@ -266,12 +275,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.smd,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   headerCell: {
     fontSize: fontSize.xs,
     fontWeight: '700',
-    color: colors.textFaint,
     letterSpacing: 0.5,
   },
   colIndex: {
@@ -292,14 +299,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.smd,
     paddingVertical: spacing.sm + 2,
   },
-  setRowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
   setIndex: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.textMuted,
     fontVariant: ['tabular-nums'],
   },
   weightField: {
@@ -311,17 +313,14 @@ const styles = StyleSheet.create({
     minWidth: 44,
     borderWidth: 0,
     borderBottomWidth: 1.5,
-    borderBottomColor: colors.border,
     paddingHorizontal: spacing.xs,
     paddingVertical: 4,
     fontSize: fontSize.base,
-    color: colors.text,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
   },
   weightUnit: {
     fontSize: fontSize.xs,
-    color: colors.textMuted,
   },
   removeButton: {
     alignItems: 'center',
@@ -337,7 +336,6 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: spacing.sm + 4,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     borderStyle: 'dashed',
   },
   addSetText: {
@@ -346,7 +344,6 @@ const styles = StyleSheet.create({
   },
   error: {
     fontSize: fontSize.sm,
-    color: colors.danger,
     textAlign: 'center',
   },
   saved: {
@@ -367,6 +364,5 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.white,
   },
 });

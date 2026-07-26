@@ -7,7 +7,6 @@ import { ThemePreset } from './types';
 export const THEME_PRESETS: ThemePreset[] = [
   {
     id: 'default',
-    name: '기본',
     primary: '#9B2791',
     primaryPressed: '#6D1B66',
     primarySoft: '#331C31',
@@ -17,7 +16,6 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: 'orange', // Strava
-    name: '오렌지',
     primary: '#FC4C02',
     primaryPressed: '#AB3401',
     primarySoft: '#3E1B10',
@@ -27,7 +25,6 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: 'mint', // Whoop
-    name: '민트',
     primary: '#00D9A3',
     primaryPressed: '#00946F',
     primarySoft: '#10342D',
@@ -39,7 +36,6 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: 'red', // Peloton
-    name: '레드',
     primary: '#E62B2B',
     primaryPressed: '#9C1D1D',
     primarySoft: '#3A1517',
@@ -49,7 +45,6 @@ export const THEME_PRESETS: ThemePreset[] = [
   },
   {
     id: 'blue', // MyFitnessPal
-    name: '블루',
     primary: '#0072CE',
     primaryPressed: '#004E8C',
     primarySoft: '#102235',

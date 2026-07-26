@@ -2,12 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import MeasureTypeTag from '../components/MeasureTypeTag';
-import { CUSTOM_EXERCISE_ICON, CUSTOM_ICON_CHOICES, EXERCISE_NAME_MAX_LENGTH, PRESET_EXERCISES } from '../lib/exercisePresets';
+import {
+  CUSTOM_EXERCISE_ICON,
+  CUSTOM_ICON_CHOICES,
+  EXERCISE_NAME_MAX_LENGTH,
+  getExerciseDisplayName,
+  hasPresetKey,
+  PRESET_EXERCISES,
+} from '../lib/exercisePresets';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { addExercise, createId, getExercises } from '../lib/storage';
 import { Exercise, MeasureType } from '../lib/types';
 import { extractYoutubeVideoId } from '../lib/youtube';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { fontSize, radius, spacing } from '../theme';
 
 type Props = {
   onBack: () => void;
@@ -16,9 +24,11 @@ type Props = {
 
 export default function AddExerciseScreen({ onBack, onCreated }: Props) {
   const accent = useAccentColors();
-  const [existingNames, setExistingNames] = useState<string[]>([]);
+  const t = useTranslation();
+  const [existingExercises, setExistingExercises] = useState<Exercise[]>([]);
   const [namesLoaded, setNamesLoaded] = useState(false);
   const [name, setName] = useState('');
+  const [selectedPresetKey, setSelectedPresetKey] = useState<Exercise['presetKey'] | null>(null);
   const [icon, setIcon] = useState<Exercise['icon']>(CUSTOM_EXERCISE_ICON);
   const [measureType, setMeasureType] = useState<MeasureType>('time');
   const [usesWeight, setUsesWeight] = useState(false);
@@ -29,20 +39,21 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
 
   useEffect(() => {
     getExercises().then((exercises) => {
-      setExistingNames(exercises.map((e) => e.name));
+      setExistingExercises(exercises);
       setNamesLoaded(true);
     });
   }, []);
 
-  const normalizedExistingNames = existingNames.map((n) => n.toLocaleLowerCase());
+  const normalizedExistingNames = existingExercises.map((e) => getExerciseDisplayName(e, t).toLocaleLowerCase());
   // 목록을 아직 못 읽어온 동안은 아무 프리셋도 보여주지 않는다 — 이미 있는 운동(매달리기 등)이
   // 잠깐 노출됐다가 사라지는 깜빡임과, 그 틈에 중복 생성되는 것을 함께 막는다.
   const availablePresets = namesLoaded
-    ? PRESET_EXERCISES.filter((p) => !normalizedExistingNames.includes(p.name.toLocaleLowerCase()))
+    ? PRESET_EXERCISES.filter((p) => !hasPresetKey(existingExercises, p.key))
     : [];
 
   const selectPreset = (preset: (typeof PRESET_EXERCISES)[number]) => {
-    setName(preset.name);
+    setName(t.exercisePresets[preset.key]);
+    setSelectedPresetKey(preset.key);
     setIcon(preset.icon);
     setMeasureType(preset.measureType);
     setUsesWeight(preset.usesWeight ?? false);
@@ -51,6 +62,7 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
 
   const handleNameChange = (text: string) => {
     setName(text);
+    setSelectedPresetKey(null);
     setError('');
   };
 
@@ -58,15 +70,15 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
     if (!namesLoaded || saving) return; // 기존 운동 목록을 아직 못 읽어온 상태 + 저장 중 연타 방지
     const trimmed = name.trim();
     if (!trimmed) {
-      setError('운동 이름을 입력해 주세요');
+      setError(t.addExercise.errorNameRequired);
       return;
     }
     if (trimmed.length > EXERCISE_NAME_MAX_LENGTH) {
-      setError(`이름은 ${EXERCISE_NAME_MAX_LENGTH}자 이내로 입력해 주세요`);
+      setError(t.addExercise.errorNameTooLong(EXERCISE_NAME_MAX_LENGTH));
       return;
     }
     if (normalizedExistingNames.includes(trimmed.toLocaleLowerCase())) {
-      setError('이미 같은 이름의 운동이 있습니다');
+      setError(t.addExercise.errorDuplicateName);
       return;
     }
     const trimmedLink = videoLinkText.trim();
@@ -74,7 +86,7 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
     if (trimmedLink) {
       const id = extractYoutubeVideoId(trimmedLink);
       if (!id) {
-        setError('유튜브 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)');
+        setError(t.addExercise.errorInvalidVideoLink);
         return;
       }
       guideVideoId = id;
@@ -86,6 +98,7 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
       icon,
       measureType,
       guideVideoId,
+      presetKey: selectedPresetKey ?? undefined,
       ...(measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : {}),
     };
     await addExercise(exercise);
@@ -96,44 +109,47 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
   const segmentSelectedStyle = { backgroundColor: accent.primary, borderColor: accent.primary };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={onBack} hitSlop={8}>
-          <Ionicons name="chevron-back" size={26} color={accent.primary} />
+          <Ionicons name="chevron-back" size={26} color={accent.primaryText} />
         </Pressable>
-        <Text style={styles.headerTitle}>운동 추가</Text>
+        <Text style={[styles.headerTitle, { color: accent.text }]}>{t.addExercise.headerTitle}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {availablePresets.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>프리셋에서 고르기</Text>
-            <View style={styles.presetSheet}>
+            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.presetSectionLabel}</Text>
+            <View style={[styles.presetSheet, { backgroundColor: accent.card, borderColor: accent.border }]}>
               {availablePresets.map((preset, index) => {
-                const selected = name === preset.name;
+                const selected = selectedPresetKey === preset.key;
+                const presetName = t.exercisePresets[preset.key];
                 return (
                   <Pressable
-                    key={preset.name}
+                    key={preset.key}
                     style={[
                       styles.presetRow,
-                      index > 0 && styles.presetRowDivider,
+                      index > 0 && { borderTopWidth: 1, borderTopColor: accent.border },
                       selected && { backgroundColor: accent.primarySoft },
                     ]}
                     onPress={() => selectPreset(preset)}
                   >
-                    <Text style={[styles.presetIndex, selected && { color: accent.accent }]}>
+                    <Text style={[styles.presetIndex, { color: accent.textFaint }, selected && { color: accent.accent }]}>
                       {String(index + 1).padStart(2, '0')}
                     </Text>
                     <View style={[styles.presetIconBadge, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}>
                       <Ionicons name={preset.icon} size={17} color={selected ? accent.onPrimary : accent.primary} />
                     </View>
-                    <Text style={[styles.presetName, selected && { color: accent.accent }]}>{preset.name}</Text>
-                    <MeasureTypeTag measureType={preset.measureType} />
+                    <Text style={[styles.presetName, { color: accent.text }, selected && { color: accent.accent }]}>
+                      {presetName}
+                    </Text>
+                    <MeasureTypeTag measureType={preset.measureType} tone={selected ? 'onChip' : undefined} />
                     <Ionicons
                       name={selected ? 'checkmark-circle' : 'ellipse-outline'}
                       size={20}
-                      color={selected ? accent.primary : colors.border}
+                      color={selected ? accent.primary : accent.border}
                       style={styles.presetCheck}
                     />
                   </Pressable>
@@ -144,13 +160,13 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>직접 입력</Text>
+          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.customSectionLabel}</Text>
           <TextInput
-            style={styles.nameInput}
+            style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
             value={name}
             onChangeText={handleNameChange}
-            placeholder="운동 이름"
-            placeholderTextColor={colors.textFaint}
+            placeholder={t.addExercise.namePlaceholder}
+            placeholderTextColor={accent.textFaint}
             maxLength={EXERCISE_NAME_MAX_LENGTH}
           />
           <View style={styles.iconGrid}>
@@ -161,7 +177,7 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
                   key={choice}
                   style={[styles.iconChoice, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}
                   onPress={() => setIcon(choice)}
-                  accessibilityLabel="아이콘 선택"
+                  accessibilityLabel={t.addExercise.iconChoiceAccessibility}
                 >
                   <Ionicons name={choice} size={20} color={selected ? accent.onPrimary : accent.primary} />
                 </Pressable>
@@ -171,20 +187,42 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>측정 방식</Text>
+          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.measureTypeSectionLabel}</Text>
           <View style={styles.segmentRow}>
             <Pressable
-              style={[styles.segment, measureType === 'time' && segmentSelectedStyle]}
+              style={[
+                styles.segment,
+                { borderColor: accent.border, backgroundColor: accent.background },
+                measureType === 'time' && segmentSelectedStyle,
+              ]}
               onPress={() => setMeasureType('time')}
             >
-              <Text style={[styles.segmentText, measureType === 'time' && { color: accent.onPrimary }]}>시간</Text>
+              <Text
+                style={[
+                  styles.segmentText,
+                  { color: accent.textMuted },
+                  measureType === 'time' && { color: accent.onPrimary },
+                ]}
+              >
+                {t.measureType.time}
+              </Text>
             </Pressable>
             <Pressable
-              style={[styles.segment, measureType === 'reps' && segmentSelectedStyle]}
+              style={[
+                styles.segment,
+                { borderColor: accent.border, backgroundColor: accent.background },
+                measureType === 'reps' && segmentSelectedStyle,
+              ]}
               onPress={() => setMeasureType('reps')}
             >
-              <Text style={[styles.segmentText, measureType === 'reps' && { color: accent.onPrimary }]}>
-                횟수·세트
+              <Text
+                style={[
+                  styles.segmentText,
+                  { color: accent.textMuted },
+                  measureType === 'reps' && { color: accent.onPrimary },
+                ]}
+              >
+                {t.measureType.reps}
               </Text>
             </Pressable>
           </View>
@@ -193,26 +231,50 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
         {measureType === 'reps' && (
           <View style={styles.section}>
             <View style={styles.weightRow}>
-              <Text style={styles.sectionLabel}>무게 기록 사용</Text>
+              <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.weightSectionLabel}</Text>
               <Switch
                 value={usesWeight}
                 onValueChange={setUsesWeight}
-                trackColor={{ true: accent.primary, false: colors.border }}
+                trackColor={{ true: accent.primary, false: accent.border }}
               />
             </View>
             {usesWeight && (
               <View style={styles.segmentRow}>
                 <Pressable
-                  style={[styles.segment, weightUnit === 'kg' && segmentSelectedStyle]}
+                  style={[
+                    styles.segment,
+                    { borderColor: accent.border, backgroundColor: accent.background },
+                    weightUnit === 'kg' && segmentSelectedStyle,
+                  ]}
                   onPress={() => setWeightUnit('kg')}
                 >
-                  <Text style={[styles.segmentText, weightUnit === 'kg' && { color: accent.onPrimary }]}>kg</Text>
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      { color: accent.textMuted },
+                      weightUnit === 'kg' && { color: accent.onPrimary },
+                    ]}
+                  >
+                    {t.units.kg}
+                  </Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.segment, weightUnit === 'lb' && segmentSelectedStyle]}
+                  style={[
+                    styles.segment,
+                    { borderColor: accent.border, backgroundColor: accent.background },
+                    weightUnit === 'lb' && segmentSelectedStyle,
+                  ]}
                   onPress={() => setWeightUnit('lb')}
                 >
-                  <Text style={[styles.segmentText, weightUnit === 'lb' && { color: accent.onPrimary }]}>파운드</Text>
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      { color: accent.textMuted },
+                      weightUnit === 'lb' && { color: accent.onPrimary },
+                    ]}
+                  >
+                    {t.units.lb}
+                  </Text>
                 </Pressable>
               </View>
             )}
@@ -220,30 +282,30 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>자세 영상 링크 (선택)</Text>
+          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.videoLinkSectionLabel}</Text>
           <TextInput
-            style={styles.nameInput}
+            style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
             value={videoLinkText}
             onChangeText={(text) => {
               setVideoLinkText(text);
               setError('');
             }}
-            placeholder="유튜브 링크 붙여넣기"
-            placeholderTextColor={colors.textFaint}
+            placeholder={t.addExercise.videoLinkPlaceholder}
+            placeholderTextColor={accent.textFaint}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="url"
           />
         </View>
 
-        {error !== '' && <Text style={styles.error}>{error}</Text>}
+        {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
 
         <Pressable
           style={[styles.addButton, { backgroundColor: accent.primary }, saving && styles.addButtonDisabled]}
           onPress={handleAdd}
           disabled={saving}
         >
-          <Text style={[styles.addButtonText, { color: accent.onPrimary }]}>운동 추가</Text>
+          <Text style={[styles.addButtonText, { color: accent.onPrimary }]}>{t.addExercise.addButton}</Text>
         </Pressable>
       </ScrollView>
     </View>
@@ -253,7 +315,6 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -272,7 +333,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: fontSize.md,
     fontWeight: '700',
-    color: colors.text,
   },
   headerSpacer: {
     width: 40,
@@ -287,13 +347,10 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.textMuted,
   },
   presetSheet: {
-    backgroundColor: colors.card,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     overflow: 'hidden',
   },
   presetRow: {
@@ -303,15 +360,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.smd,
     paddingVertical: spacing.sm + 2,
   },
-  presetRowDivider: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
   presetIndex: {
     width: 20,
     fontSize: fontSize.xs,
     fontWeight: '700',
-    color: colors.textFaint,
     fontVariant: ['tabular-nums'],
   },
   presetIconBadge: {
@@ -325,20 +377,16 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.text,
   },
   presetCheck: {
     marginLeft: 2,
   },
   nameInput: {
     borderWidth: 1.5,
-    borderColor: colors.border,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.smd,
     paddingVertical: spacing.sm + 2,
     fontSize: fontSize.base,
-    color: colors.text,
-    backgroundColor: colors.card,
   },
   iconGrid: {
     flexDirection: 'row',
@@ -362,13 +410,10 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.pill,
     borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
   },
   segmentText: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.textMuted,
   },
   weightRow: {
     flexDirection: 'row',
@@ -377,7 +422,6 @@ const styles = StyleSheet.create({
   },
   error: {
     fontSize: fontSize.sm,
-    color: colors.danger,
   },
   addButton: {
     marginTop: spacing.sm,
@@ -392,6 +436,5 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.white,
   },
 });

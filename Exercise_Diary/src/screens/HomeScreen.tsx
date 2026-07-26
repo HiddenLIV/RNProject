@@ -5,10 +5,12 @@ import EditExerciseModal from '../components/EditExerciseModal';
 import HelpModal from '../components/HelpModal';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import ThemeSwatchRow from '../components/ThemeSwatchRow';
+import { getExerciseDisplayName } from '../lib/exercisePresets';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { getExercises } from '../lib/storage';
 import { Exercise } from '../lib/types';
-import { cardShadow, colors, fontSize, radius, spacing } from '../theme';
+import { cardShadow, fontSize, radius, spacing } from '../theme';
 
 type Props = {
   onSelectExercise: (exercise: Exercise) => void;
@@ -17,6 +19,7 @@ type Props = {
 
 export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [helpVisible, setHelpVisible] = useState(false);
@@ -30,20 +33,20 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
-            <Text style={styles.title}>나의 운동 일지</Text>
-            <Text style={styles.subtitle}>운동을 골라 시작해 보세요</Text>
+            <Text style={[styles.title, { color: accent.text }]}>{t.home.title}</Text>
+            <Text style={[styles.subtitle, { color: accent.textMuted }]}>{t.home.subtitle}</Text>
           </View>
           <Pressable
             style={styles.helpButton}
             onPress={() => setHelpVisible(true)}
             hitSlop={8}
-            accessibilityLabel="도움말"
+            accessibilityLabel={t.home.help}
           >
-            <Ionicons name="help-circle-outline" size={28} color={accent.primary} />
+            <Ionicons name="help-circle-outline" size={28} color={accent.primaryText} />
           </Pressable>
         </View>
         <ThemeSwatchRow />
@@ -52,44 +55,53 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
         data={exercises}
         keyExtractor={(exercise) => exercise.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-            onPress={() => onSelectExercise(item)}
-          >
-            <View style={[styles.iconBadge, { backgroundColor: accent.primarySoft }]}>
-              <Ionicons name={item.icon} size={26} color={accent.primary} />
-            </View>
-            <View style={styles.cardInfo}>
-              <Text style={styles.cardTitle}>{item.name}</Text>
-              <MeasureTypeTag measureType={item.measureType} />
-            </View>
+        renderItem={({ item }) => {
+          const displayName = getExerciseDisplayName(item, t);
+          return (
             <Pressable
-              style={styles.editButton}
-              onPress={() => setEditingExercise(item)}
-              hitSlop={8}
-              accessibilityLabel={`${item.name} 수정`}
+              style={({ pressed }) => [styles.card, { backgroundColor: accent.card }, pressed && styles.cardPressed]}
+              onPress={() => onSelectExercise(item)}
             >
-              <Ionicons name="pencil" size={18} color={colors.textMuted} />
+              <View style={[styles.iconBadge, { backgroundColor: accent.primarySoft }]}>
+                <Ionicons name={item.icon} size={26} color={accent.primary} />
+              </View>
+              <View style={styles.cardInfo}>
+                <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
+                <MeasureTypeTag measureType={item.measureType} />
+              </View>
+              <Pressable
+                style={styles.editButton}
+                onPress={() => setEditingExercise(item)}
+                hitSlop={8}
+                accessibilityLabel={t.home.editAccessibility(displayName)}
+              >
+                <Ionicons name="pencil" size={18} color={accent.textMuted} />
+              </Pressable>
+              <Ionicons name="chevron-forward" size={22} color={accent.textFaint} style={styles.chevron} />
             </Pressable>
-            <Ionicons name="chevron-forward" size={22} color={colors.textFaint} style={styles.chevron} />
-          </Pressable>
-        )}
+          );
+        }}
         ListFooterComponent={
           <Pressable
-            style={({ pressed }) => [styles.addCard, pressed && styles.cardPressed]}
+            style={({ pressed }) => [
+              styles.addCard,
+              { backgroundColor: accent.cardMuted, borderColor: accent.border },
+              pressed && styles.cardPressed,
+            ]}
             onPress={onAddExercise}
           >
             <View style={[styles.iconBadge, { backgroundColor: accent.accentSoft }]}>
               <Ionicons name="add" size={26} color={accent.accent} />
             </View>
-            <Text style={styles.addCardText}>운동 추가</Text>
+            <Text style={[styles.addCardText, { color: accent.text }]}>{t.home.addExercise}</Text>
           </Pressable>
         }
       />
       <EditExerciseModal
         exercise={editingExercise}
-        existingNames={exercises.filter((e) => e.id !== editingExercise?.id).map((e) => e.name)}
+        existingNames={exercises
+          .filter((e) => e.id !== editingExercise?.id)
+          .map((e) => getExerciseDisplayName(e, t))}
         onClose={() => setEditingExercise(null)}
         onSaved={() => {
           setEditingExercise(null);
@@ -104,7 +116,6 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     paddingHorizontal: spacing.md,
   },
   header: {
@@ -126,11 +137,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '800',
-    color: colors.text,
   },
   subtitle: {
     fontSize: fontSize.base,
-    color: colors.textMuted,
     marginTop: 4,
   },
   list: {
@@ -141,7 +150,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.card,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md + 4,
     paddingVertical: spacing.md + 2,
@@ -153,10 +161,8 @@ const styles = StyleSheet.create({
   addCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cardMuted,
     borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: colors.border,
     borderStyle: 'dashed',
     paddingHorizontal: spacing.md + 4,
     paddingVertical: spacing.md + 2,
@@ -164,7 +170,6 @@ const styles = StyleSheet.create({
   addCardText: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.text,
   },
   iconBadge: {
     width: 48,
@@ -189,6 +194,5 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.text,
   },
 });

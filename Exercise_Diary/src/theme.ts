@@ -1,20 +1,13 @@
 import { ViewStyle } from 'react-native';
+import { BaseColors } from './lib/types';
 
 // 다크 + 마젠타 팔레트 — 직전 톤(#E0459B)이 핑크에 가깝다는 피드백으로
 // 빨강·파랑이 균형 잡힌 딥 마젠타(자주)로 교체(팔레트 후보 아티팩트의 B안)
 //
-// primary/primaryPressed/primarySoft/accent/accentSoft는 테마 컬러 커스터마이징 기능으로
-// 화면에서 더 이상 이 static 값을 직접 쓰지 않는다(useAccentColors() 훅 사용) — 아래 값은
-// themePresets.ts의 'default' 프리셋과 동일해야 하는 참고용 상수다. 실제로 적용되는 값을
-// 바꾸려면 themePresets.ts를 수정할 것.
-export const colors = {
-  primary: '#9B2791',
-  primaryPressed: '#6D1B66',
-  primarySoft: '#331C31',
-  accent: '#C67AC9',
-  accentSoft: '#332038',
-  danger: '#FF453A',
-  dangerSoft: '#3A1614',
+// 라이트 모드 지원 이전엔 이 파일이 accent 색(primary 등)까지 들고 있었지만, 지금은
+// useAccentColors() 훅이 themePresets.ts를 통해 그 값을 내려준다. 여기 남은 건 화면 배경·카드·
+// 텍스트처럼 기기 디스플레이 설정(라이트/다크)에 따라 바뀌는 베이스 톤뿐이다.
+export const DARK_COLORS: BaseColors = {
   background: '#141013',
   card: '#211A20',
   cardMuted: '#282029',
@@ -22,6 +15,22 @@ export const colors = {
   textMuted: '#9A8F96',
   textFaint: '#635760',
   border: '#2C232A',
+  danger: '#FF453A',
+  dangerSoft: '#3A1614',
+  white: '#FFFFFF',
+  shadow: '#000000',
+};
+
+export const LIGHT_COLORS: BaseColors = {
+  background: '#F7F4F5',
+  card: '#FFFFFF',
+  cardMuted: '#F0EBEC',
+  text: '#1E1A1C',
+  textMuted: '#6B6067',
+  textFaint: '#8B8085', // QA에서 대비 2.4:1로 너무 흐리다는 지적 반영 — 3.5:1 정도로 조정
+  border: '#E4DEE0',
+  danger: '#FF453A', // 경고색은 두 모드에서 동일하게 유지(재인식성)
+  dangerSoft: '#FFE1DE',
   white: '#FFFFFF',
   shadow: '#000000',
 };
@@ -64,7 +73,7 @@ export const buttonShadowShape: ViewStyle = {
 };
 
 export const cardShadow: ViewStyle = {
-  shadowColor: colors.shadow,
+  shadowColor: '#000000', // 라이트/다크 공통 — 두 팔레트의 shadow 값이 같다
   shadowOffset: { width: 0, height: 3 },
   shadowOpacity: 0.4,
   shadowRadius: 8,

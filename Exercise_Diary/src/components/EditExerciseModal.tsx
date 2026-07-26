@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import { EXERCISE_NAME_MAX_LENGTH } from '../lib/exercisePresets';
+import { EXERCISE_NAME_MAX_LENGTH, getExerciseDisplayName, inferPresetKey } from '../lib/exercisePresets';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { removeExercise, updateExercise } from '../lib/storage';
 import { Exercise } from '../lib/types';
 import { extractYoutubeVideoId } from '../lib/youtube';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { fontSize, radius, spacing } from '../theme';
 
 type Props = {
   exercise: Exercise | null;
@@ -16,6 +17,7 @@ type Props = {
 
 export default function EditExerciseModal({ exercise, existingNames, onClose, onSaved }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   const [name, setName] = useState('');
   const [usesWeight, setUsesWeight] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg');
@@ -24,7 +26,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
 
   useEffect(() => {
     if (exercise) {
-      setName(exercise.name);
+      setName(getExerciseDisplayName(exercise, t));
       setUsesWeight(exercise.usesWeight ?? false);
       setWeightUnit(exercise.weightUnit ?? 'kg');
       setVideoLinkText(exercise.guideVideoId ? `https://youtu.be/${exercise.guideVideoId}` : '');
@@ -40,19 +42,19 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
   const handleSave = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
-      setError('운동 이름을 입력해 주세요');
+      setError(t.editExercise.errorNameRequired);
       return;
     }
     if (trimmed.length > EXERCISE_NAME_MAX_LENGTH) {
-      setError(`이름은 ${EXERCISE_NAME_MAX_LENGTH}자 이내로 입력해 주세요`);
+      setError(t.editExercise.errorNameTooLong(EXERCISE_NAME_MAX_LENGTH));
       return;
     }
     const normalizedTrimmed = trimmed.toLocaleLowerCase();
-    const isDuplicate =
-      normalizedTrimmed !== exercise.name.toLocaleLowerCase() &&
-      existingNames.some((n) => n.toLocaleLowerCase() === normalizedTrimmed);
+    const originalDisplayName = getExerciseDisplayName(exercise, t);
+    const nameChanged = normalizedTrimmed !== originalDisplayName.toLocaleLowerCase();
+    const isDuplicate = nameChanged && existingNames.some((n) => n.toLocaleLowerCase() === normalizedTrimmed);
     if (isDuplicate) {
-      setError('이미 같은 이름의 운동이 있습니다');
+      setError(t.editExercise.errorDuplicateName);
       return;
     }
     const trimmedLink = videoLinkText.trim();
@@ -60,7 +62,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
     if (trimmedLink) {
       const id = extractYoutubeVideoId(trimmedLink);
       if (!id) {
-        setError('유튜브 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)');
+        setError(t.editExercise.errorInvalidVideoLink);
         return;
       }
       guideVideoId = id;
@@ -68,16 +70,22 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
     await updateExercise(exercise.id, {
       name: trimmed,
       guideVideoId,
+      // 표시 이름과 다르게 고쳤다면 더 이상 프리셋 이름이 아니므로 presetKey를 해제한다.
+      // 안 고쳤다면 원래 presetKey를 그대로 확정 저장한다 — 그냥 저장만 눌러도 name이 항상
+      // 현재 언어의 번역된 표시 이름으로 덮어써지므로, 이때 presetKey를 안 채워두면
+      // (레거시 데이터처럼 원래 presetKey가 없던 경우) 다음부터 언어를 바꿔도 이름이
+      // 이번에 저장한 언어로 고정되고 프리셋 목록에도 중복 후보로 다시 나타난다.
+      presetKey: nameChanged ? undefined : (exercise.presetKey ?? inferPresetKey(exercise.name)),
       ...(exercise.measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : {}),
     });
     onSaved();
   };
 
   const handleDelete = () => {
-    Alert.alert('운동 삭제', `"${exercise.name}"과(와) 이 운동의 모든 기록을 삭제할까요?`, [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t.editExercise.deleteTitle, t.editExercise.deleteBody(getExerciseDisplayName(exercise, t)), [
+      { text: t.common.cancel, style: 'cancel' },
       {
-        text: '삭제',
+        text: t.common.delete,
         style: 'destructive',
         onPress: async () => {
           await removeExercise(exercise.id);
@@ -90,10 +98,10 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.card}>
-          <Text style={styles.title}>운동 수정</Text>
+        <View style={[styles.card, { backgroundColor: accent.background }]}>
+          <Text style={[styles.title, { color: accent.text }]}>{t.editExercise.title}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
             value={name}
             onChangeText={(text) => {
               setName(text);
@@ -103,16 +111,16 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
             autoFocus
           />
 
-          <Text style={styles.videoLabel}>자세 영상 링크 (선택)</Text>
+          <Text style={[styles.videoLabel, { color: accent.textMuted }]}>{t.editExercise.videoLinkLabel}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
             value={videoLinkText}
             onChangeText={(text) => {
               setVideoLinkText(text);
               setError('');
             }}
-            placeholder="유튜브 링크 붙여넣기"
-            placeholderTextColor={colors.textFaint}
+            placeholder={t.editExercise.videoLinkPlaceholder}
+            placeholderTextColor={accent.textFaint}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="url"
@@ -121,27 +129,49 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
           {exercise.measureType === 'reps' && (
             <>
               <View style={styles.weightRow}>
-                <Text style={styles.weightLabel}>무게 기록 사용</Text>
+                <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.editExercise.weightLabel}</Text>
                 <Switch
                   value={usesWeight}
                   onValueChange={setUsesWeight}
-                  trackColor={{ true: accent.primary, false: colors.border }}
+                  trackColor={{ true: accent.primary, false: accent.border }}
                 />
               </View>
               {usesWeight && (
                 <View style={styles.segmentRow}>
                   <Pressable
-                    style={[styles.segment, weightUnit === 'kg' && segmentSelectedStyle]}
+                    style={[
+                      styles.segment,
+                      { borderColor: accent.border, backgroundColor: accent.background },
+                      weightUnit === 'kg' && segmentSelectedStyle,
+                    ]}
                     onPress={() => setWeightUnit('kg')}
                   >
-                    <Text style={[styles.segmentText, weightUnit === 'kg' && { color: accent.onPrimary }]}>kg</Text>
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        { color: accent.textMuted },
+                        weightUnit === 'kg' && { color: accent.onPrimary },
+                      ]}
+                    >
+                      {t.units.kg}
+                    </Text>
                   </Pressable>
                   <Pressable
-                    style={[styles.segment, weightUnit === 'lb' && segmentSelectedStyle]}
+                    style={[
+                      styles.segment,
+                      { borderColor: accent.border, backgroundColor: accent.background },
+                      weightUnit === 'lb' && segmentSelectedStyle,
+                    ]}
                     onPress={() => setWeightUnit('lb')}
                   >
-                    <Text style={[styles.segmentText, weightUnit === 'lb' && { color: accent.onPrimary }]}>
-                      파운드
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        { color: accent.textMuted },
+                        weightUnit === 'lb' && { color: accent.onPrimary },
+                      ]}
+                    >
+                      {t.units.lb}
                     </Text>
                   </Pressable>
                 </View>
@@ -149,18 +179,18 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
             </>
           )}
 
-          {error !== '' && <Text style={styles.error}>{error}</Text>}
+          {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
 
           <View style={styles.buttonRow}>
-            <Pressable style={[styles.button, styles.secondaryButton]} onPress={onClose}>
-              <Text style={styles.secondaryButtonText}>취소</Text>
+            <Pressable style={[styles.button, { backgroundColor: accent.card }]} onPress={onClose}>
+              <Text style={[styles.secondaryButtonText, { color: accent.text }]}>{t.editExercise.cancel}</Text>
             </Pressable>
             <Pressable style={[styles.button, { backgroundColor: accent.primary }]} onPress={handleSave}>
-              <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>저장</Text>
+              <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>{t.editExercise.save}</Text>
             </Pressable>
           </View>
           <Pressable style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>이 운동 삭제</Text>
+            <Text style={[styles.deleteButtonText, { color: accent.danger }]}>{t.editExercise.deleteButton}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -178,7 +208,6 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    backgroundColor: colors.background,
     borderRadius: radius.md,
     padding: spacing.lg,
     gap: spacing.sm,
@@ -186,23 +215,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.lg,
     fontWeight: '800',
-    color: colors.text,
     marginBottom: spacing.sm,
   },
   input: {
     borderWidth: 1.5,
-    borderColor: colors.border,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.smd,
     paddingVertical: spacing.sm + 2,
     fontSize: fontSize.base,
-    color: colors.text,
-    backgroundColor: colors.card,
   },
   videoLabel: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.textMuted,
   },
   weightRow: {
     flexDirection: 'row',
@@ -212,7 +236,6 @@ const styles = StyleSheet.create({
   weightLabel: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.textMuted,
   },
   segmentRow: {
     flexDirection: 'row',
@@ -224,17 +247,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.pill,
     borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
   },
   segmentText: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.textMuted,
   },
   error: {
     fontSize: fontSize.sm,
-    color: colors.danger,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -251,15 +270,10 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.white,
-  },
-  secondaryButton: {
-    backgroundColor: colors.card,
   },
   secondaryButtonText: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.text,
   },
   deleteButton: {
     marginTop: spacing.sm,
@@ -269,6 +283,5 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.danger,
   },
 });

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { HELP_SECTIONS } from '../lib/helpContent';
+import { HELP_SECTION_ICONS } from '../lib/helpContent';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { fontSize, radius, spacing } from '../theme';
 
 type Props = {
   visible: boolean;
@@ -12,27 +13,33 @@ type Props = {
 
 export default function HelpModal({ visible, onClose }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       {/* RN Modal은 App.tsx 최상위 SafeAreaView 바깥의 별도 레이어에 뜨기 때문에
           여기서 직접 세이프에어리어를 잡아주지 않으면 헤더가 상태표시줄과 겹친다 */}
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: accent.background }]} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <View style={styles.headerSpacer} />
-          <Text style={styles.headerTitle}>도움말</Text>
-          <Pressable style={styles.closeButton} onPress={onClose} hitSlop={8} accessibilityLabel="닫기">
-            <Ionicons name="close" size={24} color={colors.text} />
+          <Text style={[styles.headerTitle, { color: accent.text }]}>{t.help.title}</Text>
+          <Pressable
+            style={styles.closeButton}
+            onPress={onClose}
+            hitSlop={8}
+            accessibilityLabel={t.help.closeAccessibility}
+          >
+            <Ionicons name="close" size={24} color={accent.text} />
           </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.content}>
-          {HELP_SECTIONS.map((section) => (
-            <View key={section.title} style={styles.section}>
+          {t.help.sections.map((section, index) => (
+            <View key={section.title} style={[styles.section, { backgroundColor: accent.card }]}>
               <View style={[styles.iconBadge, { backgroundColor: accent.primarySoft }]}>
-                <Ionicons name={section.icon} size={26} color={accent.primary} />
+                <Ionicons name={HELP_SECTION_ICONS[index]} size={26} color={accent.primary} />
               </View>
               <View style={styles.sectionText}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-                <Text style={styles.sectionDescription}>{section.description}</Text>
+                <Text style={[styles.sectionTitle, { color: accent.text }]}>{section.title}</Text>
+                <Text style={[styles.sectionDescription, { color: accent.textMuted }]}>{section.description}</Text>
               </View>
             </View>
           ))}
@@ -45,7 +52,6 @@ export default function HelpModal({ visible, onClose }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -61,7 +67,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: fontSize.md,
     fontWeight: '700',
-    color: colors.text,
   },
   closeButton: {
     width: 40,
@@ -77,7 +82,6 @@ const styles = StyleSheet.create({
   section: {
     flexDirection: 'row',
     gap: spacing.smd,
-    backgroundColor: colors.card,
     borderRadius: radius.md,
     padding: spacing.md,
   },
@@ -95,11 +99,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.text,
   },
   sectionDescription: {
     fontSize: fontSize.sm,
-    color: colors.textMuted,
     lineHeight: 20,
   },
 });

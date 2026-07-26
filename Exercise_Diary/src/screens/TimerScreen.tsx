@@ -9,7 +9,7 @@ import NumberStepper from '../components/NumberStepper';
 import TimeDisplay from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import { speakCountdown, speakSecond, speakStart, stopFeedback } from '../lib/feedback';
-import { QUOTES } from '../lib/quotes';
+import { useLanguage, useTranslation } from '../lib/i18n';
 import { addRecord, createId, getSettings, removeRecord, saveSettings, updateRecord } from '../lib/storage';
 import {
   BELL_INTERVAL_MAX_SECONDS,
@@ -22,10 +22,11 @@ import {
   Settings,
   VideoRef,
 } from '../lib/types';
+import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { useAccentColors } from '../lib/ThemeContext';
 import { useHangTimer } from '../lib/useHangTimer';
 import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from '../lib/video';
-import { buttonShadowShape, colors, fontSize, radius, spacing } from '../theme';
+import { buttonShadowShape, fontSize, radius, spacing } from '../theme';
 
 // 1초 미만 정지는 오조작으로 보고 기록하지 않는다
 const MIN_RECORD_MS = 1000;
@@ -43,6 +44,8 @@ type Props = {
 
 export default function TimerScreen({ exercise }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
+  const language = useLanguage();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
@@ -84,13 +87,13 @@ export default function TimerScreen({ exercise }: Props) {
   );
 
   const timer = useHangTimer({
-    onCountdownSecond: speakCountdown,
-    onMeasureStart: speakStart,
+    onCountdownSecond: (remainingSec) => speakCountdown(remainingSec, language),
+    onMeasureStart: () => speakStart(language, t.timer.speechStart),
     onMeasureSecond: (second) => {
       if (second % settings.bellIntervalSeconds === 0) {
         playBellSound();
       } else {
-        speakSecond(second);
+        speakSecond(second, language);
       }
     },
   });
@@ -99,11 +102,12 @@ export default function TimerScreen({ exercise }: Props) {
   const [quote, setQuote] = useState('');
   useEffect(() => {
     if (timer.phase !== 'running') return;
+    const quotes = t.quotes;
     const pickNext = (prev: string) => {
-      if (QUOTES.length < 2) return QUOTES[0] ?? '';
+      if (quotes.length < 2) return quotes[0] ?? '';
       let next = prev;
       while (next === prev) {
-        next = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+        next = quotes[Math.floor(Math.random() * quotes.length)];
       }
       return next;
     };
@@ -164,7 +168,7 @@ export default function TimerScreen({ exercise }: Props) {
         await updateRecord(exercise.id, pending.id, { videoRef: result.ref });
       }
     } catch {
-      Alert.alert('촬영 실패', '영상을 저장하지 못했습니다. 다시 시도해 주세요.');
+      Alert.alert(t.timer.captureFailedTitle, t.timer.captureFailedBody);
     } finally {
       setVideoBusy(false);
     }
@@ -181,7 +185,7 @@ export default function TimerScreen({ exercise }: Props) {
       }
       await runCapture();
     } catch {
-      Alert.alert('촬영 실패', '권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+      Alert.alert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
     } finally {
       // runCapture가 실행됐다면 이미 false로 되돌려놨겠지만, 권한 확인 자체가
       // 실패한 경우를 대비해 여기서도 항상 풀어준다.
@@ -200,7 +204,7 @@ export default function TimerScreen({ exercise }: Props) {
       setPermissionModal(null);
       await runCapture();
     } catch {
-      Alert.alert('촬영 실패', '권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+      Alert.alert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
     } finally {
       setVideoBusy(false);
     }
@@ -261,7 +265,7 @@ export default function TimerScreen({ exercise }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.topBar}>
         <CaptureVideoRow
           capturedAssetId={capturedVideo?.assetId}
@@ -273,23 +277,25 @@ export default function TimerScreen({ exercise }: Props) {
       <View style={styles.phaseContent}>
       {timer.phase === 'idle' && (
         <>
-          <Text style={styles.title}>{exercise.name} 타이머</Text>
+          <Text style={[styles.title, { color: accent.text }]}>{t.timer.title(getExerciseDisplayName(exercise, t))}</Text>
           <GuideVideoPanel videoId={exercise.guideVideoId} />
-          <View style={styles.settings}>
+          <View style={[styles.settings, { backgroundColor: accent.card }]}>
             <NumberStepper
-              label="준비 카운트다운"
+              label={t.timer.countdownLabel}
               value={settings.countdownSeconds}
               min={COUNTDOWN_MIN_SECONDS}
               max={COUNTDOWN_MAX_SECONDS}
+              unit={t.units.seconds}
               editable
               onChange={(v) => updateSettings({ countdownSeconds: v })}
             />
             <NumberStepper
-              label="벨 간격"
+              label={t.timer.bellIntervalLabel}
               value={settings.bellIntervalSeconds}
               min={BELL_INTERVAL_MIN_SECONDS}
               max={BELL_INTERVAL_MAX_SECONDS}
               step={BELL_INTERVAL_STEP_SECONDS}
+              unit={t.units.seconds}
               onChange={(v) => updateSettings({ bellIntervalSeconds: v })}
             />
           </View>
@@ -297,17 +303,17 @@ export default function TimerScreen({ exercise }: Props) {
             style={[styles.button, { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary }]}
             onPress={() => timer.start(settings.countdownSeconds)}
           >
-            <Text style={[styles.buttonText, { color: accent.onPrimary }]}>시작</Text>
+            <Text style={[styles.buttonText, { color: accent.onPrimary }]}>{t.timer.startButton}</Text>
           </Pressable>
         </>
       )}
 
       {timer.phase === 'countdown' && (
         <>
-          <Text style={styles.label}>준비</Text>
-          <Text style={[styles.countdown, { color: accent.primary }]}>{timer.countdownRemainingSec}</Text>
-          <Pressable style={[styles.button, styles.buttonSecondary]} onPress={handleCancel}>
-            <Text style={[styles.buttonText, styles.buttonTextSecondary]}>취소</Text>
+          <Text style={[styles.label, { color: accent.textMuted }]}>{t.timer.preparingLabel}</Text>
+          <Text style={[styles.countdown, { color: accent.primaryText }]}>{timer.countdownRemainingSec}</Text>
+          <Pressable style={[styles.button, { backgroundColor: accent.card }]} onPress={handleCancel}>
+            <Text style={[styles.buttonText, { color: accent.text }]}>{t.timer.cancelButton}</Text>
           </Pressable>
         </>
       )}
@@ -315,17 +321,20 @@ export default function TimerScreen({ exercise }: Props) {
       {timer.phase === 'running' && (
         <>
           <Text style={[styles.quote, { color: accent.accent, backgroundColor: accent.accentSoft }]}>{quote}</Text>
-          <Text style={styles.label}>측정 중</Text>
+          <Text style={[styles.label, { color: accent.textMuted }]}>{t.timer.measuringLabel}</Text>
           <TimeDisplay ms={timer.elapsedMs} />
-          <Pressable style={[styles.button, styles.buttonDanger]} onPress={handleStop}>
-            <Text style={styles.buttonText}>정지</Text>
+          <Pressable
+            style={[styles.button, { backgroundColor: accent.danger, ...buttonShadowShape, shadowColor: accent.danger }]}
+            onPress={handleStop}
+          >
+            <Text style={styles.buttonText}>{t.timer.stopButton}</Text>
           </Pressable>
         </>
       )}
 
       {timer.phase === 'finished' && pending && (
         <>
-          <Text style={styles.label}>결과</Text>
+          <Text style={[styles.label, { color: accent.textMuted }]}>{t.timer.resultLabel}</Text>
           <TimeDisplay ms={pending.durationMs} />
           <View style={styles.adjustRow}>
             <Pressable
@@ -337,14 +346,14 @@ export default function TimerScreen({ exercise }: Props) {
               onPress={() => adjustPending(-1000)}
               disabled={pending.durationMs < MIN_RECORD_MS}
             >
-              <Text style={[styles.adjustButtonText, { color: accent.accent }]}>−1초</Text>
+              <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.minusOneSecond}</Text>
             </Pressable>
             <Pressable style={[styles.adjustButton, { backgroundColor: accent.primarySoft }]} onPress={() => adjustPending(1000)}>
-              <Text style={[styles.adjustButtonText, { color: accent.accent }]}>+1초</Text>
+              <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.plusOneSecond}</Text>
             </Pressable>
           </View>
           {pending.durationMs < MIN_RECORD_MS && (
-            <Text style={styles.notSaved}>1초 미만이라 기록되지 않았습니다</Text>
+            <Text style={[styles.notSaved, { color: accent.textFaint }]}>{t.timer.notSavedNotice}</Text>
           )}
           <View style={styles.buttonRow}>
             <Pressable
@@ -355,10 +364,13 @@ export default function TimerScreen({ exercise }: Props) {
               ]}
               onPress={handleRestart}
             >
-              <Text style={[styles.buttonText, { color: accent.onPrimary }]}>다시 시작</Text>
+              <Text style={[styles.buttonText, { color: accent.onPrimary }]}>{t.timer.restartButton}</Text>
             </Pressable>
-            <Pressable style={[styles.button, styles.buttonSecondary, styles.buttonRowItem]} onPress={handleGoMain}>
-              <Text style={[styles.buttonText, styles.buttonTextSecondary]}>메인으로</Text>
+            <Pressable
+              style={[styles.button, styles.buttonRowItem, { backgroundColor: accent.card }]}
+              onPress={handleGoMain}
+            >
+              <Text style={[styles.buttonText, { color: accent.text }]}>{t.timer.goMainButton}</Text>
             </Pressable>
           </View>
         </>
@@ -380,7 +392,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: spacing.lg,
-    backgroundColor: colors.background,
   },
   topBar: {
     alignItems: 'flex-start',
@@ -394,24 +405,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xl,
     fontWeight: '800',
-    color: colors.text,
   },
   settings: {
     alignSelf: 'stretch',
     gap: spacing.md,
     paddingHorizontal: spacing.md + 4,
     paddingVertical: spacing.md,
-    backgroundColor: colors.card,
     borderRadius: radius.md,
   },
   label: {
     fontSize: fontSize.lg,
     fontWeight: '700',
-    color: colors.textMuted,
   },
   notSaved: {
     fontSize: fontSize.sm,
-    color: colors.textFaint,
   },
   adjustRow: {
     flexDirection: 'row',
@@ -454,21 +461,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  buttonSecondary: {
-    backgroundColor: colors.card,
-  },
-  buttonDanger: {
-    backgroundColor: colors.danger,
-    ...buttonShadowShape,
-    shadowColor: colors.danger,
-  },
   buttonText: {
-    color: colors.white,
+    color: '#FFFFFF', // 정지 버튼(고정 danger 배경)의 기본값 — 다시 시작 버튼은 accent.onPrimary로 덮어씀
     fontSize: fontSize.lg,
     fontWeight: '700',
-  },
-  buttonTextSecondary: {
-    color: colors.text,
   },
   buttonRow: {
     flexDirection: 'row',

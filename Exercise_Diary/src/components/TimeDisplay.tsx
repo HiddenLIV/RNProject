@@ -1,5 +1,6 @@
 import { StyleSheet, Text } from 'react-native';
-import { colors, fontSize } from '../theme';
+import { useAccentColors } from '../lib/ThemeContext';
+import { fontSize } from '../theme';
 
 export function formatDuration(ms: number): string {
   const clamped = Math.max(0, ms);
@@ -14,7 +15,8 @@ type Props = {
 };
 
 export default function TimeDisplay({ ms }: Props) {
-  return <Text style={styles.time}>{formatDuration(ms)}</Text>;
+  const accent = useAccentColors();
+  return <Text style={[styles.time, { color: accent.text }]}>{formatDuration(ms)}</Text>;
 }
 
 const styles = StyleSheet.create({
@@ -22,6 +24,5 @@ const styles = StyleSheet.create({
     fontSize: fontSize.display,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    color: colors.text,
   },
 });

@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { getExerciseDisplayName } from '../lib/exercisePresets';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise } from '../lib/types';
 import RecordsScreen from './RecordsScreen';
 import RepsScreen from './RepsScreen';
 import TimerScreen from './TimerScreen';
-import { colors, fontSize, spacing } from '../theme';
+import { fontSize, spacing } from '../theme';
 
 type Tab = 'measure' | 'records';
 
@@ -17,15 +19,16 @@ type Props = {
 
 export default function ExerciseScreen({ exercise, onBack }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   const [tab, setTab] = useState<Tab>('measure');
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={onBack} hitSlop={8}>
-          <Ionicons name="chevron-back" size={26} color={accent.primary} />
+          <Ionicons name="chevron-back" size={26} color={accent.primaryText} />
         </Pressable>
-        <Text style={styles.headerTitle}>{exercise.name}</Text>
+        <Text style={[styles.headerTitle, { color: accent.text }]}>{getExerciseDisplayName(exercise, t)}</Text>
         <View style={styles.headerSpacer} />
       </View>
       <View style={styles.content}>
@@ -39,22 +42,26 @@ export default function ExerciseScreen({ exercise, onBack }: Props) {
           <RecordsScreen exercise={exercise} />
         )}
       </View>
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { borderTopColor: accent.border, backgroundColor: accent.background }]}>
         <Pressable style={styles.tabButton} onPress={() => setTab('measure')}>
           <Ionicons
             name={tab === 'measure' ? 'timer' : 'timer-outline'}
             size={22}
-            color={tab === 'measure' ? accent.primary : colors.textFaint}
+            color={tab === 'measure' ? accent.primaryText : accent.textFaint}
           />
-          <Text style={[styles.tabText, tab === 'measure' && { color: accent.primary }]}>측정</Text>
+          <Text style={[styles.tabText, { color: accent.textFaint }, tab === 'measure' && { color: accent.primaryText }]}>
+            {t.exerciseScreen.measureTab}
+          </Text>
         </Pressable>
         <Pressable style={styles.tabButton} onPress={() => setTab('records')}>
           <Ionicons
             name={tab === 'records' ? 'list' : 'list-outline'}
             size={22}
-            color={tab === 'records' ? accent.primary : colors.textFaint}
+            color={tab === 'records' ? accent.primaryText : accent.textFaint}
           />
-          <Text style={[styles.tabText, tab === 'records' && { color: accent.primary }]}>기록</Text>
+          <Text style={[styles.tabText, { color: accent.textFaint }, tab === 'records' && { color: accent.primaryText }]}>
+            {t.exerciseScreen.recordsTab}
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -64,7 +71,6 @@ export default function ExerciseScreen({ exercise, onBack }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -83,7 +89,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: fontSize.md,
     fontWeight: '700',
-    color: colors.text,
   },
   headerSpacer: {
     width: 40,
@@ -94,8 +99,6 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
   },
   tabButton: {
     flex: 1,
@@ -105,7 +108,6 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: fontSize.sm,
-    color: colors.textFaint,
     fontWeight: '700',
   },
 });

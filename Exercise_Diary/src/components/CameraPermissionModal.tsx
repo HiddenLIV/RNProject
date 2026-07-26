@@ -1,7 +1,8 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { PermissionState } from '../lib/video';
-import { colors, fontSize, radius, spacing } from '../theme';
+import { fontSize, radius, spacing } from '../theme';
 
 type Props = {
   state: PermissionState | null; // null이면 렌더링 안 함, 'granted'는 호출부에서 애초에 이 모달을 안 띄움
@@ -12,26 +13,27 @@ type Props = {
 
 export default function CameraPermissionModal({ state, onGrant, onOpenSettings, onClose }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   if (!state || state === 'granted') return null;
   const blocked = state === 'blocked';
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <View style={styles.card}>
-          <Text style={styles.title}>카메라·사진 접근 권한이 필요해요</Text>
-          <Text style={styles.body}>
-            운동하는 모습을 촬영하고 기기 갤러리에 저장하려면 카메라와 사진 접근 권한이 필요합니다.
-          </Text>
+        <View style={[styles.card, { backgroundColor: accent.background }]}>
+          <Text style={[styles.title, { color: accent.text }]}>{t.cameraPermission.title}</Text>
+          <Text style={[styles.body, { color: accent.textMuted }]}>{t.cameraPermission.body}</Text>
           <View style={styles.buttonRow}>
-            <Pressable style={[styles.button, styles.secondaryButton]} onPress={onClose}>
-              <Text style={styles.secondaryButtonText}>취소</Text>
+            <Pressable style={[styles.button, { backgroundColor: accent.card }]} onPress={onClose}>
+              <Text style={[styles.secondaryButtonText, { color: accent.text }]}>{t.cameraPermission.cancel}</Text>
             </Pressable>
             <Pressable
               style={[styles.button, { backgroundColor: accent.primary }]}
               onPress={blocked ? onOpenSettings : onGrant}
             >
-              <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>{blocked ? '설정으로 이동' : '권한 허용'}</Text>
+              <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>
+                {blocked ? t.cameraPermission.openSettings : t.cameraPermission.grant}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -50,7 +52,6 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    backgroundColor: colors.background,
     borderRadius: radius.md,
     padding: spacing.lg,
     gap: spacing.sm,
@@ -58,11 +59,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.lg,
     fontWeight: '800',
-    color: colors.text,
   },
   body: {
     fontSize: fontSize.base,
-    color: colors.textMuted,
     lineHeight: 22,
   },
   buttonRow: {
@@ -80,14 +79,9 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.white,
-  },
-  secondaryButton: {
-    backgroundColor: colors.card,
   },
   secondaryButtonText: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.text,
   },
 });

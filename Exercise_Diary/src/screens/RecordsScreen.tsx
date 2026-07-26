@@ -5,24 +5,26 @@ import RecordItem from '../components/RecordItem';
 import RepsRecordItem, { totalReps } from '../components/RepsRecordItem';
 import { formatDuration } from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { getRecords, getRepsRecords, removeRecord, removeRepsRecord } from '../lib/storage';
 import { Exercise, RepsRecord, TimeRecord } from '../lib/types';
-import { cardShadow, colors, fontSize, radius, spacing } from '../theme';
+import { cardShadow, fontSize, radius, spacing } from '../theme';
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-
-function formatDateTitle(iso: string): string {
+function formatDateTitle(iso: string, weekdays: string[]): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${WEEKDAYS[d.getDay()]})`;
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${weekdays[d.getDay()]})`;
 }
 
 // 기록이 최신순이므로 삽입 순서를 보존하는 Map으로 묶으면 섹션도 최신 날짜부터 나온다
-function groupByDate<T extends { measuredAt: string }>(records: T[]): { title: string; data: T[] }[] {
+function groupByDate<T extends { measuredAt: string }>(
+  records: T[],
+  weekdays: string[]
+): { title: string; data: T[] }[] {
   const byDate = new Map<string, T[]>();
   for (const record of records) {
-    const title = formatDateTitle(record.measuredAt);
+    const title = formatDateTitle(record.measuredAt, weekdays);
     const group = byDate.get(title);
     if (group) {
       group.push(record);
@@ -45,6 +47,8 @@ export default function RecordsScreen({ exercise }: Props) {
 }
 
 function TimeRecordsScreen({ exercise }: Props) {
+  const accent = useAccentColors();
+  const t = useTranslation();
   const [records, setRecords] = useState<TimeRecord[]>([]);
   const [viewingAssetId, setViewingAssetId] = useState<string | null>(null);
 
@@ -60,19 +64,25 @@ function TimeRecordsScreen({ exercise }: Props) {
   const bestRecord =
     records.length > 0 ? records.reduce((best, r) => (r.durationMs > best.durationMs ? r : best)) : null;
 
-  const sections = useMemo(() => groupByDate(records), [records]);
+  const sections = useMemo(() => groupByDate(records, t.weekdays), [records, t.weekdays]);
 
   return (
     <RecordsScaffold empty={records.length === 0}>
       {bestRecord && (
-        <BestCard label="최고 기록" date={formatDateTitle(bestRecord.measuredAt)} value={formatDuration(bestRecord.durationMs)} />
+        <BestCard
+          label={t.records.best}
+          date={formatDateTitle(bestRecord.measuredAt, t.weekdays)}
+          value={formatDuration(bestRecord.durationMs)}
+        />
       )}
       <SectionList
         sections={sections}
         keyExtractor={(r) => r.id}
         contentContainerStyle={styles.list}
         stickySectionHeadersEnabled={false}
-        renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{section.title}</Text>}
+        renderSectionHeader={({ section }) => (
+          <Text style={[styles.sectionHeader, { color: accent.textMuted }]}>{section.title}</Text>
+        )}
         renderItem={({ item }) => (
           <RecordItem
             record={item}
@@ -88,6 +98,8 @@ function TimeRecordsScreen({ exercise }: Props) {
 }
 
 function RepsRecordsScreen({ exercise }: Props) {
+  const accent = useAccentColors();
+  const t = useTranslation();
   const [records, setRecords] = useState<RepsRecord[]>([]);
   const [viewingAssetId, setViewingAssetId] = useState<string | null>(null);
 
@@ -103,15 +115,15 @@ function RepsRecordsScreen({ exercise }: Props) {
   const bestRecord =
     records.length > 0 ? records.reduce((best, r) => (totalReps(r) > totalReps(best) ? r : best)) : null;
 
-  const sections = useMemo(() => groupByDate(records), [records]);
+  const sections = useMemo(() => groupByDate(records, t.weekdays), [records, t.weekdays]);
 
   return (
     <RecordsScaffold empty={records.length === 0}>
       {bestRecord && (
         <BestCard
-          label="최고 기록"
-          date={formatDateTitle(bestRecord.measuredAt)}
-          value={`${bestRecord.sets.length}세트 · ${totalReps(bestRecord)}회`}
+          label={t.records.best}
+          date={formatDateTitle(bestRecord.measuredAt, t.weekdays)}
+          value={t.records.setsAndReps(bestRecord.sets.length, totalReps(bestRecord))}
         />
       )}
       <SectionList
@@ -119,7 +131,9 @@ function RepsRecordsScreen({ exercise }: Props) {
         keyExtractor={(r) => r.id}
         contentContainerStyle={styles.list}
         stickySectionHeadersEnabled={false}
-        renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{section.title}</Text>}
+        renderSectionHeader={({ section }) => (
+          <Text style={[styles.sectionHeader, { color: accent.textMuted }]}>{section.title}</Text>
+        )}
         renderItem={({ item }) => (
           <RepsRecordItem
             record={item}
@@ -135,13 +149,15 @@ function RepsRecordsScreen({ exercise }: Props) {
 }
 
 function RecordsScaffold({ empty, children }: { empty: boolean; children: ReactNode }) {
+  const accent = useAccentColors();
+  const t = useTranslation();
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>기록</Text>
+    <View style={[styles.container, { backgroundColor: accent.background }]}>
+      <Text style={[styles.title, { color: accent.text }]}>{t.records.title}</Text>
       {empty ? (
         <View style={styles.empty}>
-          <Ionicons name="body-outline" size={40} color={colors.textFaint} />
-          <Text style={styles.emptyText}>아직 기록이 없습니다.{'\n'}측정으로 첫 기록을 남겨보세요.</Text>
+          <Ionicons name="body-outline" size={40} color={accent.textFaint} />
+          <Text style={[styles.emptyText, { color: accent.textMuted }]}>{t.records.empty}</Text>
         </View>
       ) : (
         children
@@ -159,7 +175,7 @@ function BestCard({ label, date, value }: { label: string; date: string; value: 
           <Ionicons name="trophy" size={14} color={accent.onPrimary} />
           <Text style={[styles.bestLabel, { color: accent.onPrimary }]}>{label}</Text>
         </View>
-        <Text style={[styles.bestDate, { color: accent.accentSoft }]}>{date}</Text>
+        <Text style={[styles.bestDate, { color: accent.onPrimary }]}>{date}</Text>
       </View>
       <Text style={[styles.bestValue, { color: accent.onPrimary }]}>{value}</Text>
     </View>
@@ -169,13 +185,11 @@ function BestCard({ label, date, value }: { label: string; date: string; value: 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     paddingHorizontal: spacing.md,
   },
   title: {
     fontSize: fontSize.xl,
     fontWeight: '800',
-    color: colors.text,
     marginVertical: spacing.md,
   },
   list: {
@@ -185,7 +199,6 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.textMuted,
     marginTop: spacing.sm,
   },
   bestCard: {
@@ -209,7 +222,6 @@ const styles = StyleSheet.create({
   bestLabel: {
     fontSize: fontSize.sm,
     fontWeight: '700',
-    color: colors.white,
   },
   bestDate: {
     fontSize: fontSize.xs,
@@ -219,7 +231,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xl + 4,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    color: colors.white,
   },
   empty: {
     flex: 1,
@@ -229,7 +240,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: fontSize.base,
-    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 24,
   },
