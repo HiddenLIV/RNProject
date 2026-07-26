@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { EXERCISE_NAME_MAX_LENGTH } from '../lib/exercisePresets';
 import { removeExercise, updateExercise } from '../lib/storage';
 import { Exercise } from '../lib/types';
+import { extractYoutubeVideoId } from '../lib/youtube';
 import { colors, fontSize, radius, spacing } from '../theme';
 
 type Props = {
@@ -16,6 +17,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
   const [name, setName] = useState('');
   const [usesWeight, setUsesWeight] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg');
+  const [videoLinkText, setVideoLinkText] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -23,6 +25,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
       setName(exercise.name);
       setUsesWeight(exercise.usesWeight ?? false);
       setWeightUnit(exercise.weightUnit ?? 'kg');
+      setVideoLinkText(exercise.guideVideoId ? `https://youtu.be/${exercise.guideVideoId}` : '');
       setError('');
     }
   }, [exercise]);
@@ -47,8 +50,19 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
       setError('이미 같은 이름의 운동이 있습니다');
       return;
     }
+    const trimmedLink = videoLinkText.trim();
+    let guideVideoId: string | undefined;
+    if (trimmedLink) {
+      const id = extractYoutubeVideoId(trimmedLink);
+      if (!id) {
+        setError('유튜브 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)');
+        return;
+      }
+      guideVideoId = id;
+    }
     await updateExercise(exercise.id, {
       name: trimmed,
+      guideVideoId,
       ...(exercise.measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : {}),
     });
     onSaved();
@@ -70,7 +84,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.card}>
           <Text style={styles.title}>운동 수정</Text>
           <TextInput
@@ -82,6 +96,21 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
             }}
             maxLength={EXERCISE_NAME_MAX_LENGTH}
             autoFocus
+          />
+
+          <Text style={styles.videoLabel}>자세 영상 링크 (선택)</Text>
+          <TextInput
+            style={styles.input}
+            value={videoLinkText}
+            onChangeText={(text) => {
+              setVideoLinkText(text);
+              setError('');
+            }}
+            placeholder="유튜브 링크 붙여넣기"
+            placeholderTextColor={colors.textFaint}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
           />
 
           {exercise.measureType === 'reps' && (
@@ -129,7 +158,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
             <Text style={styles.deleteButtonText}>이 운동 삭제</Text>
           </Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -164,6 +193,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     color: colors.text,
     backgroundColor: colors.card,
+  },
+  videoLabel: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
+    color: colors.textMuted,
   },
   weightRow: {
     flexDirection: 'row',

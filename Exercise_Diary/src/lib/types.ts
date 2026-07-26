@@ -9,7 +9,11 @@ export type Exercise = {
   measureType: MeasureType;
   usesWeight?: boolean; // measureType === 'reps'일 때만 의미 있음
   weightUnit?: 'kg' | 'lb'; // usesWeight가 true일 때만
-  builtin: boolean; // true면 수정·삭제 불가 (매달리기)
+  guideVideoId?: string; // 자세 안내용 유튜브 영상 ID(11자리). 없으면 측정 화면에 영상 버튼이 안 보임
+};
+
+export type VideoRef = {
+  assetId: string; // expo-media-library Asset id — 기기 갤러리 상의 영상을 가리키는 참조. 영상 파일 자체는 앱이 보관하지 않는다.
 };
 
 // 시간형 운동 기록 — 기존 HangRecord와 구조가 완전히 같다 (이름만 일반화, 기존 JSON과 100% 호환)
@@ -17,6 +21,7 @@ export type TimeRecord = {
   id: string;
   measuredAt: string;
   durationMs: number;
+  videoRef?: VideoRef;
 };
 
 export type RepsSet = {
@@ -29,6 +34,7 @@ export type RepsRecord = {
   measuredAt: string;
   sets: RepsSet[];
   weightUnit?: 'kg' | 'lb'; // 저장 당시 단위 스냅샷 — 나중에 단위를 바꿔도 과거 기록엔 영향 없음
+  videoRef?: VideoRef;
 };
 
 export type Settings = {

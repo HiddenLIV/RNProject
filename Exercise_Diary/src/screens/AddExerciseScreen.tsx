@@ -5,6 +5,7 @@ import MeasureTypeTag from '../components/MeasureTypeTag';
 import { CUSTOM_EXERCISE_ICON, CUSTOM_ICON_CHOICES, EXERCISE_NAME_MAX_LENGTH, PRESET_EXERCISES } from '../lib/exercisePresets';
 import { addExercise, createId, getExercises } from '../lib/storage';
 import { Exercise, MeasureType } from '../lib/types';
+import { extractYoutubeVideoId } from '../lib/youtube';
 import { colors, fontSize, radius, spacing } from '../theme';
 
 type Props = {
@@ -20,6 +21,7 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
   const [measureType, setMeasureType] = useState<MeasureType>('time');
   const [usesWeight, setUsesWeight] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg');
+  const [videoLinkText, setVideoLinkText] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -65,13 +67,23 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
       setError('이미 같은 이름의 운동이 있습니다');
       return;
     }
+    const trimmedLink = videoLinkText.trim();
+    let guideVideoId: string | undefined;
+    if (trimmedLink) {
+      const id = extractYoutubeVideoId(trimmedLink);
+      if (!id) {
+        setError('유튜브 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)');
+        return;
+      }
+      guideVideoId = id;
+    }
     setSaving(true);
     const exercise: Exercise = {
       id: createId(),
       name: trimmed,
       icon,
       measureType,
-      builtin: false,
+      guideVideoId,
       ...(measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : {}),
     };
     await addExercise(exercise);
@@ -198,6 +210,23 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
           </View>
         )}
 
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>자세 영상 링크 (선택)</Text>
+          <TextInput
+            style={styles.nameInput}
+            value={videoLinkText}
+            onChangeText={(text) => {
+              setVideoLinkText(text);
+              setError('');
+            }}
+            placeholder="유튜브 링크 붙여넣기"
+            placeholderTextColor={colors.textFaint}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+          />
+        </View>
+
         {error !== '' && <Text style={styles.error}>{error}</Text>}
 
         <Pressable style={[styles.addButton, saving && styles.addButtonDisabled]} onPress={handleAdd} disabled={saving}>
@@ -276,7 +305,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   presetIndexSelected: {
-    color: colors.primary,
+    color: colors.accent,
   },
   presetIconBadge: {
     width: 32,
@@ -296,7 +325,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   presetNameSelected: {
-    color: colors.primaryPressed,
+    color: colors.accent,
   },
   presetCheck: {
     marginLeft: 2,

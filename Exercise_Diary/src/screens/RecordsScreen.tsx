@@ -4,6 +4,7 @@ import { SectionList, StyleSheet, Text, View } from 'react-native';
 import RecordItem from '../components/RecordItem';
 import RepsRecordItem, { totalReps } from '../components/RepsRecordItem';
 import { formatDuration } from '../components/TimeDisplay';
+import VideoPlayerModal from '../components/VideoPlayerModal';
 import { getRecords, getRepsRecords, removeRecord, removeRepsRecord } from '../lib/storage';
 import { Exercise, RepsRecord, TimeRecord } from '../lib/types';
 import { cardShadow, colors, fontSize, radius, spacing } from '../theme';
@@ -44,6 +45,7 @@ export default function RecordsScreen({ exercise }: Props) {
 
 function TimeRecordsScreen({ exercise }: Props) {
   const [records, setRecords] = useState<TimeRecord[]>([]);
+  const [viewingAssetId, setViewingAssetId] = useState<string | null>(null);
 
   useEffect(() => {
     getRecords(exercise.id).then(setRecords);
@@ -71,15 +73,22 @@ function TimeRecordsScreen({ exercise }: Props) {
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{section.title}</Text>}
         renderItem={({ item }) => (
-          <RecordItem record={item} isBest={item.id === bestRecord?.id} onDelete={handleDelete} />
+          <RecordItem
+            record={item}
+            isBest={item.id === bestRecord?.id}
+            onDelete={handleDelete}
+            onViewVideo={setViewingAssetId}
+          />
         )}
       />
+      <VideoPlayerModal assetId={viewingAssetId} onClose={() => setViewingAssetId(null)} />
     </RecordsScaffold>
   );
 }
 
 function RepsRecordsScreen({ exercise }: Props) {
   const [records, setRecords] = useState<RepsRecord[]>([]);
+  const [viewingAssetId, setViewingAssetId] = useState<string | null>(null);
 
   useEffect(() => {
     getRepsRecords(exercise.id).then(setRecords);
@@ -111,9 +120,15 @@ function RepsRecordsScreen({ exercise }: Props) {
         stickySectionHeadersEnabled={false}
         renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{section.title}</Text>}
         renderItem={({ item }) => (
-          <RepsRecordItem record={item} isBest={item.id === bestRecord?.id} onDelete={handleDelete} />
+          <RepsRecordItem
+            record={item}
+            isBest={item.id === bestRecord?.id}
+            onDelete={handleDelete}
+            onViewVideo={setViewingAssetId}
+          />
         )}
       />
+      <VideoPlayerModal assetId={viewingAssetId} onClose={() => setViewingAssetId(null)} />
     </RecordsScaffold>
   );
 }

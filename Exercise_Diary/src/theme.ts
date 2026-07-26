@@ -1,21 +1,22 @@
 import { ViewStyle } from 'react-native';
 
-// 다크 + 비비드 오렌지 팔레트 — Strava 등 운동 기록 앱 참고, 큰 숫자·기록에 힘을 싣는 톤
+// 다크 + 마젠타 팔레트 — 직전 톤(#E0459B)이 핑크에 가깝다는 피드백으로
+// 빨강·파랑이 균형 잡힌 딥 마젠타(자주)로 교체(팔레트 후보 아티팩트의 B안)
 export const colors = {
-  primary: '#FF5A1F',
-  primaryPressed: '#D9450F',
-  primarySoft: '#3A2416',
-  accent: '#E8A33D',
-  accentSoft: '#3A2E14',
+  primary: '#9B2791',
+  primaryPressed: '#6D1B66',
+  primarySoft: '#331C31',
+  accent: '#C67AC9',
+  accentSoft: '#332038',
   danger: '#FF453A',
   dangerSoft: '#3A1614',
-  background: '#121310',
-  card: '#1D1F19',
-  cardMuted: '#242620',
+  background: '#141013',
+  card: '#211A20',
+  cardMuted: '#282029',
   text: '#F5F3EE',
-  textMuted: '#9A968C',
-  textFaint: '#635F57',
-  border: '#2A2B24',
+  textMuted: '#9A8F96',
+  textFaint: '#635760',
+  border: '#2C232A',
   white: '#FFFFFF',
   shadow: '#000000',
 };

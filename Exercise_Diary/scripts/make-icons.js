@@ -1,6 +1,6 @@
-// timecheck 앱 아이콘 생성: 아령 실루엣 (매달리기 전용에서 범용 운동 일지로 확장됨에 따라
+// Exercise_Diary 앱 아이콘 생성: 아령 실루엣 (매달리기 전용에서 범용 운동 일지로 확장됨에 따라
 // 데드행 전용 모티프 대신 모든 운동을 아우르는 아령으로 교체, 색상도 src/theme.ts의
-// 다크(background)+비비드 오렌지(primary) 팔레트로 통일)
+// 다크(background)+마젠타(primary) 팔레트로 통일)
 // 실행: node scripts/make-icons.js  (→ assets/ 아래 6개 PNG 재생성)
 // 의존성 없이 PNG를 직접 인코딩한다 (RGBA, zlib은 node 내장)
 const fs = require('fs');
@@ -81,8 +81,8 @@ function motifSdf(x, y) {
 
 function gradientBg(y, size) {
   const t = y / size;
-  const top = [0xff, 0x5a, 0x1f]; // colors.primary
-  const bottom = [0xd9, 0x45, 0x0f]; // colors.primaryPressed
+  const top = [0x9b, 0x27, 0x91]; // colors.primary
+  const bottom = [0x6d, 0x1b, 0x66]; // colors.primaryPressed
   return top.map((c, i) => Math.round(c + (bottom[i] - c) * t));
 }
 
@@ -125,8 +125,8 @@ const jobs = [
   ['android-icon-background.png', render(1024, 'background')],
   ['android-icon-monochrome.png', render(1024, 'monochrome', 0.62)],
   ['favicon.png', render(196, 'icon')],
-  // 스플래시 배경은 흰색이므로 실루엣을 브랜드 오렌지로
-  ['splash-icon.png', render(1024, 'foreground', 0.62, [0xff, 0x5a, 0x1f])],
+  // 스플래시 배경은 흰색이므로 실루엣을 브랜드 마젠타로
+  ['splash-icon.png', render(1024, 'foreground', 0.62, [0x9b, 0x27, 0x91])],
 ];
 for (const [name, buf] of jobs) {
   fs.writeFileSync(path.join(outDir, name), buf);

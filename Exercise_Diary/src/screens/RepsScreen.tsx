@@ -1,9 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import CameraPermissionModal from '../components/CameraPermissionModal';
+import CaptureVideoRow from '../components/CaptureVideoRow';
+import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
+import VideoPlayerModal from '../components/VideoPlayerModal';
 import { addRepsRecord, createId } from '../lib/storage';
-import { Exercise, RepsSet } from '../lib/types';
+import { Exercise, RepsSet, VideoRef } from '../lib/types';
+import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from '../lib/video';
 import { buttonShadow, colors, fontSize, radius, spacing } from '../theme';
 
 type Props = {
@@ -30,6 +35,63 @@ export default function RepsScreen({ exercise }: Props) {
   const [error, setError] = useState('');
   const [justSaved, setJustSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // 촬영한 영상 참조 — 저장하면 그 기록에 실려 나가고 초기화된다. 저장하지 않고
+  // 화면을 벗어나면(탭 전환 등) 컴포넌트가 언마운트되며 자연히 사라진다.
+  const [capturedVideo, setCapturedVideo] = useState<VideoRef | null>(null);
+  const [viewingVideo, setViewingVideo] = useState(false);
+  const [permissionModal, setPermissionModal] = useState<PermissionState | null>(null);
+  const [videoBusy, setVideoBusy] = useState(false);
+
+  const runCapture = async () => {
+    try {
+      const result = await captureExerciseVideo();
+      if (result.status === 'saved') setCapturedVideo(result.ref);
+    } catch {
+      Alert.alert('촬영 실패', '영상을 저장하지 못했습니다. 다시 시도해 주세요.');
+    } finally {
+      setVideoBusy(false);
+    }
+  };
+
+  const handleCapturePress = async () => {
+    if (videoBusy) return; // 연타 방지 — 권한 확인 중에도 이미 처리 중으로 간주한다
+    setVideoBusy(true);
+    try {
+      const state = await getVideoPermissionState();
+      if (state !== 'granted') {
+        setPermissionModal(state);
+        return;
+      }
+      await runCapture();
+    } catch {
+      Alert.alert('촬영 실패', '권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+    } finally {
+      setVideoBusy(false);
+    }
+  };
+
+  const handleGrantPermission = async () => {
+    setVideoBusy(true);
+    try {
+      const granted = await requestVideoPermissions();
+      if (!granted) {
+        setPermissionModal(await getVideoPermissionState());
+        return;
+      }
+      setPermissionModal(null);
+      await runCapture();
+    } catch {
+      Alert.alert('촬영 실패', '권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+    } finally {
+      setVideoBusy(false);
+    }
+  };
+
+  const handleOpenSettings = () => {
+    setPermissionModal(null);
+    Linking.openSettings();
+  };
 
   const updateSet = (index: number, patch: Partial<EditableSet>) => {
     setJustSaved(false);
@@ -63,8 +125,10 @@ export default function RepsScreen({ exercise }: Props) {
       measuredAt: new Date().toISOString(),
       sets: finalSets,
       weightUnit: exercise.usesWeight ? exercise.weightUnit : undefined,
+      videoRef: capturedVideo ?? undefined,
     });
     setSets([newSet()]);
+    setCapturedVideo(null);
     setError('');
     setJustSaved(true);
     setSaving(false);
@@ -77,6 +141,13 @@ export default function RepsScreen({ exercise }: Props) {
       keyboardVerticalOffset={16}
     >
       <Text style={styles.title}>{exercise.name}</Text>
+      <GuideVideoPanel videoId={exercise.guideVideoId} />
+      <CaptureVideoRow
+        capturedAssetId={capturedVideo?.assetId}
+        busy={videoBusy}
+        onCapture={handleCapturePress}
+        onViewCaptured={() => setViewingVideo(true)}
+      />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.sheet}>
@@ -139,6 +210,14 @@ export default function RepsScreen({ exercise }: Props) {
       <Pressable style={[styles.saveButton, saving && styles.saveButtonDisabled]} onPress={handleSave} disabled={saving}>
         <Text style={styles.saveButtonText}>기록 저장</Text>
       </Pressable>
+
+      <CameraPermissionModal
+        state={permissionModal}
+        onGrant={handleGrantPermission}
+        onOpenSettings={handleOpenSettings}
+        onClose={() => setPermissionModal(null)}
+      />
+      <VideoPlayerModal assetId={viewingVideo ? capturedVideo?.assetId ?? null : null} onClose={() => setViewingVideo(false)} />
     </KeyboardAvoidingView>
   );
 }

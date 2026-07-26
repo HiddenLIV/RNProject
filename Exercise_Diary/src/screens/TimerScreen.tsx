@@ -1,9 +1,13 @@
 import { AudioPlayer, createAudioPlayer } from 'expo-audio';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import CameraPermissionModal from '../components/CameraPermissionModal';
+import CaptureVideoRow from '../components/CaptureVideoRow';
+import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import TimeDisplay from '../components/TimeDisplay';
+import VideoPlayerModal from '../components/VideoPlayerModal';
 import { speakCountdown, speakSecond, speakStart, stopFeedback } from '../lib/feedback';
 import { QUOTES } from '../lib/quotes';
 import { addRecord, createId, getSettings, removeRecord, saveSettings, updateRecord } from '../lib/storage';
@@ -16,8 +20,10 @@ import {
   DEFAULT_SETTINGS,
   Exercise,
   Settings,
+  VideoRef,
 } from '../lib/types';
 import { useHangTimer } from '../lib/useHangTimer';
+import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from '../lib/video';
 import { buttonShadow, colors, fontSize, radius, spacing } from '../theme';
 
 // 1초 미만 정지는 오조작으로 보고 기록하지 않는다
@@ -136,6 +142,73 @@ export default function TimerScreen({ exercise }: Props) {
     stopAllSound();
   };
 
+  // 촬영한 영상 참조 — 이번 세션(다시 시작·메인으로 나가기 전까지) 동안 유효하다.
+  // 기록이 이미 저장돼 있으면(정지 이후 촬영) 즉시 write-through하고, 아직 없으면
+  // handleStop/adjustPending이 다음 기록 생성 시점에 실어 보낸다.
+  const [capturedVideo, setCapturedVideo] = useState<VideoRef | null>(null);
+  const [viewingVideo, setViewingVideo] = useState(false);
+  const [permissionModal, setPermissionModal] = useState<PermissionState | null>(null);
+  const [videoBusy, setVideoBusy] = useState(false);
+
+  const runCapture = async () => {
+    try {
+      const result = await captureExerciseVideo();
+      if (result.status !== 'saved') return;
+      setCapturedVideo(result.ref);
+      // finished 단계에서 촬영했고 그 기록이 이미 저장돼 있는 경우에만 write-through한다 —
+      // pending은 다시 시작/메인으로 나갈 때 null로 초기화되므로, 이 조건이 참이면 항상
+      // "지금 화면에 보이는 그 기록"이다(이전 세션의 기록으로 잘못 붙는 일이 없다).
+      if (timer.phase === 'finished' && pending?.id) {
+        await updateRecord(exercise.id, pending.id, { videoRef: result.ref });
+      }
+    } catch {
+      Alert.alert('촬영 실패', '영상을 저장하지 못했습니다. 다시 시도해 주세요.');
+    } finally {
+      setVideoBusy(false);
+    }
+  };
+
+  const handleCapturePress = async () => {
+    if (videoBusy) return; // 연타 방지 — 권한 확인 중에도 이미 처리 중으로 간주한다
+    setVideoBusy(true);
+    try {
+      const state = await getVideoPermissionState();
+      if (state !== 'granted') {
+        setPermissionModal(state);
+        return;
+      }
+      await runCapture();
+    } catch {
+      Alert.alert('촬영 실패', '권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+    } finally {
+      // runCapture가 실행됐다면 이미 false로 되돌려놨겠지만, 권한 확인 자체가
+      // 실패한 경우를 대비해 여기서도 항상 풀어준다.
+      setVideoBusy(false);
+    }
+  };
+
+  const handleGrantPermission = async () => {
+    setVideoBusy(true);
+    try {
+      const granted = await requestVideoPermissions();
+      if (!granted) {
+        setPermissionModal(await getVideoPermissionState());
+        return;
+      }
+      setPermissionModal(null);
+      await runCapture();
+    } catch {
+      Alert.alert('촬영 실패', '권한을 확인하지 못했습니다. 다시 시도해 주세요.');
+    } finally {
+      setVideoBusy(false);
+    }
+  };
+
+  const handleOpenSettings = () => {
+    setPermissionModal(null);
+    Linking.openSettings();
+  };
+
   // 1초 이상이 되는 순간 즉시 저장하고, 이후 보정(±1초)마다 그 기록을 계속 갱신한다 —
   // 메모리에만 있는 "아직 저장 안 된" 구간을 최소화해 앱이 백그라운드에서 종료돼도
   // 직전까지 보정한 값이 이미 기기에 남아있게 한다.
@@ -148,7 +221,7 @@ export default function TimerScreen({ exercise }: Props) {
     const measuredAt = new Date().toISOString();
     if (durationMs >= MIN_RECORD_MS) {
       const id = createId();
-      addRecord(exercise.id, { id, measuredAt, durationMs });
+      addRecord(exercise.id, { id, measuredAt, durationMs, videoRef: capturedVideo ?? undefined });
       setPending({ id, durationMs, measuredAt });
     } else {
       setPending({ id: null, durationMs, measuredAt });
@@ -164,7 +237,7 @@ export default function TimerScreen({ exercise }: Props) {
         setPending({ ...pending, durationMs });
       } else {
         const id = createId();
-        addRecord(exercise.id, { id, measuredAt: pending.measuredAt, durationMs });
+        addRecord(exercise.id, { id, measuredAt: pending.measuredAt, durationMs, videoRef: capturedVideo ?? undefined });
         setPending({ ...pending, id, durationMs });
       }
     } else {
@@ -174,18 +247,32 @@ export default function TimerScreen({ exercise }: Props) {
   };
 
   const handleRestart = () => {
+    setCapturedVideo(null);
+    setPending(null);
     timer.start(settings.countdownSeconds);
   };
 
   const handleGoMain = () => {
+    setCapturedVideo(null);
+    setPending(null);
     timer.reset();
   };
 
   return (
     <View style={styles.container}>
+      <View style={styles.topBar}>
+        <CaptureVideoRow
+          capturedAssetId={capturedVideo?.assetId}
+          busy={videoBusy}
+          onCapture={handleCapturePress}
+          onViewCaptured={() => setViewingVideo(true)}
+        />
+      </View>
+      <View style={styles.phaseContent}>
       {timer.phase === 'idle' && (
         <>
           <Text style={styles.title}>{exercise.name} 타이머</Text>
+          <GuideVideoPanel videoId={exercise.guideVideoId} />
           <View style={styles.settings}>
             <NumberStepper
               label="준비 카운트다운"
@@ -260,6 +347,15 @@ export default function TimerScreen({ exercise }: Props) {
           </View>
         </>
       )}
+      </View>
+
+      <CameraPermissionModal
+        state={permissionModal}
+        onGrant={handleGrantPermission}
+        onOpenSettings={handleOpenSettings}
+        onClose={() => setPermissionModal(null)}
+      />
+      <VideoPlayerModal assetId={viewingVideo ? capturedVideo?.assetId ?? null : null} onClose={() => setViewingVideo(false)} />
     </View>
   );
 }
@@ -267,11 +363,17 @@ export default function TimerScreen({ exercise }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: spacing.lg,
+    backgroundColor: colors.background,
+  },
+  topBar: {
+    alignItems: 'flex-start',
+  },
+  phaseContent: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.lg,
-    padding: spacing.lg,
-    backgroundColor: colors.background,
   },
   title: {
     fontSize: fontSize.xl,
@@ -313,12 +415,12 @@ const styles = StyleSheet.create({
   adjustButtonText: {
     fontSize: fontSize.base,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.accent,
   },
   quote: {
     fontSize: fontSize.lg,
     fontWeight: '800',
-    color: colors.primary,
+    color: colors.accent,
     textAlign: 'center',
     minHeight: 64,
     paddingHorizontal: spacing.lg,

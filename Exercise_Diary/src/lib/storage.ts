@@ -31,22 +31,9 @@ async function readJson<T>(key: string, fallback: T): Promise<T> {
   }
 }
 
-const BUILTIN_HANG: Exercise = {
-  id: 'hang',
-  name: '매달리기',
-  icon: 'body-outline',
-  measureType: 'time',
-  builtin: true,
-};
-
 export async function getExercises(): Promise<Exercise[]> {
   const raw = await readJson<Exercise[]>(EXERCISES_KEY, []);
-  const list = Array.isArray(raw) ? raw : [];
-  if (list.some((e) => e.id === 'hang')) return list;
-  // 최초 실행(또는 이번 업데이트를 처음 받은 경우) — 매달리기를 기본 운동으로 시딩한다
-  const seeded = [BUILTIN_HANG, ...list];
-  await AsyncStorage.setItem(EXERCISES_KEY, JSON.stringify(seeded));
-  return seeded;
+  return Array.isArray(raw) ? raw : [];
 }
 
 export function addExercise(exercise: Exercise): Promise<void> {

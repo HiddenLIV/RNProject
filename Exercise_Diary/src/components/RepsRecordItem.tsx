@@ -7,6 +7,7 @@ type Props = {
   record: RepsRecord;
   isBest: boolean;
   onDelete: (id: string) => void;
+  onViewVideo: (assetId: string) => void;
 };
 
 function formatMeasuredAt(iso: string): string {
@@ -27,7 +28,7 @@ function formatSet(set: RepsRecord['sets'][number], weightUnit?: 'kg' | 'lb'): s
   return `${set.reps}회`;
 }
 
-export default function RepsRecordItem({ record, isBest, onDelete }: Props) {
+export default function RepsRecordItem({ record, isBest, onDelete, onViewVideo }: Props) {
   return (
     <View style={[styles.row, isBest && styles.bestRow]}>
       <View style={styles.info}>
@@ -47,6 +48,16 @@ export default function RepsRecordItem({ record, isBest, onDelete }: Props) {
         </Text>
         <Text style={styles.date}>{formatMeasuredAt(record.measuredAt)}</Text>
       </View>
+      {record.videoRef && (
+        <Pressable
+          style={styles.videoButton}
+          onPress={() => onViewVideo(record.videoRef!.assetId)}
+          hitSlop={8}
+          accessibilityLabel="촬영 영상 보기"
+        >
+          <Ionicons name="videocam-outline" size={18} color={colors.accent} />
+        </Pressable>
+      )}
       <Pressable
         style={styles.deleteButton}
         onPress={() => onDelete(record.id)}
@@ -88,7 +99,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   bestDuration: {
-    color: colors.primaryPressed,
+    color: colors.accent,
   },
   bestBadge: {
     flexDirection: 'row',
@@ -111,6 +122,10 @@ const styles = StyleSheet.create({
   date: {
     fontSize: fontSize.sm - 1,
     color: colors.textMuted,
+  },
+  videoButton: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.sm,
   },
   deleteButton: {
     paddingHorizontal: spacing.smd,

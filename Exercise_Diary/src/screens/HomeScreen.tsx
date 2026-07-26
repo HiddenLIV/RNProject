@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import EditExerciseModal from '../components/EditExerciseModal';
+import HelpModal from '../components/HelpModal';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import { getExercises } from '../lib/storage';
 import { Exercise } from '../lib/types';
@@ -15,6 +16,7 @@ type Props = {
 export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [helpVisible, setHelpVisible] = useState(false);
 
   const loadExercises = () => {
     getExercises().then(setExercises);
@@ -26,8 +28,20 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>나의 운동 일지</Text>
-      <Text style={styles.subtitle}>운동을 골라 시작해 보세요</Text>
+      <View style={styles.header}>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>나의 운동 일지</Text>
+          <Text style={styles.subtitle}>운동을 골라 시작해 보세요</Text>
+        </View>
+        <Pressable
+          style={styles.helpButton}
+          onPress={() => setHelpVisible(true)}
+          hitSlop={8}
+          accessibilityLabel="도움말"
+        >
+          <Ionicons name="help-circle-outline" size={28} color={colors.primary} />
+        </Pressable>
+      </View>
       <FlatList
         data={exercises}
         keyExtractor={(exercise) => exercise.id}
@@ -44,16 +58,14 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
               <Text style={styles.cardTitle}>{item.name}</Text>
               <MeasureTypeTag measureType={item.measureType} />
             </View>
-            {!item.builtin && (
-              <Pressable
-                style={styles.editButton}
-                onPress={() => setEditingExercise(item)}
-                hitSlop={8}
-                accessibilityLabel={`${item.name} 수정`}
-              >
-                <Ionicons name="pencil" size={18} color={colors.textMuted} />
-              </Pressable>
-            )}
+            <Pressable
+              style={styles.editButton}
+              onPress={() => setEditingExercise(item)}
+              hitSlop={8}
+              accessibilityLabel={`${item.name} 수정`}
+            >
+              <Ionicons name="pencil" size={18} color={colors.textMuted} />
+            </Pressable>
             <Ionicons name="chevron-forward" size={22} color={colors.textFaint} style={styles.chevron} />
           </Pressable>
         )}
@@ -78,6 +90,7 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
           loadExercises();
         }}
       />
+      <HelpModal visible={helpVisible} onClose={() => setHelpVisible(false)} />
     </View>
   );
 }
@@ -88,17 +101,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingHorizontal: spacing.md,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  headerText: {
+    flexShrink: 1,
+  },
+  helpButton: {
+    padding: spacing.xs,
+  },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: '800',
     color: colors.text,
-    marginTop: spacing.lg,
   },
   subtitle: {
     fontSize: fontSize.base,
     color: colors.textMuted,
     marginTop: 4,
-    marginBottom: spacing.lg,
   },
   list: {
     gap: spacing.smd,

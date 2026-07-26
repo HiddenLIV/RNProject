@@ -8,6 +8,7 @@ type Props = {
   record: TimeRecord;
   isBest: boolean;
   onDelete: (id: string) => void;
+  onViewVideo: (assetId: string) => void;
 };
 
 // 날짜는 섹션 헤더가 보여주므로 행에는 시각만 표시한다
@@ -17,7 +18,7 @@ function formatMeasuredAt(iso: string): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function RecordItem({ record, isBest, onDelete }: Props) {
+export default function RecordItem({ record, isBest, onDelete, onViewVideo }: Props) {
   return (
     <View style={[styles.row, isBest && styles.bestRow]}>
       <View style={styles.info}>
@@ -34,6 +35,16 @@ export default function RecordItem({ record, isBest, onDelete }: Props) {
         </View>
         <Text style={styles.date}>{formatMeasuredAt(record.measuredAt)}</Text>
       </View>
+      {record.videoRef && (
+        <Pressable
+          style={styles.videoButton}
+          onPress={() => onViewVideo(record.videoRef!.assetId)}
+          hitSlop={8}
+          accessibilityLabel="촬영 영상 보기"
+        >
+          <Ionicons name="videocam-outline" size={18} color={colors.accent} />
+        </Pressable>
+      )}
       <Pressable
         style={styles.deleteButton}
         onPress={() => onDelete(record.id)}
@@ -74,7 +85,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   bestDuration: {
-    color: colors.primaryPressed,
+    color: colors.accent,
   },
   bestBadge: {
     flexDirection: 'row',
@@ -93,6 +104,10 @@ const styles = StyleSheet.create({
   date: {
     fontSize: fontSize.sm - 1,
     color: colors.textMuted,
+  },
+  videoButton: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.sm,
   },
   deleteButton: {
     paddingHorizontal: spacing.smd,

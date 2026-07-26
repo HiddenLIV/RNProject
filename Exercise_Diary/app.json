@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FF5A1F",
+        "backgroundColor": "#9B2791",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -23,14 +23,30 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
-      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
       "package": "com.anonymous.timecheck"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-audio"
+      "expo-audio",
+      "expo-video",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "운동하는 모습을 촬영하려면 카메라 접근 권한이 필요합니다.",
+          "microphonePermission": "촬영한 영상에 소리를 담으려면 마이크 접근 권한이 필요합니다.",
+          "photosPermission": "촬영한 영상을 갤러리에 저장하려면 사진 접근 권한이 필요합니다."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "촬영한 영상을 갤러리에서 불러와 다시 재생하려면 사진 접근 권한이 필요합니다.",
+          "savePhotosPermission": "촬영한 영상을 갤러리에 저장하려면 사진 접근 권한이 필요합니다.",
+          "granularPermissions": ["video"]
+        }
+      ]
     ]
   }
 }
