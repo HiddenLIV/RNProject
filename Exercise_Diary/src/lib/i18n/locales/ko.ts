@@ -38,6 +38,13 @@ const ko: Translations = {
     help: '도움말',
     addExercise: '운동 추가',
     editAccessibility: (name) => `${name} 수정`,
+    emptyExercises: '아직 등록된 운동이 없어요. 첫 운동을 추가해보세요.',
+  },
+  onboarding: {
+    skip: '건너뛰기',
+    next: '다음',
+    start: '시작하기',
+    replayLabel: '온보딩 다시보기',
   },
   exerciseScreen: {
     measureTab: '측정',
@@ -141,7 +148,7 @@ const ko: Translations = {
       {
         title: '측정 시작',
         description:
-          '운동을 선택하면 "측정" 탭이 열려요. 매달리기처럼 시간을 재는 운동은 타이머로, 턱걸이처럼 횟수를 세는 운동은 세트별 횟수·무게를 입력해 기록해요.',
+          '운동을 선택하면 "측정" 탭이 열려요. 플랭크처럼 시간을 재는 운동은 타이머로, 턱걸이처럼 횟수를 세는 운동은 세트별 횟수·무게를 입력해 기록해요.',
       },
       {
         title: '기록 확인',

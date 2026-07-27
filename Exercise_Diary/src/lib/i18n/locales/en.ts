@@ -38,6 +38,13 @@ const en = {
     help: 'Help',
     addExercise: 'Add Exercise',
     editAccessibility: (name: string) => `Edit ${name}`,
+    emptyExercises: 'No exercises yet. Add your first one below.',
+  },
+  onboarding: {
+    skip: 'Skip',
+    next: 'Next',
+    start: 'Get Started',
+    replayLabel: 'Replay Intro',
   },
   exerciseScreen: {
     measureTab: 'Measure',
@@ -141,7 +148,7 @@ const en = {
       {
         title: 'Start Measuring',
         description:
-          'Select an exercise to open the "Measure" tab. Time-based exercises like the dead hang use a timer; rep-based exercises like pull-ups let you log reps and weight per set.',
+          'Select an exercise to open the "Measure" tab. Time-based exercises like the plank use a timer; rep-based exercises like pull-ups let you log reps and weight per set.',
       },
       {
         title: 'Check Your Records',

@@ -38,6 +38,13 @@ const ja: Translations = {
     help: 'ヘルプ',
     addExercise: '運動を追加',
     editAccessibility: (name) => `${name}を編集`,
+    emptyExercises: 'まだ運動が登録されていません。最初の運動を追加してみましょう。',
+  },
+  onboarding: {
+    skip: 'スキップ',
+    next: '次へ',
+    start: 'はじめる',
+    replayLabel: 'イントロをもう一度見る',
   },
   exerciseScreen: {
     measureTab: '測定',
@@ -141,7 +148,7 @@ const ja: Translations = {
       {
         title: '測定を始める',
         description:
-          '運動を選ぶと「測定」タブが開きます。デッドハングのような時間で測る運動はタイマーで、懸垂のような回数で測る運動はセットごとの回数・重量を入力して記録します。',
+          '運動を選ぶと「測定」タブが開きます。プランクのような時間で測る運動はタイマーで、懸垂のような回数で測る運動はセットごとの回数・重量を入力して記録します。',
       },
       {
         title: '記録を確認する',

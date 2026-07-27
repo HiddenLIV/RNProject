@@ -38,6 +38,13 @@ const zh: Translations = {
     help: '帮助',
     addExercise: '添加运动',
     editAccessibility: (name) => `编辑${name}`,
+    emptyExercises: '还没有添加运动，快去添加第一个吧。',
+  },
+  onboarding: {
+    skip: '跳过',
+    next: '下一步',
+    start: '开始使用',
+    replayLabel: '重新查看介绍',
   },
   exerciseScreen: {
     measureTab: '测量',
@@ -141,7 +148,7 @@ const zh: Translations = {
       {
         title: '开始测量',
         description:
-          '选择一项运动后会打开"测量"标签页。像悬垂这样按时间测量的运动使用计时器，像引体向上这样按次数测量的运动可按组输入次数和重量来记录。',
+          '选择一项运动后会打开"测量"标签页。像平板支撑这样按时间测量的运动使用计时器，像引体向上这样按次数测量的运动可按组输入次数和重量来记录。',
       },
       {
         title: '查看记录',

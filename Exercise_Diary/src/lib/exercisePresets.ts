@@ -11,7 +11,6 @@ export type ExercisePreset = {
 
 // 운동 추가 화면에서 보여줄 프리셋 후보. 이미 같은 프리셋의 운동이 있으면 목록에서 걸러진다.
 export const PRESET_EXERCISES: ExercisePreset[] = [
-  { key: 'hang', icon: 'body-outline', measureType: 'time' },
   { key: 'plank', icon: 'hourglass-outline', measureType: 'time' },
   { key: 'pullup', icon: 'barbell-outline', measureType: 'reps' },
   { key: 'pushup', icon: 'fitness-outline', measureType: 'reps' },

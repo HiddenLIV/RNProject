@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import {
   CUSTOM_EXERCISE_ICON,
@@ -36,6 +36,7 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
   const [videoLinkText, setVideoLinkText] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [presetsExpanded, setPresetsExpanded] = useState(false);
 
   useEffect(() => {
     getExercises().then((exercises) => {
@@ -121,41 +122,50 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {availablePresets.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.presetSectionLabel}</Text>
-            <View style={[styles.presetSheet, { backgroundColor: accent.card, borderColor: accent.border }]}>
-              {availablePresets.map((preset, index) => {
-                const selected = selectedPresetKey === preset.key;
-                const presetName = t.exercisePresets[preset.key];
-                return (
-                  <Pressable
-                    key={preset.key}
-                    style={[
-                      styles.presetRow,
-                      index > 0 && { borderTopWidth: 1, borderTopColor: accent.border },
-                      selected && { backgroundColor: accent.primarySoft },
-                    ]}
-                    onPress={() => selectPreset(preset)}
-                  >
-                    <Text style={[styles.presetIndex, { color: accent.textFaint }, selected && { color: accent.accent }]}>
-                      {String(index + 1).padStart(2, '0')}
-                    </Text>
-                    <View style={[styles.presetIconBadge, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}>
-                      <Ionicons name={preset.icon} size={17} color={selected ? accent.onPrimary : accent.primary} />
-                    </View>
-                    <Text style={[styles.presetName, { color: accent.text }, selected && { color: accent.accent }]}>
-                      {presetName}
-                    </Text>
-                    <MeasureTypeTag measureType={preset.measureType} tone={selected ? 'onChip' : undefined} />
-                    <Ionicons
-                      name={selected ? 'checkmark-circle' : 'ellipse-outline'}
-                      size={20}
-                      color={selected ? accent.primary : accent.border}
-                      style={styles.presetCheck}
-                    />
-                  </Pressable>
-                );
-              })}
-            </View>
+            <Pressable
+              style={styles.presetToggle}
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setPresetsExpanded((v) => !v);
+              }}
+            >
+              <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.presetSectionLabel}</Text>
+              <Ionicons
+                name={presetsExpanded ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color={accent.textMuted}
+              />
+            </Pressable>
+            {presetsExpanded && (
+              <View style={[styles.presetSheet, { backgroundColor: accent.card, borderColor: accent.border }]}>
+                {availablePresets.map((preset, index) => {
+                  const selected = selectedPresetKey === preset.key;
+                  const presetName = t.exercisePresets[preset.key];
+                  return (
+                    <Pressable
+                      key={preset.key}
+                      style={[
+                        styles.presetRow,
+                        index > 0 && { borderTopWidth: 1, borderTopColor: accent.border },
+                        selected && { backgroundColor: accent.primarySoft },
+                      ]}
+                      onPress={() => selectPreset(preset)}
+                    >
+                      <Text style={[styles.presetIndex, { color: accent.textFaint }, selected && { color: accent.accent }]}>
+                        {String(index + 1).padStart(2, '0')}
+                      </Text>
+                      <View style={[styles.presetIconBadge, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}>
+                        <Ionicons name={preset.icon} size={17} color={selected ? accent.onPrimary : accent.primary} />
+                      </View>
+                      <Text style={[styles.presetName, { color: accent.text }, selected && { color: accent.accent }]}>
+                        {presetName}
+                      </Text>
+                      <MeasureTypeTag measureType={preset.measureType} tone={selected ? 'onChip' : undefined} />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
           </View>
         )}
 
@@ -348,6 +358,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     fontWeight: '700',
   },
+  presetToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   presetSheet: {
     borderRadius: radius.md,
     borderWidth: 1,
@@ -377,9 +392,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSize.base,
     fontWeight: '700',
-  },
-  presetCheck: {
-    marginLeft: 2,
   },
   nameInput: {
     borderWidth: 1.5,
