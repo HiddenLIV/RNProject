@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Text from './AppText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HELP_SECTION_ICONS } from '../lib/helpContent';
 import { useTranslation } from '../lib/i18n';

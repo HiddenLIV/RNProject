@@ -1,3 +1,4 @@
+import * as Device from 'expo-device';
 import { File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { Asset, getPermissionsAsync, requestPermissionsAsync } from 'expo-media-library';
@@ -31,6 +32,13 @@ export type VideoCaptureResult = { status: 'saved'; ref: VideoRef } | { status: 
 
 // 권한이 이미 있다는 전제로만 호출한다 — 권한 확보는 화면 쪽에서 먼저 끝낸다.
 export async function captureExerciseVideo(): Promise<VideoCaptureResult> {
+  // 시뮬레이터/에뮬레이터는 카메라 하드웨어가 없다. expo-image-picker가 이 경우를 감지 못 하고
+  // 네이티브 예외(SIGABRT)로 앱 전체가 죽어버리므로, 호출 자체를 막아 기존 catch 블록의
+  // "촬영 실패" 안내로 흡수되게 한다 — 실기기에서는 항상 true라 이 분기를 타지 않는다.
+  if (!Device.isDevice) {
+    throw new Error('Camera is not available on simulator/emulator');
+  }
+
   const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['videos'] });
   if (result.canceled || !result.assets?.[0]) return { status: 'cancelled' };
 

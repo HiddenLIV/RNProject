@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
+import Text from '../components/AppText';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import {
   CUSTOM_EXERCISE_ICON,

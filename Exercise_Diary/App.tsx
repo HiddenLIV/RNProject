@@ -1,18 +1,23 @@
 import { setAudioModeAsync } from 'expo-audio';
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { BackHandler, StyleSheet } from 'react-native';
+import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AddExerciseScreen from './src/screens/AddExerciseScreen';
 import ExerciseScreen from './src/screens/ExerciseScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import { LanguageProvider } from './src/lib/i18n';
+import { fontAssets } from './src/lib/fonts';
 import { ThemeProvider, useAccentColors } from './src/lib/ThemeContext';
 import { Exercise } from './src/lib/types';
 
 type Screen = { name: 'home' } | { name: 'exercise'; exercise: Exercise } | { name: 'addExercise' };
 
 export default function App() {
+  const [fontsLoaded] = useFonts(fontAssets);
+  if (!fontsLoaded) return <View style={styles.container} />;
+
   return (
     <LanguageProvider>
       <ThemeProvider>

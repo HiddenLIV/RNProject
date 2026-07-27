@@ -7,10 +7,10 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
+import Text from './AppText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HELP_SECTION_ICONS } from '../lib/helpContent';
 import { useTranslation } from '../lib/i18n';
