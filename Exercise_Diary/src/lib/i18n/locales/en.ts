@@ -112,6 +112,11 @@ const en = {
   },
   guideVideoPanel: {
     toggleLabel: 'Watch Guide Video',
+    addLinkLabel: 'Add Guide Video Link',
+    editAccessibility: 'Edit guide video link',
+    deleteConfirmTitle: 'Delete Guide Video Link',
+    deleteConfirmBody: 'Are you sure you want to delete this guide video link?',
+    errorSaveFailed: 'Could not save. Please try again.',
   },
   cameraPermission: {
     title: 'Camera & Photo Access Needed',

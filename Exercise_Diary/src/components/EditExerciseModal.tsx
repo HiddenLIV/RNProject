@@ -5,7 +5,7 @@ import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { removeExercise, updateExercise } from '../lib/storage';
 import { Exercise } from '../lib/types';
-import { extractYoutubeVideoId } from '../lib/youtube';
+import { parseYoutubeLink } from '../lib/youtube';
 import { fontSize, radius, spacing } from '../theme';
 
 type Props = {
@@ -60,12 +60,12 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
     const trimmedLink = videoLinkText.trim();
     let guideVideoId: string | undefined;
     if (trimmedLink) {
-      const id = extractYoutubeVideoId(trimmedLink);
-      if (!id) {
-        setError(t.editExercise.errorInvalidVideoLink);
+      const result = parseYoutubeLink(trimmedLink, t);
+      if (result.error) {
+        setError(result.error);
         return;
       }
-      guideVideoId = id;
+      guideVideoId = result.id;
     }
     await updateExercise(exercise.id, {
       name: trimmed,

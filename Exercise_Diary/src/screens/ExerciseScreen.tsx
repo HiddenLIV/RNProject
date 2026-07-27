@@ -21,6 +21,14 @@ export default function ExerciseScreen({ exercise, onBack }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const [tab, setTab] = useState<Tab>('measure');
+  // 측정 탭(TimerScreen/RepsScreen)은 타이머 단계 전환·탭 전환마다 마운트가 풀렸다 다시 붙는다 —
+  // 이 화면(ExerciseScreen)은 그 두 경우 모두에서 계속 떠 있으므로, 측정 화면에서 방금 등록한
+  // 자세 안내 영상 링크가 화면 재진입 없이 계속 보이게 하려면 이 값을 여기서 들고 있어야 한다.
+  const [exerciseState, setExerciseState] = useState(exercise);
+
+  const handleGuideVideoChange = (guideVideoId: string | undefined) => {
+    setExerciseState((prev) => ({ ...prev, guideVideoId }));
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: accent.background }]}>
@@ -28,18 +36,18 @@ export default function ExerciseScreen({ exercise, onBack }: Props) {
         <Pressable style={styles.backButton} onPress={onBack} hitSlop={8}>
           <Ionicons name="chevron-back" size={26} color={accent.primaryText} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: accent.text }]}>{getExerciseDisplayName(exercise, t)}</Text>
+        <Text style={[styles.headerTitle, { color: accent.text }]}>{getExerciseDisplayName(exerciseState, t)}</Text>
         <View style={styles.headerSpacer} />
       </View>
       <View style={styles.content}>
         {tab === 'measure' ? (
-          exercise.measureType === 'time' ? (
-            <TimerScreen exercise={exercise} />
+          exerciseState.measureType === 'time' ? (
+            <TimerScreen exercise={exerciseState} onGuideVideoChange={handleGuideVideoChange} />
           ) : (
-            <RepsScreen exercise={exercise} />
+            <RepsScreen exercise={exerciseState} onGuideVideoChange={handleGuideVideoChange} />
           )
         ) : (
-          <RecordsScreen exercise={exercise} />
+          <RecordsScreen exercise={exerciseState} />
         )}
       </View>
       <View style={[styles.tabBar, { borderTopColor: accent.border, backgroundColor: accent.background }]}>

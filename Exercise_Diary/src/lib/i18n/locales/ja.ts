@@ -112,6 +112,11 @@ const ja: Translations = {
   },
   guideVideoPanel: {
     toggleLabel: 'フォーム動画を見る',
+    addLinkLabel: 'フォーム動画リンクを追加',
+    editAccessibility: 'フォーム動画リンクを編集',
+    deleteConfirmTitle: 'フォーム動画リンクを削除',
+    deleteConfirmBody: 'このフォーム動画リンクを削除しますか？',
+    errorSaveFailed: '保存できませんでした。もう一度お試しください。',
   },
   cameraPermission: {
     title: 'カメラ・写真へのアクセス許可が必要です',

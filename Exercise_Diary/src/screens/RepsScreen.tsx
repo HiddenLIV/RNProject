@@ -16,6 +16,7 @@ import { buttonShadowShape, fontSize, radius, spacing } from '../theme';
 
 type Props = {
   exercise: Exercise;
+  onGuideVideoChange: (guideVideoId: string | undefined) => void;
 };
 
 // 화면 로컬 편집 상태 — 무게는 소수점 입력 중간 상태("12.")를 그대로 보여줘야 해서
@@ -33,7 +34,7 @@ function newSet(prev?: EditableSet): EditableSet {
   return { id: createId(), reps: prev?.reps ?? 1, weightText: prev?.weightText ?? '' };
 }
 
-export default function RepsScreen({ exercise }: Props) {
+export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const [sets, setSets] = useState<EditableSet[]>([newSet()]);
@@ -146,7 +147,11 @@ export default function RepsScreen({ exercise }: Props) {
       keyboardVerticalOffset={16}
     >
       <Text style={[styles.title, { color: accent.text }]}>{getExerciseDisplayName(exercise, t)}</Text>
-      <GuideVideoPanel videoId={exercise.guideVideoId} />
+      <GuideVideoPanel
+        exerciseId={exercise.id}
+        videoId={exercise.guideVideoId}
+        onGuideVideoChange={onGuideVideoChange}
+      />
       <CaptureVideoRow
         capturedAssetId={capturedVideo?.assetId}
         busy={videoBusy}

@@ -1,3 +1,5 @@
+import { Translations } from './i18n';
+
 // 링크가 문자열 맨 앞에서 시작해야 하고(다른 URL 안에 끼워 넣은 youtu.be는 거부),
 // 캡처한 11자리 뒤에 word/dash 문자가 더 이어지면(잘못 잘린 ID) 거부한다.
 const PATTERNS = [
@@ -15,4 +17,10 @@ export function extractYoutubeVideoId(input: string): string | null {
     if (match) return match[1];
   }
   return null;
+}
+
+// GuideVideoPanel·EditExerciseModal이 공유하는 검증 — 형식이 아니면 번역된 에러 메시지를 함께 반환한다.
+export function parseYoutubeLink(input: string, t: Translations): { id: string; error?: undefined } | { id?: undefined; error: string } {
+  const id = extractYoutubeVideoId(input);
+  return id ? { id } : { error: t.editExercise.errorInvalidVideoLink };
 }

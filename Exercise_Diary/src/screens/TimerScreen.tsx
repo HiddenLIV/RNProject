@@ -1,7 +1,7 @@
 import { AudioPlayer, createAudioPlayer } from 'expo-audio';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
 import GuideVideoPanel from '../components/GuideVideoPanel';
@@ -40,9 +40,10 @@ type PendingResult = {
 
 type Props = {
   exercise: Exercise;
+  onGuideVideoChange: (guideVideoId: string | undefined) => void;
 };
 
-export default function TimerScreen({ exercise }: Props) {
+export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const language = useLanguage();
@@ -265,7 +266,10 @@ export default function TimerScreen({ exercise }: Props) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: accent.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: accent.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <View style={styles.topBar}>
         <CaptureVideoRow
           capturedAssetId={capturedVideo?.assetId}
@@ -278,7 +282,11 @@ export default function TimerScreen({ exercise }: Props) {
       {timer.phase === 'idle' && (
         <>
           <Text style={[styles.title, { color: accent.text }]}>{t.timer.title(getExerciseDisplayName(exercise, t))}</Text>
-          <GuideVideoPanel videoId={exercise.guideVideoId} />
+          <GuideVideoPanel
+            exerciseId={exercise.id}
+            videoId={exercise.guideVideoId}
+            onGuideVideoChange={onGuideVideoChange}
+          />
           <View style={[styles.settings, { backgroundColor: accent.card }]}>
             <NumberStepper
               label={t.timer.countdownLabel}
@@ -384,14 +392,18 @@ export default function TimerScreen({ exercise }: Props) {
         onClose={() => setPermissionModal(null)}
       />
       <VideoPlayerModal assetId={viewingVideo ? capturedVideo?.assetId ?? null : null} onClose={() => setViewingVideo(false)} />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: spacing.lg,
+    // KeyboardAvoidingView(behavior="padding")는 키보드가 없을 때도 paddingBottom을 0으로
+    // 덮어쓴다 — 단축 속성 padding을 쓰면 하단 여백이 사라지므로 위/양옆만 여기서 주고,
+    // 하단 여백은 그 영향을 안 받는 안쪽 phaseContent에 둔다.
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
   },
   topBar: {
     alignItems: 'flex-start',
@@ -401,6 +413,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.lg,
+    paddingBottom: spacing.lg,
   },
   title: {
     fontSize: fontSize.xl,

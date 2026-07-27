@@ -112,6 +112,11 @@ const ko: Translations = {
   },
   guideVideoPanel: {
     toggleLabel: '자세 영상 보기',
+    addLinkLabel: '자세 영상 링크 추가',
+    editAccessibility: '자세 영상 링크 수정',
+    deleteConfirmTitle: '자세 영상 링크 삭제',
+    deleteConfirmBody: '이 자세 영상 링크를 삭제할까요?',
+    errorSaveFailed: '저장하지 못했습니다. 다시 시도해 주세요.',
   },
   cameraPermission: {
     title: '카메라·사진 접근 권한이 필요해요',

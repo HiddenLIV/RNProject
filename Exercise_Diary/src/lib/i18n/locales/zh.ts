@@ -112,6 +112,11 @@ const zh: Translations = {
   },
   guideVideoPanel: {
     toggleLabel: '查看动作示范视频',
+    addLinkLabel: '添加动作示范视频链接',
+    editAccessibility: '编辑动作示范视频链接',
+    deleteConfirmTitle: '删除动作示范视频链接',
+    deleteConfirmBody: '确定要删除这个动作示范视频链接吗？',
+    errorSaveFailed: '保存失败，请重试。',
   },
   cameraPermission: {
     title: '需要相机和照片访问权限',
