@@ -58,8 +58,8 @@ const zh: Translations = {
     iconChoiceAccessibility: '选择图标',
     measureTypeSectionLabel: '测量方式',
     weightSectionLabel: '记录重量',
-    videoLinkSectionLabel: '动作示范视频链接（可选）',
-    videoLinkPlaceholder: '粘贴 YouTube 链接',
+    videoLinkSectionLabel: 'YouTube链接（可选）',
+    videoLinkPlaceholder: '粘贴运动视频链接',
     addButton: '添加运动',
     errorNameRequired: '请输入运动名称',
     errorNameTooLong: (max) => `名称请控制在${max}个字符以内`,
@@ -68,8 +68,8 @@ const zh: Translations = {
   },
   editExercise: {
     title: '编辑运动',
-    videoLinkLabel: '动作示范视频链接（可选）',
-    videoLinkPlaceholder: '粘贴 YouTube 链接',
+    videoLinkLabel: 'YouTube链接（可选）',
+    videoLinkPlaceholder: '粘贴运动视频链接',
     weightLabel: '记录重量',
     cancel: '取消',
     save: '保存',
@@ -112,17 +112,17 @@ const zh: Translations = {
     removeSetAccessibility: '删除该组',
   },
   captureVideoRow: {
-    capture: '拍摄',
-    recapture: '重新拍摄',
+    capture: '动作拍摄',
+    recapture: '重新拍摄动作',
     processing: '处理中…',
     viewJustCaptured: '查看刚拍摄的视频',
   },
   guideVideoPanel: {
     toggleLabel: '查看动作示范视频',
-    addLinkLabel: '添加动作示范视频链接',
-    editAccessibility: '编辑动作示范视频链接',
-    deleteConfirmTitle: '删除动作示范视频链接',
-    deleteConfirmBody: '确定要删除这个动作示范视频链接吗？',
+    addLinkLabel: '添加YouTube链接',
+    editAccessibility: '编辑YouTube链接',
+    deleteConfirmTitle: '删除YouTube链接',
+    deleteConfirmBody: '确定要删除这个YouTube链接吗？',
     errorSaveFailed: '保存失败，请重试。',
   },
   cameraPermission: {
@@ -158,7 +158,7 @@ const zh: Translations = {
       {
         title: '拍摄运动视频',
         description:
-          '在测量页面点击"拍摄"按钮即可拍下运动过程。视频会保存到设备相册，若保存记录则会关联到该记录，之后可再次查看。',
+          '在测量页面点击"动作拍摄"按钮即可拍下运动过程。视频会保存到设备相册，若保存记录则会关联到该记录，之后可再次查看。',
       },
       {
         title: '动作示范视频',

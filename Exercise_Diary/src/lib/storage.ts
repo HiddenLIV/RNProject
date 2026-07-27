@@ -3,7 +3,6 @@ import { DEFAULT_SETTINGS, Exercise, RepsRecord, Settings, ThemePresetId, TimeRe
 
 const EXERCISES_KEY = 'timecheck:exercises:v1';
 const THEME_KEY = 'timecheck:theme:v1';
-const ONBOARDING_SEEN_KEY = 'timecheck:onboardingSeen:v1';
 
 // id: 'hang'인 운동은 앱의 기존(최초) 데이터가 쓰던 고정 키를 그대로 쓴다 —
 // 그 덕분에 이번 기능을 위한 별도 마이그레이션이 필요 없다.
@@ -138,21 +137,4 @@ export async function getThemePreset(): Promise<ThemePresetId> {
 // 다른 값과 합쳐 쓰는 read-modify-write가 아니라 단순 덮어쓰기라 enqueueWrite 큐가 필요 없다.
 export function setThemePreset(id: ThemePresetId): Promise<void> {
   return AsyncStorage.setItem(THEME_KEY, JSON.stringify(id));
-}
-
-// 홈 화면은 다른 화면에 갔다 오면 매번 재마운트되어 getOnboardingSeen()을 다시 부른다 —
-// AsyncStorage 쓰기가 아직 반영되기 전에 그 재조회가 끼어들면 온보딩이 또 뜰 수 있어,
-// 같은 앱 세션 안에서는 메모리 캐시로 즉시 확정한다(세션을 넘어선 진실은 여전히 AsyncStorage).
-let onboardingSeenCache: boolean | null = null;
-
-export async function getOnboardingSeen(): Promise<boolean> {
-  if (onboardingSeenCache !== null) return onboardingSeenCache;
-  const seen = await readJson<boolean>(ONBOARDING_SEEN_KEY, false);
-  onboardingSeenCache = seen;
-  return seen;
-}
-
-export function setOnboardingSeen(): Promise<void> {
-  onboardingSeenCache = true;
-  return AsyncStorage.setItem(ONBOARDING_SEEN_KEY, JSON.stringify(true));
 }

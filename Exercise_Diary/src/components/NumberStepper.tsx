@@ -162,7 +162,6 @@ const styles = StyleSheet.create({
   },
   valueCompact: {
     minWidth: 36,
-    fontSize: fontSize.sm,
   },
   input: {
     paddingVertical: 4,

@@ -269,17 +269,19 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
       {timer.phase === 'idle' && (
         <>
           <Text style={[styles.title, { color: accent.text }]}>{t.timer.title(getExerciseDisplayName(exercise, t))}</Text>
-          <GuideVideoPanel
-            exerciseId={exercise.id}
-            videoId={exercise.guideVideoId}
-            onGuideVideoChange={onGuideVideoChange}
-          />
-          <CaptureVideoRow
-            capturedAssetId={capturedVideo?.assetId}
-            busy={videoBusy}
-            onCapture={handleCapturePress}
-            onViewCaptured={() => setViewingVideo(true)}
-          />
+          <View style={styles.videoButtons}>
+            <GuideVideoPanel
+              exerciseId={exercise.id}
+              videoId={exercise.guideVideoId}
+              onGuideVideoChange={onGuideVideoChange}
+            />
+            <CaptureVideoRow
+              capturedAssetId={capturedVideo?.assetId}
+              busy={videoBusy}
+              onCapture={handleCapturePress}
+              onViewCaptured={() => setViewingVideo(true)}
+            />
+          </View>
           <View style={[styles.settings, { backgroundColor: accent.card }]}>
             <NumberStepper
               label={t.timer.countdownLabel}
@@ -411,6 +413,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fontSize.xl,
     fontWeight: '800',
+  },
+  videoButtons: {
+    alignSelf: 'stretch',
+    gap: spacing.sm,
   },
   settings: {
     alignSelf: 'stretch',

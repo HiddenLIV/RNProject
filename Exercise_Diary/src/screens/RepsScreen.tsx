@@ -148,20 +148,22 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       keyboardVerticalOffset={16}
     >
       <Text style={[styles.title, { color: accent.text }]}>{getExerciseDisplayName(exercise, t)}</Text>
-      <GuideVideoPanel
-        exerciseId={exercise.id}
-        videoId={exercise.guideVideoId}
-        onGuideVideoChange={onGuideVideoChange}
-      />
-      <CaptureVideoRow
-        capturedAssetId={capturedVideo?.assetId}
-        busy={videoBusy}
-        onCapture={handleCapturePress}
-        onViewCaptured={() => setViewingVideo(true)}
-      />
+      <View style={styles.videoButtons}>
+        <GuideVideoPanel
+          exerciseId={exercise.id}
+          videoId={exercise.guideVideoId}
+          onGuideVideoChange={onGuideVideoChange}
+        />
+        <CaptureVideoRow
+          capturedAssetId={capturedVideo?.assetId}
+          busy={videoBusy}
+          onCapture={handleCapturePress}
+          onViewCaptured={() => setViewingVideo(true)}
+        />
+      </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <View style={[styles.sheet, { backgroundColor: accent.card, borderColor: accent.border }]}>
+        <View style={[styles.sheet, { backgroundColor: accent.card }]}>
           <View style={[styles.headerRow, { borderBottomColor: accent.border }]}>
             <Text style={[styles.headerCell, { color: accent.textFaint }, styles.colIndex]}>{t.reps.setColumn}</Text>
             {exercise.usesWeight && (
@@ -256,12 +258,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   title: {
     fontSize: fontSize.xl,
     fontWeight: '800',
     textAlign: 'center',
+  },
+  videoButtons: {
+    gap: spacing.sm,
   },
   scroll: {
     flex: 1,
@@ -272,7 +277,6 @@ const styles = StyleSheet.create({
   },
   sheet: {
     borderRadius: radius.md,
-    borderWidth: 1,
     overflow: 'hidden',
   },
   headerRow: {

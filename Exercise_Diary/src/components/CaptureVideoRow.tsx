@@ -25,7 +25,7 @@ export default function CaptureVideoRow({ capturedAssetId, busy = false, onCaptu
     <View style={styles.row}>
       {onCapture && (
         <Pressable style={[styles.button, { borderColor: accent.border }]} onPress={onCapture} disabled={busy}>
-          <Ionicons name="videocam-outline" size={16} color={accent.accentText} />
+          <Ionicons name="videocam-outline" size={18} color={accent.accentText} />
           <Text style={[styles.buttonText, { color: accent.accentText }]}>
             {busy
               ? t.captureVideoRow.processing
@@ -37,7 +37,7 @@ export default function CaptureVideoRow({ capturedAssetId, busy = false, onCaptu
       )}
       {capturedAssetId && (
         <Pressable style={[styles.button, { borderColor: accent.border }]} onPress={onViewCaptured}>
-          <Ionicons name="play-circle-outline" size={16} color={accent.accentText} />
+          <Ionicons name="play-circle-outline" size={18} color={accent.accentText} />
           <Text style={[styles.buttonText, { color: accent.accentText }]}>{t.captureVideoRow.viewJustCaptured}</Text>
         </Pressable>
       )}
@@ -48,15 +48,16 @@ export default function CaptureVideoRow({ capturedAssetId, busy = false, onCaptu
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignSelf: 'stretch',
     gap: spacing.sm,
   },
   button: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.xs,
-    paddingHorizontal: spacing.smd,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     borderRadius: radius.pill,
     borderWidth: 1.5,
   },

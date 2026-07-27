@@ -58,8 +58,8 @@ const ja: Translations = {
     iconChoiceAccessibility: 'アイコンを選択',
     measureTypeSectionLabel: '測定方法',
     weightSectionLabel: '重量を記録する',
-    videoLinkSectionLabel: 'フォーム動画リンク（任意）',
-    videoLinkPlaceholder: 'YouTubeのリンクを貼り付け',
+    videoLinkSectionLabel: 'YouTubeリンク（任意）',
+    videoLinkPlaceholder: '運動動画のリンクを貼り付け',
     addButton: '運動を追加',
     errorNameRequired: '運動の名前を入力してください',
     errorNameTooLong: (max) => `名前は${max}文字以内で入力してください`,
@@ -68,8 +68,8 @@ const ja: Translations = {
   },
   editExercise: {
     title: '運動を編集',
-    videoLinkLabel: 'フォーム動画リンク（任意）',
-    videoLinkPlaceholder: 'YouTubeのリンクを貼り付け',
+    videoLinkLabel: 'YouTubeリンク（任意）',
+    videoLinkPlaceholder: '運動動画のリンクを貼り付け',
     weightLabel: '重量を記録する',
     cancel: 'キャンセル',
     save: '保存',
@@ -112,17 +112,17 @@ const ja: Translations = {
     removeSetAccessibility: 'セットを削除',
   },
   captureVideoRow: {
-    capture: '撮影',
-    recapture: '撮り直す',
+    capture: 'フォーム撮影',
+    recapture: 'フォーム再撮影',
     processing: '処理中…',
     viewJustCaptured: '撮影した動画を見る',
   },
   guideVideoPanel: {
     toggleLabel: 'フォーム動画を見る',
-    addLinkLabel: 'フォーム動画リンクを追加',
-    editAccessibility: 'フォーム動画リンクを編集',
-    deleteConfirmTitle: 'フォーム動画リンクを削除',
-    deleteConfirmBody: 'このフォーム動画リンクを削除しますか？',
+    addLinkLabel: 'YouTubeリンクを追加',
+    editAccessibility: 'YouTubeリンクを編集',
+    deleteConfirmTitle: 'YouTubeリンクを削除',
+    deleteConfirmBody: 'このYouTubeリンクを削除しますか？',
     errorSaveFailed: '保存できませんでした。もう一度お試しください。',
   },
   cameraPermission: {
@@ -158,7 +158,7 @@ const ja: Translations = {
       {
         title: '運動を撮影する',
         description:
-          '測定画面の「撮影」ボタンで運動する様子を撮影できます。動画は端末のギャラリーに保存され、記録を保存するとその記録に紐づき、後で見返せます。',
+          '測定画面の「フォーム撮影」ボタンで運動する様子を撮影できます。動画は端末のギャラリーに保存され、記録を保存するとその記録に紐づき、後で見返せます。',
       },
       {
         title: 'フォーム動画',

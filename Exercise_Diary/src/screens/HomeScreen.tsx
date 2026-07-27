@@ -10,7 +10,7 @@ import ThemeSwatchRow from '../components/ThemeSwatchRow';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
-import { getExercises, getOnboardingSeen, setOnboardingSeen } from '../lib/storage';
+import { getExercises } from '../lib/storage';
 import { Exercise } from '../lib/types';
 import { cardShadow, fontSize, radius, spacing } from '../theme';
 
@@ -39,15 +39,6 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
   // onDismiss가 어떤 이유로든 안 오면 "?" 버튼이 영구히 막히므로, 안전망으로 일정 시간 뒤
   // 강제로 잠금을 푼다(iOS 전체화면 Modal 전환은 보통 0.5초 안팎이라 여유 있게 잡음).
   const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // getOnboardingSeen() 조회가 끝나기 전에 사용자가 "?"를 눌렀는지 판단하는 데 쓴다 —
-  // state 갱신 지점에서 곧바로 같이 갱신해(아래 setHelpVisibleSynced) 패시브 이펙트의
-  // 스케줄링 지연 때문에 최신값을 놓치는 경합을 없앤다.
-  const helpVisibleRef = useRef(helpVisible);
-
-  const setHelpVisibleSynced = (value: boolean) => {
-    helpVisibleRef.current = value;
-    setHelpVisible(value);
-  };
 
   const loadExercises = () => {
     getExercises().then((next) => {
@@ -58,14 +49,6 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
 
   useEffect(() => {
     loadExercises();
-  }, []);
-
-  useEffect(() => {
-    getOnboardingSeen().then((seen) => {
-      // 조회가 끝나기 전에 사용자가 이미 도움말을 열었다면, 온보딩을 겹쳐 띄우지 않는다
-      // (두 Modal이 동시에 visible이 되는 걸 막는 것과 같은 이유).
-      if (!seen && !helpVisibleRef.current) setOnboardingVisible(true);
-    });
   }, []);
 
   useEffect(() => {
@@ -109,7 +92,7 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
 
   const handleReplayOnboarding = () => {
     setOnboardingReplay(true);
-    beginModalTransition(setHelpVisibleSynced, () => setOnboardingVisible(true));
+    beginModalTransition(setHelpVisible, () => setOnboardingVisible(true));
   };
 
   const handleHelpDismiss = () => {
@@ -117,10 +100,9 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
   };
 
   const handleCloseOnboarding = () => {
-    setOnboardingSeen().catch(() => {});
     if (onboardingReplay) {
       setOnboardingReplay(false);
-      beginModalTransition(setOnboardingVisible, () => setHelpVisibleSynced(true));
+      beginModalTransition(setOnboardingVisible, () => setHelpVisible(true));
     } else {
       setOnboardingVisible(false);
     }
@@ -140,7 +122,7 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
           </View>
           <Pressable
             style={styles.helpButton}
-            onPress={() => setHelpVisibleSynced(true)}
+            onPress={() => setHelpVisible(true)}
             hitSlop={8}
             accessibilityLabel={t.home.help}
             disabled={modalTransitioning}
@@ -170,8 +152,8 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
               onPress={() => onSelectExercise(item)}
               disabled={modalTransitioning}
             >
-              <View style={[styles.iconBadge, { backgroundColor: accent.primarySoft }]}>
-                <Ionicons name={item.icon} size={26} color={accent.primary} />
+              <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
+                <Ionicons name={item.icon} size={26} color={accent.onPrimary} />
               </View>
               <View style={styles.cardInfo}>
                 <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
@@ -220,7 +202,7 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
       />
       <HelpModal
         visible={helpVisible}
-        onClose={() => setHelpVisibleSynced(false)}
+        onClose={() => setHelpVisible(false)}
         onReplayOnboarding={handleReplayOnboarding}
         onDismiss={handleHelpDismiss}
       />

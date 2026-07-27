@@ -58,18 +58,18 @@ const ko: Translations = {
     iconChoiceAccessibility: '아이콘 선택',
     measureTypeSectionLabel: '측정 방식',
     weightSectionLabel: '무게 기록 사용',
-    videoLinkSectionLabel: '자세 영상 링크 (선택)',
-    videoLinkPlaceholder: '유튜브 링크 붙여넣기',
+    videoLinkSectionLabel: 'YouTube 링크 (선택)',
+    videoLinkPlaceholder: '운동 영상 링크 붙여넣기',
     addButton: '운동 추가',
     errorNameRequired: '운동 이름을 입력해 주세요',
     errorNameTooLong: (max) => `이름은 ${max}자 이내로 입력해 주세요`,
     errorDuplicateName: '이미 같은 이름의 운동이 있습니다',
-    errorInvalidVideoLink: '유튜브 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)',
+    errorInvalidVideoLink: 'YouTube 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)',
   },
   editExercise: {
     title: '운동 수정',
-    videoLinkLabel: '자세 영상 링크 (선택)',
-    videoLinkPlaceholder: '유튜브 링크 붙여넣기',
+    videoLinkLabel: 'YouTube 링크 (선택)',
+    videoLinkPlaceholder: '운동 영상 링크 붙여넣기',
     weightLabel: '무게 기록 사용',
     cancel: '취소',
     save: '저장',
@@ -79,7 +79,7 @@ const ko: Translations = {
     errorNameRequired: '운동 이름을 입력해 주세요',
     errorNameTooLong: (max) => `이름은 ${max}자 이내로 입력해 주세요`,
     errorDuplicateName: '이미 같은 이름의 운동이 있습니다',
-    errorInvalidVideoLink: '유튜브 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)',
+    errorInvalidVideoLink: 'YouTube 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)',
   },
   timer: {
     title: (name) => `${name} 타이머`,
@@ -112,17 +112,17 @@ const ko: Translations = {
     removeSetAccessibility: '세트 삭제',
   },
   captureVideoRow: {
-    capture: '촬영',
-    recapture: '다시 촬영',
+    capture: '자세 촬영',
+    recapture: '다시 자세 촬영',
     processing: '처리 중…',
     viewJustCaptured: '방금 찍은 영상 보기',
   },
   guideVideoPanel: {
     toggleLabel: '자세 영상 보기',
-    addLinkLabel: '자세 영상 링크 추가',
-    editAccessibility: '자세 영상 링크 수정',
-    deleteConfirmTitle: '자세 영상 링크 삭제',
-    deleteConfirmBody: '이 자세 영상 링크를 삭제할까요?',
+    addLinkLabel: 'YouTube 링크 추가',
+    editAccessibility: 'YouTube 링크 수정',
+    deleteConfirmTitle: 'YouTube 링크 삭제',
+    deleteConfirmBody: '이 YouTube 링크를 삭제할까요?',
     errorSaveFailed: '저장하지 못했습니다. 다시 시도해 주세요.',
   },
   cameraPermission: {
@@ -158,12 +158,12 @@ const ko: Translations = {
       {
         title: '운동 촬영',
         description:
-          '측정 화면의 "촬영" 버튼으로 운동하는 모습을 찍을 수 있어요. 영상은 기기 갤러리에 저장되고, 기록을 저장하면 그 기록에 연결돼 나중에 다시 볼 수 있어요.',
+          '측정 화면의 "자세 촬영" 버튼으로 운동하는 모습을 찍을 수 있어요. 영상은 기기 갤러리에 저장되고, 기록을 저장하면 그 기록에 연결돼 나중에 다시 볼 수 있어요.',
       },
       {
         title: '자세 안내 영상',
         description:
-          '운동에 유튜브 링크를 등록해두면 측정 화면에 "자세 영상 보기" 버튼이 나타나요. 눌러서 정확한 자세를 확인하며 운동할 수 있어요.',
+          '운동에 YouTube 링크를 등록해두면 측정 화면에 "자세 영상 보기" 버튼이 나타나요. 눌러서 정확한 자세를 확인하며 운동할 수 있어요.',
       },
       {
         title: '운동 커스터마이징',

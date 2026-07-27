@@ -58,8 +58,8 @@ const en = {
     iconChoiceAccessibility: 'Choose icon',
     measureTypeSectionLabel: 'Measurement type',
     weightSectionLabel: 'Track weight',
-    videoLinkSectionLabel: 'Guide video link (optional)',
-    videoLinkPlaceholder: 'Paste a YouTube link',
+    videoLinkSectionLabel: 'YouTube link (optional)',
+    videoLinkPlaceholder: 'Paste an exercise video link',
     addButton: 'Add Exercise',
     errorNameRequired: 'Please enter an exercise name',
     errorNameTooLong: (max: number) => `Name must be ${max} characters or fewer`,
@@ -68,8 +68,8 @@ const en = {
   },
   editExercise: {
     title: 'Edit Exercise',
-    videoLinkLabel: 'Guide video link (optional)',
-    videoLinkPlaceholder: 'Paste a YouTube link',
+    videoLinkLabel: 'YouTube link (optional)',
+    videoLinkPlaceholder: 'Paste an exercise video link',
     weightLabel: 'Track weight',
     cancel: 'Cancel',
     save: 'Save',
@@ -112,17 +112,17 @@ const en = {
     removeSetAccessibility: 'Remove set',
   },
   captureVideoRow: {
-    capture: 'Record',
-    recapture: 'Record Again',
+    capture: 'Record Form',
+    recapture: 'Record Form Again',
     processing: 'Processing…',
     viewJustCaptured: 'View Recording',
   },
   guideVideoPanel: {
     toggleLabel: 'Watch Guide Video',
-    addLinkLabel: 'Add Guide Video Link',
-    editAccessibility: 'Edit guide video link',
-    deleteConfirmTitle: 'Delete Guide Video Link',
-    deleteConfirmBody: 'Are you sure you want to delete this guide video link?',
+    addLinkLabel: 'Add YouTube Link',
+    editAccessibility: 'Edit YouTube link',
+    deleteConfirmTitle: 'Delete YouTube Link',
+    deleteConfirmBody: 'Are you sure you want to delete this YouTube link?',
     errorSaveFailed: 'Could not save. Please try again.',
   },
   cameraPermission: {
@@ -158,7 +158,7 @@ const en = {
       {
         title: 'Record Yourself',
         description:
-          'Use the "Record" button on the measure screen to film yourself exercising. The video is saved to your device gallery, and linking it to a record lets you watch it again later.',
+          'Use the "Record Form" button on the measure screen to film yourself exercising. The video is saved to your device gallery, and linking it to a record lets you watch it again later.',
       },
       {
         title: 'Form Guide Videos',
