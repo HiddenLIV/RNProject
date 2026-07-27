@@ -1,5 +1,0 @@
-# macOS
-.DS_Store
-
-# dependencies (각 프로젝트 공통)
-node_modules/
