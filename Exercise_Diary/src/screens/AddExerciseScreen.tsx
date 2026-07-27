@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import Text from '../components/AppText';
 import MeasureTypeTag from '../components/MeasureTypeTag';
+import YoutubeSearchButton from '../components/YoutubeSearchButton';
 import {
   CUSTOM_EXERCISE_ICON,
   CUSTOM_ICON_CHOICES,
@@ -294,6 +295,7 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
 
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.videoLinkSectionLabel}</Text>
+          <YoutubeSearchButton exerciseName={name} />
           <TextInput
             style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
             value={videoLinkText}

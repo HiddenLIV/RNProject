@@ -125,6 +125,14 @@ const ko: Translations = {
     deleteConfirmBody: '이 YouTube 링크를 삭제할까요?',
     errorSaveFailed: '저장하지 못했습니다. 다시 시도해 주세요.',
   },
+  youtubeSearch: {
+    label: 'YouTube에서 검색',
+    keyword: '자세',
+    emptyNameTitle: '운동 이름이 필요해요',
+    emptyNameBody: '검색하기 전에 운동 이름을 먼저 입력해 주세요.',
+    openErrorTitle: '유튜브를 열 수 없어요',
+    openErrorBody: '유튜브 앱이나 브라우저를 열지 못했습니다. 다시 시도해 주세요.',
+  },
   cameraPermission: {
     title: '카메라·사진 접근 권한이 필요해요',
     body: '운동하는 모습을 촬영하고 기기 갤러리에 저장하려면 카메라와 사진 접근 권한이 필요합니다.',

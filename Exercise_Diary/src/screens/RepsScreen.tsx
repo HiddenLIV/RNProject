@@ -151,6 +151,7 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       <View style={styles.videoButtons}>
         <GuideVideoPanel
           exerciseId={exercise.id}
+          exerciseName={getExerciseDisplayName(exercise, t)}
           videoId={exercise.guideVideoId}
           onGuideVideoChange={onGuideVideoChange}
         />

@@ -125,6 +125,14 @@ const zh: Translations = {
     deleteConfirmBody: '确定要删除这个YouTube链接吗？',
     errorSaveFailed: '保存失败，请重试。',
   },
+  youtubeSearch: {
+    label: '在YouTube上搜索',
+    keyword: '动作要领',
+    emptyNameTitle: '请先输入运动名称',
+    emptyNameBody: '搜索前请先输入运动名称。',
+    openErrorTitle: '无法打开YouTube',
+    openErrorBody: '无法打开YouTube应用或浏览器，请重试。',
+  },
   cameraPermission: {
     title: '需要相机和照片访问权限',
     body: '要拍摄运动过程并保存到设备相册，需要获得相机和照片访问权限。',

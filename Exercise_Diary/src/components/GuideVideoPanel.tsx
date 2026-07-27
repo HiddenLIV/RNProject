@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Text from './AppText';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import YoutubeSearchButton from './YoutubeSearchButton';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { updateExercise } from '../lib/storage';
@@ -13,11 +14,12 @@ type FormMode = 'closed' | 'add' | 'edit';
 
 type Props = {
   exerciseId: string;
+  exerciseName: string;
   videoId?: string;
   onGuideVideoChange: (guideVideoId: string | undefined) => void;
 };
 
-export default function GuideVideoPanel({ exerciseId, videoId, onGuideVideoChange }: Props) {
+export default function GuideVideoPanel({ exerciseId, exerciseName, videoId, onGuideVideoChange }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -91,6 +93,7 @@ export default function GuideVideoPanel({ exerciseId, videoId, onGuideVideoChang
     return (
       <View style={styles.container}>
         <View style={[styles.addForm, { borderColor: accent.border, backgroundColor: accent.card }]}>
+          <YoutubeSearchButton exerciseName={exerciseName} />
           <TextInput
             style={[
               styles.input,

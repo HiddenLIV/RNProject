@@ -125,6 +125,14 @@ const ja: Translations = {
     deleteConfirmBody: 'このYouTubeリンクを削除しますか？',
     errorSaveFailed: '保存できませんでした。もう一度お試しください。',
   },
+  youtubeSearch: {
+    label: 'YouTubeで検索',
+    keyword: 'フォーム',
+    emptyNameTitle: '運動名を入力してください',
+    emptyNameBody: '検索する前に運動名を入力してください。',
+    openErrorTitle: 'YouTubeを開けませんでした',
+    openErrorBody: 'YouTubeアプリまたはブラウザを開けませんでした。もう一度お試しください。',
+  },
   cameraPermission: {
     title: 'カメラ・写真へのアクセス許可が必要です',
     body: '運動の様子を撮影して端末のギャラリーに保存するには、カメラと写真へのアクセス許可が必要です。',

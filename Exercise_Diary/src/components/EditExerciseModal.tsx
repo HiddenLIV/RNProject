@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Switch, TextInput, View } from 'react-native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  TextInput,
+  View,
+} from 'react-native';
 import Text from './AppText';
+import YoutubeSearchButton from './YoutubeSearchButton';
 import { EXERCISE_NAME_MAX_LENGTH, getExerciseDisplayName, inferPresetKey } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
@@ -100,99 +112,102 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.card, { backgroundColor: accent.background }]}>
-          <Text style={[styles.title, { color: accent.text }]}>{t.editExercise.title}</Text>
-          <TextInput
-            style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
-            value={name}
-            onChangeText={(text) => {
-              setName(text);
-              setError('');
-            }}
-            maxLength={EXERCISE_NAME_MAX_LENGTH}
-            autoFocus
-          />
+          <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
+            <Text style={[styles.title, { color: accent.text }]}>{t.editExercise.title}</Text>
+            <TextInput
+              style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
+              value={name}
+              onChangeText={(text) => {
+                setName(text);
+                setError('');
+              }}
+              maxLength={EXERCISE_NAME_MAX_LENGTH}
+              autoFocus
+            />
 
-          <Text style={[styles.videoLabel, { color: accent.textMuted }]}>{t.editExercise.videoLinkLabel}</Text>
-          <TextInput
-            style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
-            value={videoLinkText}
-            onChangeText={(text) => {
-              setVideoLinkText(text);
-              setError('');
-            }}
-            placeholder={t.editExercise.videoLinkPlaceholder}
-            placeholderTextColor={accent.textFaint}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-          />
+            <Text style={[styles.videoLabel, { color: accent.textMuted }]}>{t.editExercise.videoLinkLabel}</Text>
+            <YoutubeSearchButton exerciseName={name} />
+            <TextInput
+              style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
+              value={videoLinkText}
+              onChangeText={(text) => {
+                setVideoLinkText(text);
+                setError('');
+              }}
+              placeholder={t.editExercise.videoLinkPlaceholder}
+              placeholderTextColor={accent.textFaint}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+            />
 
-          {exercise.measureType === 'reps' && (
-            <>
-              <View style={styles.weightRow}>
-                <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.editExercise.weightLabel}</Text>
-                <Switch
-                  value={usesWeight}
-                  onValueChange={setUsesWeight}
-                  trackColor={{ true: accent.primary, false: accent.border }}
-                />
-              </View>
-              {usesWeight && (
-                <View style={styles.segmentRow}>
-                  <Pressable
-                    style={[
-                      styles.segment,
-                      { borderColor: accent.border, backgroundColor: accent.background },
-                      weightUnit === 'kg' && segmentSelectedStyle,
-                    ]}
-                    onPress={() => setWeightUnit('kg')}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        { color: accent.textMuted },
-                        weightUnit === 'kg' && { color: accent.onPrimary },
-                      ]}
-                    >
-                      {t.units.kg}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    style={[
-                      styles.segment,
-                      { borderColor: accent.border, backgroundColor: accent.background },
-                      weightUnit === 'lb' && segmentSelectedStyle,
-                    ]}
-                    onPress={() => setWeightUnit('lb')}
-                  >
-                    <Text
-                      style={[
-                        styles.segmentText,
-                        { color: accent.textMuted },
-                        weightUnit === 'lb' && { color: accent.onPrimary },
-                      ]}
-                    >
-                      {t.units.lb}
-                    </Text>
-                  </Pressable>
+            {exercise.measureType === 'reps' && (
+              <>
+                <View style={styles.weightRow}>
+                  <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.editExercise.weightLabel}</Text>
+                  <Switch
+                    value={usesWeight}
+                    onValueChange={setUsesWeight}
+                    trackColor={{ true: accent.primary, false: accent.border }}
+                  />
                 </View>
-              )}
-            </>
-          )}
+                {usesWeight && (
+                  <View style={styles.segmentRow}>
+                    <Pressable
+                      style={[
+                        styles.segment,
+                        { borderColor: accent.border, backgroundColor: accent.background },
+                        weightUnit === 'kg' && segmentSelectedStyle,
+                      ]}
+                      onPress={() => setWeightUnit('kg')}
+                    >
+                      <Text
+                        style={[
+                          styles.segmentText,
+                          { color: accent.textMuted },
+                          weightUnit === 'kg' && { color: accent.onPrimary },
+                        ]}
+                      >
+                        {t.units.kg}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[
+                        styles.segment,
+                        { borderColor: accent.border, backgroundColor: accent.background },
+                        weightUnit === 'lb' && segmentSelectedStyle,
+                      ]}
+                      onPress={() => setWeightUnit('lb')}
+                    >
+                      <Text
+                        style={[
+                          styles.segmentText,
+                          { color: accent.textMuted },
+                          weightUnit === 'lb' && { color: accent.onPrimary },
+                        ]}
+                      >
+                        {t.units.lb}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+              </>
+            )}
 
-          {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
+            {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
 
-          <View style={styles.buttonRow}>
-            <Pressable style={[styles.button, { backgroundColor: accent.card }]} onPress={onClose}>
-              <Text style={[styles.secondaryButtonText, { color: accent.text }]}>{t.editExercise.cancel}</Text>
+            <View style={styles.buttonRow}>
+              <Pressable style={[styles.button, { backgroundColor: accent.card }]} onPress={onClose}>
+                <Text style={[styles.secondaryButtonText, { color: accent.text }]}>{t.editExercise.cancel}</Text>
+              </Pressable>
+              <Pressable style={[styles.button, { backgroundColor: accent.primary }]} onPress={handleSave}>
+                <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>{t.editExercise.save}</Text>
+              </Pressable>
+            </View>
+            <Pressable style={styles.deleteButton} onPress={handleDelete}>
+              <Text style={[styles.deleteButtonText, { color: accent.danger }]}>{t.editExercise.deleteButton}</Text>
             </Pressable>
-            <Pressable style={[styles.button, { backgroundColor: accent.primary }]} onPress={handleSave}>
-              <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>{t.editExercise.save}</Text>
-            </Pressable>
-          </View>
-          <Pressable style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={[styles.deleteButtonText, { color: accent.danger }]}>{t.editExercise.deleteButton}</Text>
-          </Pressable>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -209,8 +224,11 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
+    maxHeight: '85%',
     borderRadius: radius.md,
     padding: spacing.lg,
+  },
+  cardContent: {
     gap: spacing.sm,
   },
   title: {

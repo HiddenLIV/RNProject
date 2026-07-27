@@ -125,6 +125,14 @@ const en = {
     deleteConfirmBody: 'Are you sure you want to delete this YouTube link?',
     errorSaveFailed: 'Could not save. Please try again.',
   },
+  youtubeSearch: {
+    label: 'Search on YouTube',
+    keyword: 'form',
+    emptyNameTitle: 'Exercise name needed',
+    emptyNameBody: 'Please enter an exercise name before searching.',
+    openErrorTitle: "Couldn't open YouTube",
+    openErrorBody: 'Failed to open the YouTube app or browser. Please try again.',
+  },
   cameraPermission: {
     title: 'Camera & Photo Access Needed',
     body: 'To record your workout and save it to your device gallery, camera and photo access is required.',
