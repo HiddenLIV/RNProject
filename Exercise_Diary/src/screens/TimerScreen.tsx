@@ -150,8 +150,8 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
   };
 
   // 촬영한 영상 참조 — 이번 세션(다시 시작·메인으로 나가기 전까지) 동안 유효하다.
-  // 기록이 이미 저장돼 있으면(정지 이후 촬영) 즉시 write-through하고, 아직 없으면
-  // handleStop/adjustPending이 다음 기록 생성 시점에 실어 보낸다.
+  // 촬영은 idle 단계에서만 가능하므로(측정 시작 전에만 촬영 버튼이 보임), 정지 시점
+  // (handleStop)에 기록을 만들 때 이 값을 함께 실어 저장한다.
   const [capturedVideo, setCapturedVideo] = useState<VideoRef | null>(null);
   const [viewingVideo, setViewingVideo] = useState(false);
   const [permissionModal, setPermissionModal] = useState<PermissionState | null>(null);
@@ -162,12 +162,6 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
       const result = await captureExerciseVideo();
       if (result.status !== 'saved') return;
       setCapturedVideo(result.ref);
-      // finished 단계에서 촬영했고 그 기록이 이미 저장돼 있는 경우에만 write-through한다 —
-      // pending은 다시 시작/메인으로 나갈 때 null로 초기화되므로, 이 조건이 참이면 항상
-      // "지금 화면에 보이는 그 기록"이다(이전 세션의 기록으로 잘못 붙는 일이 없다).
-      if (timer.phase === 'finished' && pending?.id) {
-        await updateRecord(exercise.id, pending.id, { videoRef: result.ref });
-      }
     } catch {
       Alert.alert(t.timer.captureFailedTitle, t.timer.captureFailedBody);
     } finally {
@@ -270,14 +264,6 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
       style={[styles.container, { backgroundColor: accent.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.topBar}>
-        <CaptureVideoRow
-          capturedAssetId={capturedVideo?.assetId}
-          busy={videoBusy}
-          onCapture={handleCapturePress}
-          onViewCaptured={() => setViewingVideo(true)}
-        />
-      </View>
       <View style={styles.phaseContent}>
       {timer.phase === 'idle' && (
         <>
@@ -286,6 +272,12 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
             exerciseId={exercise.id}
             videoId={exercise.guideVideoId}
             onGuideVideoChange={onGuideVideoChange}
+          />
+          <CaptureVideoRow
+            capturedAssetId={capturedVideo?.assetId}
+            busy={videoBusy}
+            onCapture={handleCapturePress}
+            onViewCaptured={() => setViewingVideo(true)}
           />
           <View style={[styles.settings, { backgroundColor: accent.card }]}>
             <NumberStepper
@@ -360,6 +352,9 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
               <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.plusOneSecond}</Text>
             </Pressable>
           </View>
+          {capturedVideo && (
+            <CaptureVideoRow capturedAssetId={capturedVideo.assetId} onViewCaptured={() => setViewingVideo(true)} />
+          )}
           {pending.durationMs < MIN_RECORD_MS && (
             <Text style={[styles.notSaved, { color: accent.textFaint }]}>{t.timer.notSavedNotice}</Text>
           )}
@@ -404,9 +399,6 @@ const styles = StyleSheet.create({
     // 하단 여백은 그 영향을 안 받는 안쪽 phaseContent에 둔다.
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
-  },
-  topBar: {
-    alignItems: 'flex-start',
   },
   phaseContent: {
     flex: 1,
