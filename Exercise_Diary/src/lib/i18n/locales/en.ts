@@ -33,7 +33,7 @@ const en = {
     changeAccessibility: (name: string) => `Change to ${name} theme`,
   },
   home: {
-    title: 'Exercise Diary',
+    title: 'HiddenReps',
     subtitle: 'Pick an exercise to begin',
     help: 'Help',
     addExercise: 'Add Exercise',

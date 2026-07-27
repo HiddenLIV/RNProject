@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "나의 운동 일지",
+    "name": "HiddenReps",
     "slug": "exercise-diary",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,7 +8,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.timecheck"
+      "bundleIdentifier": "com.hiddenliv.exercisediary"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ],
-      "package": "com.anonymous.timecheck"
+      "package": "com.hiddenliv.exercisediary"
     },
     "web": {
       "favicon": "./assets/favicon.png"

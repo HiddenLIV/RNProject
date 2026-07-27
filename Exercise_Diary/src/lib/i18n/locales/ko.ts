@@ -33,7 +33,7 @@ const ko: Translations = {
     changeAccessibility: (name) => `${name} 테마로 변경`,
   },
   home: {
-    title: '나의 운동 일지',
+    title: 'HiddenReps',
     subtitle: '운동을 골라 시작해 보세요',
     help: '도움말',
     addExercise: '운동 추가',

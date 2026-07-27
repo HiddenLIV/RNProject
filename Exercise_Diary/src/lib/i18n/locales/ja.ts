@@ -33,7 +33,7 @@ const ja: Translations = {
     changeAccessibility: (name) => `${name}テーマに変更`,
   },
   home: {
-    title: '運動日記',
+    title: 'HiddenReps',
     subtitle: '運動を選んで始めましょう',
     help: 'ヘルプ',
     addExercise: '運動を追加',

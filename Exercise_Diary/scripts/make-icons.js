@@ -1,6 +1,6 @@
-// Exercise_Diary 앱 아이콘 생성: 아령 실루엣 (매달리기 전용에서 범용 운동 일지로 확장됨에 따라
-// 데드행 전용 모티프 대신 모든 운동을 아우르는 아령으로 교체, 색상도 src/theme.ts의
-// 다크(background)+마젠타(primary) 팔레트로 통일)
+// HiddenReps 앱 아이콘 생성: 아령(메인) + 스톱워치(작은 배지) 조합.
+// 아이콘 시안 리뷰에서 "N3 — 아령이 메인" 안으로 확정됨 (배지는 서로 안 닿게 간격을 둠).
+// 색상은 src/theme.ts의 다크(background)+마젠타(primary) 팔레트로 통일.
 // 실행: node scripts/make-icons.js  (→ assets/ 아래 6개 PNG 재생성)
 // 의존성 없이 PNG를 직접 인코딩한다 (RGBA, zlib은 node 내장)
 const fs = require('fs');
@@ -66,17 +66,51 @@ function sdRoundBox(x, y, cx, cy, halfW, halfH, r) {
   const qy = Math.abs(y - cy) - halfH + r;
   return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
 }
+function sdCircle(x, y, cx, cy, r) {
+  return Math.hypot(x - cx, y - cy) - r;
+}
+function rotate(x, y, cx, cy, deg) {
+  const t = (deg * Math.PI) / 180;
+  const dx = x - cx, dy = y - cy;
+  return [cx + dx * Math.cos(t) + dy * Math.sin(t), cy - dx * Math.sin(t) + dy * Math.cos(t)];
+}
 
-// 아령(바 + 안쪽/바깥쪽 2단 원판). 반환: 흰색 커버리지에 쓸 signed distance (음수 = 내부)
+// 아령(바 + 안쪽/바깥쪽 2단 원판), 로컬 좌표계(512,512 중심)에 정의 — 회전은 좌표계를
+// 통째로 돌려서 원판이 바와 어긋나지 않게 한다.
+function dumbbellLocal(x, y, angleDeg) {
+  const [rx, ry] = rotate(x, y, 512, 512, angleDeg);
+  return Math.min(
+    distSeg(rx, ry, 330, 512, 694, 512) - 26,
+    sdRoundBox(rx, ry, 296, 512, 40, 108, 20),
+    sdRoundBox(rx, ry, 184, 512, 62, 168, 30),
+    sdRoundBox(rx, ry, 728, 512, 40, 108, 20),
+    sdRoundBox(rx, ry, 840, 512, 62, 168, 30)
+  );
+}
+// 로컬 아령을 원하는 위치·크기·각도로 재배치
+function dumbbellAt(x, y, cx, cy, scale, angleDeg) {
+  const lx = (x - cx) / scale + 512;
+  const ly = (y - cy) / scale + 512;
+  return dumbbellLocal(lx, ly, angleDeg) * scale;
+}
+// 스톱워치(링 + 크라운 + 시침 2개 + 중심점), 반지름 R 기준 상대 크기
+function stopwatchAt(x, y, cx, cy, R) {
+  const thick = R * 0.155;
+  const ring = Math.abs(sdCircle(x, y, cx, cy, R)) - thick;
+  const crownH = R * 0.26, crownW = R * 0.19;
+  const crown = sdRoundBox(x, y, cx, cy - R - crownH * 0.55, crownW, crownH, crownH * 0.4);
+  const hand1 = distSeg(x, y, cx, cy, cx, cy - R * 0.56) - R * 0.085;
+  const hand2 = distSeg(x, y, cx, cy, cx + R * 0.34, cy - R * 0.23) - R * 0.075;
+  const hub = sdCircle(x, y, cx, cy, R * 0.1);
+  return Math.min(ring, crown, hand1, hand2, hub);
+}
+
+// 아령(메인) + 스톱워치(우하단 작은 배지). 반환: 흰색 커버리지에 쓸 signed distance (음수 = 내부)
 function motifSdf(x, y) {
-  const shapes = [
-    distSeg(x, y, 344, 512, 680, 512) - 22, // 바 (얇게, 원판과 대비)
-    sdRoundBox(x, y, 310, 512, 34, 96, 18), // 왼쪽 안쪽 원판
-    sdRoundBox(x, y, 210, 512, 56, 150, 28), // 왼쪽 바깥쪽 원판
-    sdRoundBox(x, y, 714, 512, 34, 96, 18), // 오른쪽 안쪽 원판
-    sdRoundBox(x, y, 814, 512, 56, 150, 28), // 오른쪽 바깥쪽 원판
-  ];
-  return Math.min(...shapes);
+  return Math.min(
+    dumbbellAt(x, y, 452, 452, 0.8, -14),
+    stopwatchAt(x, y, 806, 806, 96)
+  );
 }
 
 function gradientBg(y, size) {

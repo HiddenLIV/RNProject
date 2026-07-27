@@ -33,7 +33,7 @@ const zh: Translations = {
     changeAccessibility: (name) => `切换为${name}主题`,
   },
   home: {
-    title: '我的运动日记',
+    title: 'HiddenReps',
     subtitle: '选择一项运动开始吧',
     help: '帮助',
     addExercise: '添加运动',
