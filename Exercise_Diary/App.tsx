@@ -1,6 +1,7 @@
 import { setAudioModeAsync } from 'expo-audio';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
+import { useShareIntent } from 'expo-share-intent';
 import { useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -16,18 +17,29 @@ type Screen = { name: 'home' } | { name: 'exercise'; exercise: Exercise } | { na
 
 export default function App() {
   const [fontsLoaded] = useFonts(fontAssets);
+  // 유튜브 등에서 공유한 링크 — 운동 추가/수정 화면이 떠 있을 때만 링크 입력칸에 채워 넣는다
+  // (Provider보다 위에서 훅을 호출해야 공유로 콜드 스타트해도 첫 렌더부터 값을 받는다).
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
   if (!fontsLoaded) return <View style={styles.container} />;
 
   return (
     <LanguageProvider>
       <ThemeProvider>
-        <AppContent />
+        <AppContent
+          sharedVideoLink={hasShareIntent ? (shareIntent.webUrl ?? undefined) : undefined}
+          onConsumeSharedVideoLink={resetShareIntent}
+        />
       </ThemeProvider>
     </LanguageProvider>
   );
 }
 
-function AppContent() {
+type AppContentProps = {
+  sharedVideoLink?: string;
+  onConsumeSharedVideoLink: () => void;
+};
+
+function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentProps) {
   const accent = useAccentColors();
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
 
@@ -59,6 +71,8 @@ function AppContent() {
           <HomeScreen
             onSelectExercise={(exercise) => setScreen({ name: 'exercise', exercise })}
             onAddExercise={() => setScreen({ name: 'addExercise' })}
+            sharedVideoLink={sharedVideoLink}
+            onConsumeSharedVideoLink={onConsumeSharedVideoLink}
           />
         )}
         {screen.name === 'exercise' && (
@@ -68,6 +82,8 @@ function AppContent() {
           <AddExerciseScreen
             onBack={() => setScreen({ name: 'home' })}
             onCreated={() => setScreen({ name: 'home' })}
+            sharedVideoLink={sharedVideoLink}
+            onConsumeSharedVideoLink={onConsumeSharedVideoLink}
           />
         )}
         <StatusBar style="auto" />

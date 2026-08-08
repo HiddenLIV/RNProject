@@ -2,6 +2,7 @@
   "expo": {
     "name": "HiddenReps",
     "slug": "hiddenreps",
+    "scheme": "hiddenreps",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -62,7 +63,8 @@
         }
       ],
       "expo-localization",
-      "expo-font"
+      "expo-font",
+      "expo-share-intent"
     ],
     "extra": {
       "eas": {

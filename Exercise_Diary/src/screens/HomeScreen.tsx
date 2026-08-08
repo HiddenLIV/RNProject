@@ -18,9 +18,16 @@ import { cardShadow, fontSize, radius, spacing } from '../theme';
 type Props = {
   onSelectExercise: (exercise: Exercise) => void;
   onAddExercise: () => void;
+  sharedVideoLink?: string;
+  onConsumeSharedVideoLink?: () => void;
 };
 
-export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
+export default function HomeScreen({
+  onSelectExercise,
+  onAddExercise,
+  sharedVideoLink,
+  onConsumeSharedVideoLink,
+}: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -227,6 +234,8 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
         existingNames={exercises
           .filter((e) => e.id !== editingExercise?.id)
           .map((e) => getExerciseDisplayName(e, t))}
+        sharedVideoLink={sharedVideoLink}
+        onConsumeSharedVideoLink={onConsumeSharedVideoLink}
         onClose={() => setEditingExercise(null)}
         onSaved={() => {
           setEditingExercise(null);
