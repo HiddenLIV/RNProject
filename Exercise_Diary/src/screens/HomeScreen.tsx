@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FlatList, Platform, Pressable, StyleSheet, View } from 'react-native';
 import Text from '../components/AppText';
 import EditExerciseModal from '../components/EditExerciseModal';
+import ExerciseIcon from '../components/ExerciseIcon';
 import HelpModal from '../components/HelpModal';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import OnboardingModal from '../components/OnboardingModal';
@@ -153,7 +154,7 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
               disabled={modalTransitioning}
             >
               <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
-                <Ionicons name={item.icon} size={26} color={accent.onPrimary} />
+                <ExerciseIcon icon={item.icon} size={26} color={accent.onPrimary} />
               </View>
               <View style={styles.cardInfo}>
                 <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>

@@ -12,26 +12,44 @@ import {
   View,
 } from 'react-native';
 import Text from './AppText';
+import ExerciseIcon from './ExerciseIcon';
 import YoutubeSearchButton from './YoutubeSearchButton';
-import { EXERCISE_NAME_MAX_LENGTH, getExerciseDisplayName, inferPresetKey } from '../lib/exercisePresets';
+import {
+  CUSTOM_ICON_CHOICES,
+  EXERCISE_NAME_MAX_LENGTH,
+  getExerciseDisplayName,
+  ICON_CHOICES,
+  inferPresetKey,
+} from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { removeExercise, updateExercise } from '../lib/storage';
-import { Exercise } from '../lib/types';
+import { Exercise, MeasureType } from '../lib/types';
 import { parseYoutubeLink } from '../lib/youtube';
 import { fontSize, radius, spacing } from '../theme';
 
 type Props = {
   exercise: Exercise | null;
   existingNames: string[];
+  sharedVideoLink?: string;
+  onConsumeSharedVideoLink?: () => void;
   onClose: () => void;
   onSaved: () => void;
 };
 
-export default function EditExerciseModal({ exercise, existingNames, onClose, onSaved }: Props) {
+export default function EditExerciseModal({
+  exercise,
+  existingNames,
+  sharedVideoLink,
+  onConsumeSharedVideoLink,
+  onClose,
+  onSaved,
+}: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const [name, setName] = useState('');
+  const [icon, setIcon] = useState<Exercise['icon']>(CUSTOM_ICON_CHOICES[0]);
+  const [measureType, setMeasureType] = useState<MeasureType>('time');
   const [usesWeight, setUsesWeight] = useState(false);
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg');
   const [videoLinkText, setVideoLinkText] = useState('');
@@ -40,12 +58,24 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
   useEffect(() => {
     if (exercise) {
       setName(getExerciseDisplayName(exercise, t));
+      setIcon(exercise.icon);
+      setMeasureType(exercise.measureType);
       setUsesWeight(exercise.usesWeight ?? false);
       setWeightUnit(exercise.weightUnit ?? 'kg');
       setVideoLinkText(exercise.guideVideoId ? `https://youtu.be/${exercise.guideVideoId}` : '');
       setError('');
     }
   }, [exercise]);
+
+  useEffect(() => {
+    // 이 모달이 열려 있는(수정 중인) 동안 공유받은 링크가 있으면 채운다 — 이미 저장된 링크가
+    // 있으면 덮어쓰지 않는다.
+    if (exercise && sharedVideoLink && !videoLinkText) {
+      setVideoLinkText(sharedVideoLink);
+      setError('');
+      onConsumeSharedVideoLink?.();
+    }
+  }, [exercise, sharedVideoLink, videoLinkText, onConsumeSharedVideoLink]);
 
   if (!exercise) return null;
 
@@ -82,6 +112,8 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
     }
     await updateExercise(exercise.id, {
       name: trimmed,
+      icon,
+      measureType,
       guideVideoId,
       // 표시 이름과 다르게 고쳤다면 더 이상 프리셋 이름이 아니므로 presetKey를 해제한다.
       // 안 고쳤다면 원래 presetKey를 그대로 확정 저장한다 — 그냥 저장만 눌러도 name이 항상
@@ -89,7 +121,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
       // (레거시 데이터처럼 원래 presetKey가 없던 경우) 다음부터 언어를 바꿔도 이름이
       // 이번에 저장한 언어로 고정되고 프리셋 목록에도 중복 후보로 다시 나타난다.
       presetKey: nameChanged ? undefined : (exercise.presetKey ?? inferPresetKey(exercise.name)),
-      ...(exercise.measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : {}),
+      ...(measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : { usesWeight: undefined, weightUnit: undefined }),
     });
     onSaved();
   };
@@ -111,7 +143,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.card, { backgroundColor: accent.background }]}>
+        <View style={[styles.card, { backgroundColor: accent.background, borderColor: accent.primary }]}>
           <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
             <Text style={[styles.title, { color: accent.text }]}>{t.editExercise.title}</Text>
             <TextInput
@@ -124,6 +156,62 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
               maxLength={EXERCISE_NAME_MAX_LENGTH}
               autoFocus
             />
+
+            <View style={styles.iconGrid}>
+              {ICON_CHOICES.map((choice) => {
+                const selected = icon === choice;
+                return (
+                  <Pressable
+                    key={choice}
+                    style={[styles.iconChoice, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}
+                    onPress={() => setIcon(choice)}
+                    accessibilityLabel={t.addExercise.iconChoiceAccessibility}
+                  >
+                    <ExerciseIcon icon={choice} size={20} color={selected ? accent.onPrimary : accent.primary} />
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.addExercise.measureTypeSectionLabel}</Text>
+            <View style={styles.segmentRow}>
+              <Pressable
+                style={[
+                  styles.segment,
+                  { borderColor: accent.border, backgroundColor: accent.background },
+                  measureType === 'time' && segmentSelectedStyle,
+                ]}
+                onPress={() => setMeasureType('time')}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    { color: accent.textMuted },
+                    measureType === 'time' && { color: accent.onPrimary },
+                  ]}
+                >
+                  {t.measureType.time}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.segment,
+                  { borderColor: accent.border, backgroundColor: accent.background },
+                  measureType === 'reps' && segmentSelectedStyle,
+                ]}
+                onPress={() => setMeasureType('reps')}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    { color: accent.textMuted },
+                    measureType === 'reps' && { color: accent.onPrimary },
+                  ]}
+                >
+                  {t.measureType.reps}
+                </Text>
+              </Pressable>
+            </View>
 
             <Text style={[styles.videoLabel, { color: accent.textMuted }]}>{t.editExercise.videoLinkLabel}</Text>
             <YoutubeSearchButton exerciseName={name} />
@@ -141,7 +229,7 @@ export default function EditExerciseModal({ exercise, existingNames, onClose, on
               keyboardType="url"
             />
 
-            {exercise.measureType === 'reps' && (
+            {measureType === 'reps' && (
               <>
                 <View style={styles.weightRow}>
                   <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.editExercise.weightLabel}</Text>
@@ -226,6 +314,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '85%',
     borderRadius: radius.md,
+    borderWidth: 1.5,
     padding: spacing.lg,
   },
   cardContent: {
@@ -246,6 +335,18 @@ const styles = StyleSheet.create({
   videoLabel: {
     fontSize: fontSize.base,
     fontWeight: '700',
+  },
+  iconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  iconChoice: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   weightRow: {
     flexDirection: 'row',

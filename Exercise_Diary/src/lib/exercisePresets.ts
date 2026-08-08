@@ -46,25 +46,39 @@ export function hasPresetKey(exercises: Exercise[], key: PresetKey): boolean {
 }
 
 // 직접 입력한 운동을 추가할 때 고를 수 있는 아이콘 후보 — 구기 종목 등 다른 스포츠가 아니라
-// 헬스(웨이트·유산소·스트레칭) 운동에 맞는 아이콘만 둔다
-export const CUSTOM_ICON_CHOICES: (keyof typeof Ionicons.glyphMap)[] = [
-  'barbell-outline',
-  'body-outline',
-  'walk-outline',
-  'footsteps-outline',
-  'bicycle-outline',
-  'flame-outline',
-  'heart-outline',
-  'pulse-outline',
-  'timer-outline',
-  'stopwatch-outline',
-  'fitness-outline',
-  'accessibility-outline',
-  'trophy-outline',
-  'add-outline',
+// 헬스(웨이트·유산소·스트레칭) 운동에 맞는 아이콘만 둔다. Ionicons에 없는 운동 전용 아이콘은
+// customIcons.ts에 정의한 커스텀 SVG 키를 쓴다 (icons_claude/*.svg 디자인 기반).
+export const CUSTOM_ICON_CHOICES: Exercise['icon'][] = [
+  'custom-barbell',
+  'custom-dumbbell',
+  'custom-kettlebell',
+  'custom-weight-plate',
+  'custom-bench',
+  'custom-squat-rack',
+  'custom-pull-up',
+  'custom-muscle',
+  'custom-stopwatch',
+  'custom-watch',
+  'custom-pace',
+  'custom-track',
+  'custom-route',
+  'custom-running-person',
+  'custom-running-shoe',
+  'custom-treadmill',
+  'custom-jump-rope',
+  'custom-heart-rate',
+  'custom-calories',
+  'custom-water-bottle',
 ];
 
 // 직접 입력한 운동의 기본 아이콘 — 아무것도 고르지 않으면 첫 번째 후보를 쓴다
-export const CUSTOM_EXERCISE_ICON: keyof typeof Ionicons.glyphMap = CUSTOM_ICON_CHOICES[0];
+export const CUSTOM_EXERCISE_ICON: Exercise['icon'] = CUSTOM_ICON_CHOICES[0];
+
+// 아이콘 선택 그리드에 실제로 보여줄 전체 후보 — 프리셋 운동(플랭크·턱걸이 등)이 쓰는
+// Ionicons도 커스텀 아이콘과 함께 골라 쓸 수 있게 앞쪽에 덧붙인다.
+export const ICON_CHOICES: Exercise['icon'][] = [
+  ...Array.from(new Set(PRESET_EXERCISES.map((p) => p.icon))),
+  ...CUSTOM_ICON_CHOICES,
+];
 
 export const EXERCISE_NAME_MAX_LENGTH = 20;

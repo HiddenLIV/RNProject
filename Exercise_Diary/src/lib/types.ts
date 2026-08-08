@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { CustomIconKey } from './customIcons';
 
 export type MeasureType = 'time' | 'reps';
 
@@ -9,7 +10,7 @@ export type PresetKey = 'hang' | 'plank' | 'pullup' | 'pushup' | 'squat' | 'lung
 export type Exercise = {
   id: string;
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof Ionicons.glyphMap | CustomIconKey;
   measureType: MeasureType;
   usesWeight?: boolean; // measureType === 'reps'일 때만 의미 있음
   weightUnit?: 'kg' | 'lb'; // usesWeight가 true일 때만
