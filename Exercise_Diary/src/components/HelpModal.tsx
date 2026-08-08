@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Text from './AppText';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { HELP_SECTION_ICONS } from '../lib/helpContent';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
@@ -20,8 +20,11 @@ export default function HelpModal({ visible, onClose, onReplayOnboarding, onDism
   const t = useTranslation();
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} onDismiss={onDismiss}>
-      {/* RN Modal은 App.tsx 최상위 SafeAreaView 바깥의 별도 레이어에 뜨기 때문에
-          여기서 직접 세이프에어리어를 잡아주지 않으면 헤더가 상태표시줄과 겹친다 */}
+      {/* RN Modal은 App.tsx 최상위 SafeAreaProvider 바깥의 별도 네이티브 창(윈도우)에 뜬다.
+          그래서 바깥 SafeAreaProvider의 값을 못 물려받아 top이 0으로 계산되고, 다이나믹
+          아일랜드/상태표시줄과 헤더가 겹치는 문제가 있었다 — Modal 내부에 SafeAreaProvider를
+          새로 하나 더 둬서 이 창 기준으로 다시 측정하게 한다. */}
+      <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: accent.background }]} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <View style={styles.headerSpacer} />
@@ -38,8 +41,8 @@ export default function HelpModal({ visible, onClose, onReplayOnboarding, onDism
         <ScrollView contentContainerStyle={styles.content}>
           {t.help.sections.map((section, index) => (
             <View key={section.title} style={[styles.section, { backgroundColor: accent.card }]}>
-              <View style={[styles.iconBadge, { backgroundColor: accent.primarySoft }]}>
-                <Ionicons name={HELP_SECTION_ICONS[index]} size={26} color={accent.primary} />
+              <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
+                <Ionicons name={HELP_SECTION_ICONS[index]} size={26} color={accent.onPrimary} />
               </View>
               <View style={styles.sectionText}>
                 <Text style={[styles.sectionTitle, { color: accent.text }]}>{section.title}</Text>
@@ -56,6 +59,7 @@ export default function HelpModal({ visible, onClose, onReplayOnboarding, onDism
           </Pressable>
         </ScrollView>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

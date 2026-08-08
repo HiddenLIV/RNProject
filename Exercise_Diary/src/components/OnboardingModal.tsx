@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import Text from './AppText';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { HELP_SECTION_ICONS } from '../lib/helpContent';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
@@ -99,6 +99,9 @@ export default function OnboardingModal({ visible, onClose, onDismiss }: Props) 
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} onDismiss={onDismiss}>
+      {/* Modal은 바깥 SafeAreaProvider와 다른 네이티브 창이라 top 인셋을 못 물려받는다 —
+          이 창 기준으로 다시 측정하도록 SafeAreaProvider를 하나 더 둔다 (HelpModal과 동일). */}
+      <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: accent.background }]} edges={['top', 'bottom']}>
         {!isLast && (
           <Pressable style={styles.skipButton} onPress={onClose} hitSlop={8}>
@@ -115,8 +118,8 @@ export default function OnboardingModal({ visible, onClose, onDismiss }: Props) 
         >
           {pages.map((section, index) => (
             <View key={section.title} style={[styles.page, { width }]}>
-              <View style={[styles.iconBadge, { backgroundColor: accent.primarySoft }]}>
-                <Ionicons name={icons[index]} size={48} color={accent.primary} />
+              <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
+                <Ionicons name={icons[index]} size={48} color={accent.onPrimary} />
               </View>
               <Text style={[styles.title, { color: accent.text }]}>{section.title}</Text>
               <Text style={[styles.description, { color: accent.textMuted }]}>{section.description}</Text>
@@ -141,6 +144,7 @@ export default function OnboardingModal({ visible, onClose, onDismiss }: Props) 
           </Text>
         </Pressable>
       </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
