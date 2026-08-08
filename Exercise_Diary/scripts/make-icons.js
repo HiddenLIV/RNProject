@@ -33,17 +33,30 @@ function chunk(type, data) {
   return Buffer.concat([len, typeBuf, data, crc]);
 }
 
-function encodePng(width, height, rgba) {
+// alpha: false로 주면 24-bit RGB(알파 채널 없음)로 인코딩한다.
+// Play 스토어 피처 그래픽처럼 "no alpha" 요건이 있는 에셋용.
+function encodePng(width, height, rgba, { alpha = true } = {}) {
+  const bpp = alpha ? 4 : 3;
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(width, 0);
   ihdr.writeUInt32BE(height, 4);
   ihdr[8] = 8; // bit depth
-  ihdr[9] = 6; // RGBA
-  const stride = width * 4;
+  ihdr[9] = alpha ? 6 : 2; // RGBA : RGB
+  const stride = width * bpp;
   const raw = Buffer.alloc((stride + 1) * height);
   for (let y = 0; y < height; y++) {
     raw[y * (stride + 1)] = 0; // filter: none
-    rgba.copy(raw, y * (stride + 1) + 1, y * stride, (y + 1) * stride);
+    if (alpha) {
+      rgba.copy(raw, y * (stride + 1) + 1, y * width * 4, (y + 1) * width * 4);
+    } else {
+      for (let x = 0; x < width; x++) {
+        const src = (y * width + x) * 4;
+        const dst = y * (stride + 1) + 1 + x * 3;
+        raw[dst] = rgba[src];
+        raw[dst + 1] = rgba[src + 1];
+        raw[dst + 2] = rgba[src + 2];
+      }
+    }
   }
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
@@ -152,17 +165,46 @@ function render(size, mode, motifScale = 1, motifColor = [255, 255, 255]) {
   return encodePng(size, size, rgba);
 }
 
+// Play 스토어 피처 그래픽(1024x500) — 아이콘의 아령 모티프만 가로로 넓게 재배치.
+// no-alpha 요건이라 encodePng(..., { alpha: false })로 인코딩한다.
+function renderFeatureGraphic() {
+  const width = 1024, height = 500;
+  const rgba = Buffer.alloc(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    const bg = gradientBg(y, height);
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      let [r, g, b] = bg;
+      const sd = dumbbellAt(x, y, 512, 250, 1.0, -14);
+      const cov = Math.max(0, Math.min(1, 0.5 - sd));
+      if (cov > 0) {
+        r = Math.round(r + (255 - r) * cov);
+        g = Math.round(g + (255 - g) * cov);
+        b = Math.round(b + (255 - b) * cov);
+      }
+      rgba[i] = r; rgba[i + 1] = g; rgba[i + 2] = b; rgba[i + 3] = 255;
+    }
+  }
+  return encodePng(width, height, rgba, { alpha: false });
+}
+
 const outDir = process.argv[2] || path.join(__dirname, '..', 'assets');
+// 스토어 등록용 그래픽은 앱 번들에 포함될 필요가 없으므로 별도 폴더에 둔다.
+const storeDir = path.join(__dirname, '..', 'store-assets', 'android');
 const jobs = [
-  ['icon.png', render(1024, 'icon')],
-  ['android-icon-foreground.png', render(1024, 'foreground', 0.62)], // 어댑티브 세이프존
-  ['android-icon-background.png', render(1024, 'background')],
-  ['android-icon-monochrome.png', render(1024, 'monochrome', 0.62)],
-  ['favicon.png', render(196, 'icon')],
+  ['icon.png', render(1024, 'icon'), outDir],
+  ['android-icon-foreground.png', render(1024, 'foreground', 0.62), outDir], // 어댑티브 세이프존
+  ['android-icon-background.png', render(1024, 'background'), outDir],
+  ['android-icon-monochrome.png', render(1024, 'monochrome', 0.62), outDir],
+  ['favicon.png', render(196, 'icon'), outDir],
   // 스플래시 배경은 흰색이므로 실루엣을 브랜드 마젠타로
-  ['splash-icon.png', render(1024, 'foreground', 0.62, [0x9b, 0x27, 0x91])],
+  ['splash-icon.png', render(1024, 'foreground', 0.62, [0x9b, 0x27, 0x91]), outDir],
+  // Play Console 등록용 — 512 hi-res 아이콘, 1024x500 피처 그래픽
+  ['icon-512.png', render(512, 'icon'), storeDir],
+  ['feature-graphic-1024x500.png', renderFeatureGraphic(), storeDir],
 ];
-for (const [name, buf] of jobs) {
-  fs.writeFileSync(path.join(outDir, name), buf);
-  console.log('written', name, buf.length, 'bytes');
+for (const [name, buf, dir] of jobs) {
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, name), buf);
+  console.log('written', path.join(path.relative(path.join(__dirname, '..'), dir), name), buf.length, 'bytes');
 }
