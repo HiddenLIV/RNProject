@@ -39,6 +39,9 @@ const zh: Translations = {
     addExercise: '添加运动',
     editAccessibility: (name) => `编辑${name}`,
     emptyExercises: '还没有添加运动，快去添加第一个吧。',
+    searchPlaceholder: '搜索运动',
+    searchClearAccessibility: '清除搜索',
+    noSearchResults: '没有找到匹配的运动。',
   },
   onboarding: {
     skip: '跳过',

@@ -39,6 +39,9 @@ const ja: Translations = {
     addExercise: '運動を追加',
     editAccessibility: (name) => `${name}を編集`,
     emptyExercises: 'まだ運動が登録されていません。最初の運動を追加してみましょう。',
+    searchPlaceholder: '運動を検索',
+    searchClearAccessibility: '検索をクリア',
+    noSearchResults: '一致する運動が見つかりません。',
   },
   onboarding: {
     skip: 'スキップ',

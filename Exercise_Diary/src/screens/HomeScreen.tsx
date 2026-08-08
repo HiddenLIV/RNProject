@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef, useState } from 'react';
-import { FlatList, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FlatList, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Text from '../components/AppText';
 import EditExerciseModal from '../components/EditExerciseModal';
 import ExerciseIcon from '../components/ExerciseIcon';
@@ -25,6 +25,7 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
   const t = useTranslation();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [exercisesLoaded, setExercisesLoaded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [helpVisible, setHelpVisible] = useState(false);
   const [onboardingVisible, setOnboardingVisible] = useState(false);
@@ -113,6 +114,15 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
     consumePendingModalOpen();
   };
 
+  const showSearch = exercises.length > 0;
+  const trimmedQuery = searchQuery.trim().toLocaleLowerCase();
+  const filteredExercises = useMemo(() => {
+    if (!showSearch || !trimmedQuery) return exercises;
+    return exercises.filter((exercise) =>
+      getExerciseDisplayName(exercise, t).toLocaleLowerCase().includes(trimmedQuery),
+    );
+  }, [exercises, showSearch, trimmedQuery, t]);
+
   return (
     <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.header}>
@@ -132,16 +142,38 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
           </Pressable>
         </View>
         <ThemeSwatchRow />
+        {showSearch && (
+          <View style={[styles.searchBox, { borderColor: accent.border, backgroundColor: accent.card }]}>
+            <Ionicons name="search" size={18} color={accent.textFaint} />
+            <TextInput
+              style={[styles.searchInput, { color: accent.text }]}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder={t.home.searchPlaceholder}
+              placeholderTextColor={accent.textFaint}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery('')} hitSlop={8} accessibilityLabel={t.home.searchClearAccessibility}>
+                <Ionicons name="close-circle" size={18} color={accent.textFaint} />
+              </Pressable>
+            )}
+          </View>
+        )}
       </View>
       <FlatList
-        data={exercises}
+        data={filteredExercises}
         keyExtractor={(exercise) => exercise.id}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           exercisesLoaded ? (
             <View style={styles.empty}>
               <Ionicons name="body-outline" size={40} color={accent.textFaint} />
-              <Text style={[styles.emptyText, { color: accent.textMuted }]}>{t.home.emptyExercises}</Text>
+              <Text style={[styles.emptyText, { color: accent.textMuted }]}>
+                {trimmedQuery ? t.home.noSearchResults : t.home.emptyExercises}
+              </Text>
             </View>
           ) : null
         }
@@ -169,7 +201,7 @@ export default function HomeScreen({ onSelectExercise, onAddExercise }: Props) {
               >
                 <Ionicons name="pencil" size={18} color={accent.textMuted} />
               </Pressable>
-              <Ionicons name="chevron-forward" size={22} color={accent.textFaint} style={styles.chevron} />
+              <Ionicons name="chevron-forward" size={22} color={accent.primary} style={styles.chevron} />
             </Pressable>
           );
         }}
@@ -240,6 +272,21 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: fontSize.base,
     marginTop: 4,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    borderWidth: 1.5,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.smd,
+    paddingVertical: spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: fontSize.base,
+    padding: 0,
   },
   list: {
     gap: spacing.smd,

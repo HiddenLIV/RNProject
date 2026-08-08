@@ -39,6 +39,9 @@ const ko: Translations = {
     addExercise: '운동 추가',
     editAccessibility: (name) => `${name} 수정`,
     emptyExercises: '아직 등록된 운동이 없어요. 첫 운동을 추가해보세요.',
+    searchPlaceholder: '운동 검색',
+    searchClearAccessibility: '검색어 지우기',
+    noSearchResults: '검색 결과가 없어요.',
   },
   onboarding: {
     skip: '건너뛰기',

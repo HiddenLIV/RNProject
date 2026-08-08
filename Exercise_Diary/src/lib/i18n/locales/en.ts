@@ -39,6 +39,9 @@ const en = {
     addExercise: 'Add Exercise',
     editAccessibility: (name: string) => `Edit ${name}`,
     emptyExercises: 'No exercises yet. Add your first one below.',
+    searchPlaceholder: 'Search exercises',
+    searchClearAccessibility: 'Clear search',
+    noSearchResults: 'No exercises match your search.',
   },
   onboarding: {
     skip: 'Skip',
