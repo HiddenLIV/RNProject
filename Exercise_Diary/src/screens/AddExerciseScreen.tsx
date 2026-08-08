@@ -1,15 +1,27 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
-import { LayoutAnimation, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  TextInput,
+  View,
+} from 'react-native';
 import Text from '../components/AppText';
+import ExerciseIcon from '../components/ExerciseIcon';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import YoutubeSearchButton from '../components/YoutubeSearchButton';
 import {
   CUSTOM_EXERCISE_ICON,
-  CUSTOM_ICON_CHOICES,
   EXERCISE_NAME_MAX_LENGTH,
   getExerciseDisplayName,
   hasPresetKey,
+  ICON_CHOICES,
   PRESET_EXERCISES,
 } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
@@ -22,11 +34,15 @@ import { fontSize, radius, spacing } from '../theme';
 type Props = {
   onBack: () => void;
   onCreated: () => void;
+  sharedVideoLink?: string;
+  onConsumeSharedVideoLink?: () => void;
 };
 
-export default function AddExerciseScreen({ onBack, onCreated }: Props) {
+export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, onConsumeSharedVideoLink }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const videoLinkFocusedRef = useRef(false);
   const [existingExercises, setExistingExercises] = useState<Exercise[]>([]);
   const [namesLoaded, setNamesLoaded] = useState(false);
   const [name, setName] = useState('');
@@ -38,7 +54,7 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
   const [videoLinkText, setVideoLinkText] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [presetsExpanded, setPresetsExpanded] = useState(false);
+  const [presetsExpanded, setPresetsExpanded] = useState(true);
 
   useEffect(() => {
     getExercises().then((exercises) => {
@@ -46,6 +62,29 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
       setNamesLoaded(true);
     });
   }, []);
+
+  useEffect(() => {
+    // 맨 아래 있는 유튜브 링크 인풋에 포커스가 가 있는 동안만, 키보드가 다 올라와
+    // 뷰포트 리사이즈가 끝난 뒤(포커스 시점엔 아직 안 끝나 있어 바로 스크롤하면 위치가 어긋난다)
+    // 화면을 끝까지 내려 인풋이 키보드에 가리지 않게 한다. 이름 인풋 등 위쪽 필드는 대상 아님.
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const subscription = Keyboard.addListener(showEvent, () => {
+      if (videoLinkFocusedRef.current) {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }
+    });
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    // 유튜브 등에서 공유받은 링크 — 이미 뭔가 입력돼 있으면 덮어쓰지 않는다. 채우고 나면
+    // 바로 소비 처리해서, 뒤로 갔다가 다시 들어와도 같은 링크가 또 채워지지 않게 한다.
+    if (sharedVideoLink && !videoLinkText) {
+      setVideoLinkText(sharedVideoLink);
+      setError('');
+      onConsumeSharedVideoLink?.();
+    }
+  }, [sharedVideoLink, videoLinkText, onConsumeSharedVideoLink]);
 
   const normalizedExistingNames = existingExercises.map((e) => getExerciseDisplayName(e, t).toLocaleLowerCase());
   // 목록을 아직 못 읽어온 동안은 아무 프리셋도 보여주지 않는다 — 이미 있는 운동(매달리기 등)이
@@ -121,212 +160,236 @@ export default function AddExerciseScreen({ onBack, onCreated }: Props) {
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {availablePresets.length > 0 && (
-          <View style={styles.section}>
-            <Pressable
-              style={styles.presetToggle}
-              onPress={() => {
-                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                setPresetsExpanded((v) => !v);
-              }}
-            >
-              <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.presetSectionLabel}</Text>
-              <Ionicons
-                name={presetsExpanded ? 'chevron-up' : 'chevron-down'}
-                size={18}
-                color={accent.textMuted}
-              />
-            </Pressable>
-            {presetsExpanded && (
-              <View style={[styles.presetSheet, { backgroundColor: accent.card, borderColor: accent.border }]}>
-                {availablePresets.map((preset, index) => {
-                  const selected = selectedPresetKey === preset.key;
-                  const presetName = t.exercisePresets[preset.key];
-                  return (
-                    <Pressable
-                      key={preset.key}
-                      style={[
-                        styles.presetRow,
-                        index > 0 && { borderTopWidth: 1, borderTopColor: accent.border },
-                        selected && { backgroundColor: accent.primarySoft },
-                      ]}
-                      onPress={() => selectPreset(preset)}
-                    >
-                      <Text style={[styles.presetIndex, { color: accent.textFaint }, selected && { color: accent.accent }]}>
-                        {String(index + 1).padStart(2, '0')}
-                      </Text>
-                      <View style={[styles.presetIconBadge, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}>
-                        <Ionicons name={preset.icon} size={17} color={selected ? accent.onPrimary : accent.primary} />
-                      </View>
-                      <Text style={[styles.presetName, { color: accent.text }, selected && { color: accent.accent }]}>
-                        {presetName}
-                      </Text>
-                      <MeasureTypeTag measureType={preset.measureType} tone={selected ? 'onChip' : undefined} />
-                    </Pressable>
-                  );
-                })}
-              </View>
-            )}
-          </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.customSectionLabel}</Text>
-          <TextInput
-            style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
-            value={name}
-            onChangeText={handleNameChange}
-            placeholder={t.addExercise.namePlaceholder}
-            placeholderTextColor={accent.textFaint}
-            maxLength={EXERCISE_NAME_MAX_LENGTH}
-          />
-          <View style={styles.iconGrid}>
-            {CUSTOM_ICON_CHOICES.map((choice) => {
-              const selected = icon === choice;
-              return (
-                <Pressable
-                  key={choice}
-                  style={[styles.iconChoice, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}
-                  onPress={() => setIcon(choice)}
-                  accessibilityLabel={t.addExercise.iconChoiceAccessibility}
-                >
-                  <Ionicons name={choice} size={20} color={selected ? accent.onPrimary : accent.primary} />
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.measureTypeSectionLabel}</Text>
-          <View style={styles.segmentRow}>
-            <Pressable
-              style={[
-                styles.segment,
-                { borderColor: accent.border, backgroundColor: accent.background },
-                measureType === 'time' && segmentSelectedStyle,
-              ]}
-              onPress={() => setMeasureType('time')}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  { color: accent.textMuted },
-                  measureType === 'time' && { color: accent.onPrimary },
-                ]}
-              >
-                {t.measureType.time}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.segment,
-                { borderColor: accent.border, backgroundColor: accent.background },
-                measureType === 'reps' && segmentSelectedStyle,
-              ]}
-              onPress={() => setMeasureType('reps')}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  { color: accent.textMuted },
-                  measureType === 'reps' && { color: accent.onPrimary },
-                ]}
-              >
-                {t.measureType.reps}
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-
-        {measureType === 'reps' && (
-          <View style={styles.section}>
-            <View style={styles.weightRow}>
-              <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.weightSectionLabel}</Text>
-              <Switch
-                value={usesWeight}
-                onValueChange={setUsesWeight}
-                trackColor={{ true: accent.primary, false: accent.border }}
-              />
-            </View>
-            {usesWeight && (
-              <View style={styles.segmentRow}>
-                <Pressable
-                  style={[
-                    styles.segment,
-                    { borderColor: accent.border, backgroundColor: accent.background },
-                    weightUnit === 'kg' && segmentSelectedStyle,
-                  ]}
-                  onPress={() => setWeightUnit('kg')}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      { color: accent.textMuted },
-                      weightUnit === 'kg' && { color: accent.onPrimary },
-                    ]}
-                  >
-                    {t.units.kg}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[
-                    styles.segment,
-                    { borderColor: accent.border, backgroundColor: accent.background },
-                    weightUnit === 'lb' && segmentSelectedStyle,
-                  ]}
-                  onPress={() => setWeightUnit('lb')}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      { color: accent.textMuted },
-                      weightUnit === 'lb' && { color: accent.onPrimary },
-                    ]}
-                  >
-                    {t.units.lb}
-                  </Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.videoLinkSectionLabel}</Text>
-          <YoutubeSearchButton exerciseName={name} />
-          <TextInput
-            style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
-            value={videoLinkText}
-            onChangeText={(text) => {
-              setVideoLinkText(text);
-              setError('');
-            }}
-            placeholder={t.addExercise.videoLinkPlaceholder}
-            placeholderTextColor={accent.textFaint}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-          />
-        </View>
-
-        {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
-
-        <Pressable
-          style={[styles.addButton, { backgroundColor: accent.primary }, saving && styles.addButtonDisabled]}
-          onPress={handleAdd}
-          disabled={saving}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      >
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={[styles.addButtonText, { color: accent.onPrimary }]}>{t.addExercise.addButton}</Text>
-        </Pressable>
-      </ScrollView>
+          {availablePresets.length > 0 && (
+            <View style={styles.section}>
+              <Pressable
+                style={styles.presetToggle}
+                onPress={() => {
+                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                  setPresetsExpanded((v) => !v);
+                }}
+              >
+                <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.presetSectionLabel}</Text>
+                <Ionicons
+                  name={presetsExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={18}
+                  color={accent.textMuted}
+                />
+              </Pressable>
+              {presetsExpanded && (
+                <View style={[styles.presetSheet, { backgroundColor: accent.card, borderColor: accent.border }]}>
+                  {availablePresets.map((preset, index) => {
+                    const selected = selectedPresetKey === preset.key;
+                    const presetName = t.exercisePresets[preset.key];
+                    return (
+                      <Pressable
+                        key={preset.key}
+                        style={[
+                          styles.presetRow,
+                          index > 0 && { borderTopWidth: 1, borderTopColor: accent.border },
+                          selected && { backgroundColor: accent.primarySoft },
+                        ]}
+                        onPress={() => selectPreset(preset)}
+                      >
+                        <Text style={[styles.presetIndex, { color: accent.textFaint }, selected && { color: accent.accent }]}>
+                          {String(index + 1).padStart(2, '0')}
+                        </Text>
+                        <View style={[styles.presetIconBadge, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}>
+                          <Ionicons name={preset.icon} size={17} color={selected ? accent.onPrimary : accent.primary} />
+                        </View>
+                        <Text style={[styles.presetName, { color: accent.text }, selected && { color: accent.accent }]}>
+                          {presetName}
+                        </Text>
+                        <MeasureTypeTag measureType={preset.measureType} tone={selected ? 'onChip' : undefined} />
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          )}
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.customSectionLabel}</Text>
+            <TextInput
+              style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
+              value={name}
+              onChangeText={handleNameChange}
+              placeholder={t.addExercise.namePlaceholder}
+              placeholderTextColor={accent.textFaint}
+              maxLength={EXERCISE_NAME_MAX_LENGTH}
+            />
+            <View style={styles.iconGrid}>
+              {ICON_CHOICES.map((choice) => {
+                const selected = icon === choice;
+                return (
+                  <Pressable
+                    key={choice}
+                    style={[styles.iconChoice, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}
+                    onPress={() => setIcon(choice)}
+                    accessibilityLabel={t.addExercise.iconChoiceAccessibility}
+                  >
+                    <ExerciseIcon icon={choice} size={20} color={selected ? accent.onPrimary : accent.primary} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.measureTypeSectionLabel}</Text>
+            <View style={styles.segmentRow}>
+              <Pressable
+                style={[
+                  styles.segment,
+                  { borderColor: accent.border, backgroundColor: accent.background },
+                  measureType === 'time' && segmentSelectedStyle,
+                ]}
+                onPress={() => setMeasureType('time')}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    { color: accent.textMuted },
+                    measureType === 'time' && { color: accent.onPrimary },
+                  ]}
+                >
+                  {t.measureType.time}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.segment,
+                  { borderColor: accent.border, backgroundColor: accent.background },
+                  measureType === 'reps' && segmentSelectedStyle,
+                ]}
+                onPress={() => setMeasureType('reps')}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    { color: accent.textMuted },
+                    measureType === 'reps' && { color: accent.onPrimary },
+                  ]}
+                >
+                  {t.measureType.reps}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {measureType === 'reps' && (
+            <View style={styles.section}>
+              <View style={styles.weightRow}>
+                <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.weightSectionLabel}</Text>
+                <Switch
+                  value={usesWeight}
+                  onValueChange={setUsesWeight}
+                  trackColor={{ true: accent.primary, false: accent.border }}
+                />
+              </View>
+              {usesWeight && (
+                <View style={styles.segmentRow}>
+                  <Pressable
+                    style={[
+                      styles.segment,
+                      { borderColor: accent.border, backgroundColor: accent.background },
+                      weightUnit === 'kg' && segmentSelectedStyle,
+                    ]}
+                    onPress={() => setWeightUnit('kg')}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        { color: accent.textMuted },
+                        weightUnit === 'kg' && { color: accent.onPrimary },
+                      ]}
+                    >
+                      {t.units.kg}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={[
+                      styles.segment,
+                      { borderColor: accent.border, backgroundColor: accent.background },
+                      weightUnit === 'lb' && segmentSelectedStyle,
+                    ]}
+                    onPress={() => setWeightUnit('lb')}
+                  >
+                    <Text
+                      style={[
+                        styles.segmentText,
+                        { color: accent.textMuted },
+                        weightUnit === 'lb' && { color: accent.onPrimary },
+                      ]}
+                    >
+                      {t.units.lb}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          )}
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.videoLinkSectionLabel}</Text>
+            <YoutubeSearchButton exerciseName={name} />
+            <TextInput
+              style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
+              value={videoLinkText}
+              onChangeText={(text) => {
+                setVideoLinkText(text);
+                setError('');
+              }}
+              placeholder={t.addExercise.videoLinkPlaceholder}
+              placeholderTextColor={accent.textFaint}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              onFocus={() => {
+                videoLinkFocusedRef.current = true;
+                // 다른 인풋(이름 등)에서 이미 키보드가 떠 있는 상태로 여기로 포커스만 옮기면
+                // 키보드 show/hide 전환이 없어 keyboardDidShow가 안 터진다 — 그 경우를 위해
+                // 포커스 시점에도 한 번 스크롤한다(키보드가 새로 올라오는 경우엔 이 호출이
+                // 리사이즈 전이라 부족해도, 뒤이은 keyboardDidShow가 다시 보정해준다).
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }}
+              onBlur={() => {
+                videoLinkFocusedRef.current = false;
+              }}
+            />
+          </View>
+
+          {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
+
+          <Pressable
+            style={[styles.addButton, { backgroundColor: accent.primary }, saving && styles.addButtonDisabled]}
+            onPress={handleAdd}
+            disabled={saving}
+          >
+            <Text style={[styles.addButtonText, { color: accent.onPrimary }]}>{t.addExercise.addButton}</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  keyboardAvoider: {
     flex: 1,
   },
   header: {
