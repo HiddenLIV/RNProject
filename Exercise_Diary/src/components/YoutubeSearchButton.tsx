@@ -7,6 +7,9 @@ import { useAccentColors } from '../lib/ThemeContext';
 import { openYoutubeSearch } from '../lib/youtube';
 import { fontSize, radius, spacing } from '../theme';
 
+// 유튜브 공식 브랜드 색 — 앱 테마(포인트 컬러)가 바뀌어도 유튜브 버튼만은 이 색으로 고정한다
+const YOUTUBE_RED = '#FF0000';
+
 type Props = {
   exerciseName: string;
 };
@@ -39,8 +42,8 @@ export default function YoutubeSearchButton({ exerciseName }: Props) {
       accessibilityRole="button"
       accessibilityLabel={t.youtubeSearch.label}
     >
-      <Ionicons name="logo-youtube" size={16} color={accent.accentText} />
-      <Text style={[styles.buttonText, { color: accent.accentText }]}>{t.youtubeSearch.label}</Text>
+      <Ionicons name="logo-youtube" size={16} color={YOUTUBE_RED} />
+      <Text style={[styles.buttonText, { color: accent.text }]}>{t.youtubeSearch.label}</Text>
     </Pressable>
   );
 }
