@@ -149,6 +149,22 @@ export default function HomeScreen({
           </Pressable>
         </View>
         <ThemeSwatchRow />
+        {exercises.length > 0 && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.pinnedAddCard,
+              { backgroundColor: accent.cardMuted, borderColor: accent.border },
+              pressed && styles.cardPressed,
+            ]}
+            onPress={onAddExercise}
+            disabled={modalTransitioning}
+          >
+            <View style={[styles.pinnedAddIconBadge, { backgroundColor: accent.accentSoft }]}>
+              <Ionicons name="add" size={18} color={accent.accent} />
+            </View>
+            <Text style={[styles.addCardText, { color: accent.text }]}>{t.home.addExercise}</Text>
+          </Pressable>
+        )}
         {showSearch && (
           <View style={[styles.searchBox, { borderColor: accent.border, backgroundColor: accent.card }]}>
             <Ionicons name="search" size={18} color={accent.textFaint} />
@@ -213,20 +229,22 @@ export default function HomeScreen({
           );
         }}
         ListFooterComponent={
-          <Pressable
-            style={({ pressed }) => [
-              styles.addCard,
-              { backgroundColor: accent.cardMuted, borderColor: accent.border },
-              pressed && styles.cardPressed,
-            ]}
-            onPress={onAddExercise}
-            disabled={modalTransitioning}
-          >
-            <View style={[styles.iconBadge, { backgroundColor: accent.accentSoft }]}>
-              <Ionicons name="add" size={26} color={accent.accent} />
-            </View>
-            <Text style={[styles.addCardText, { color: accent.text }]}>{t.home.addExercise}</Text>
-          </Pressable>
+          exercises.length === 0 ? (
+            <Pressable
+              style={({ pressed }) => [
+                styles.addCard,
+                { backgroundColor: accent.cardMuted, borderColor: accent.border },
+                pressed && styles.cardPressed,
+              ]}
+              onPress={onAddExercise}
+              disabled={modalTransitioning}
+            >
+              <View style={[styles.iconBadge, { backgroundColor: accent.accentSoft }]}>
+                <Ionicons name="add" size={26} color={accent.accent} />
+              </View>
+              <Text style={[styles.addCardText, { color: accent.text }]}>{t.home.addExercise}</Text>
+            </Pressable>
+          ) : null
         }
       />
       <EditExerciseModal
@@ -334,6 +352,25 @@ const styles = StyleSheet.create({
   addCardText: {
     fontSize: fontSize.lg,
     fontWeight: '700',
+  },
+  // 검색창 위에 고정으로 떠 있는 버전 — 목록 안 카드처럼 매번 아이콘 배지가 크게 있을
+  // 필요가 없어서, 항상 화면을 차지하는 만큼 세로 공간을 줄인 얇은 버전을 따로 둔다.
+  pinnedAddCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    paddingHorizontal: spacing.smd,
+    paddingVertical: spacing.sm,
+  },
+  pinnedAddIconBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
   },
   iconBadge: {
     width: 48,
