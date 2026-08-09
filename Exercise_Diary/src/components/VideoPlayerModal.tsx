@@ -48,7 +48,7 @@ export default function VideoPlayerModal({ assetId, onClose }: Props) {
           <Pressable
             style={styles.closeButton}
             onPress={onClose}
-            hitSlop={8}
+            hitSlop={10}
             accessibilityLabel={t.videoPlayer.closeAccessibility}
           >
             <Ionicons name="close" size={22} color={accent.text} />

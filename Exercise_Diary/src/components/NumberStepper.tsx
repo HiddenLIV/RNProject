@@ -142,9 +142,10 @@ const styles = StyleSheet.create({
   controlsCompact: {
     gap: spacing.xs,
   },
+  // M3 최소 터치 타겟(48dp) 기준에 맞춘 크기 — 이전엔 40px이라 살짝 못 미쳤다.
   button: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',

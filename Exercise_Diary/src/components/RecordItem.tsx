@@ -46,7 +46,7 @@ export default function RecordItem({ record, isBest, onDelete, onViewVideo }: Pr
         <Pressable
           style={styles.videoButton}
           onPress={() => onViewVideo(record.videoRef!.assetId)}
-          hitSlop={8}
+          hitSlop={12}
           accessibilityLabel={t.records.videoAccessibility}
         >
           <Ionicons name="videocam-outline" size={18} color={isBest ? accent.accent : accent.accentText} />

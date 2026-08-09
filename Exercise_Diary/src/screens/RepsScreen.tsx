@@ -232,7 +232,7 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
                     <Pressable
                       style={styles.removeButton}
                       onPress={() => removeLoggedSet(index)}
-                      hitSlop={8}
+                      hitSlop={16}
                       accessibilityLabel={t.reps.removeSetAccessibility}
                     >
                       <Ionicons name="close" size={16} color={accent.danger} />

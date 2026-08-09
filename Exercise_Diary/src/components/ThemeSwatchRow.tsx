@@ -17,7 +17,7 @@ export default function ThemeSwatchRow() {
           <Pressable
             key={preset.id}
             onPress={() => setPresetId(preset.id)}
-            hitSlop={6}
+            hitSlop={11}
             accessibilityRole="button"
             accessibilityLabel={t.colorTheme.changeAccessibility(name)}
             accessibilityState={{ selected: active }}
