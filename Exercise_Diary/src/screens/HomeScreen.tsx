@@ -13,7 +13,7 @@ import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { getExercises } from '../lib/storage';
 import { Exercise } from '../lib/types';
-import { cardShadow, fontSize, radius, spacing } from '../theme';
+import { buttonShadowShape, cardShadow, fontSize, radius, spacing } from '../theme';
 
 type Props = {
   onSelectExercise: (exercise: Exercise) => void;
@@ -149,22 +149,6 @@ export default function HomeScreen({
           </Pressable>
         </View>
         <ThemeSwatchRow />
-        {exercises.length > 0 && (
-          <Pressable
-            style={({ pressed }) => [
-              styles.pinnedAddCard,
-              { backgroundColor: accent.cardMuted, borderColor: accent.border },
-              pressed && styles.cardPressed,
-            ]}
-            onPress={onAddExercise}
-            disabled={modalTransitioning}
-          >
-            <View style={[styles.pinnedAddIconBadge, { backgroundColor: accent.accentSoft }]}>
-              <Ionicons name="add" size={18} color={accent.accent} />
-            </View>
-            <Text style={[styles.addCardText, { color: accent.text }]}>{t.home.addExercise}</Text>
-          </Pressable>
-        )}
         {showSearch && (
           <View style={[styles.searchBox, { borderColor: accent.border, backgroundColor: accent.card }]}>
             <Ionicons name="search" size={18} color={accent.textFaint} />
@@ -179,7 +163,7 @@ export default function HomeScreen({
               returnKeyType="search"
             />
             {searchQuery.length > 0 && (
-              <Pressable onPress={() => setSearchQuery('')} hitSlop={8} accessibilityLabel={t.home.searchClearAccessibility}>
+              <Pressable onPress={() => setSearchQuery('')} hitSlop={15} accessibilityLabel={t.home.searchClearAccessibility}>
                 <Ionicons name="close-circle" size={18} color={accent.textFaint} />
               </Pressable>
             )}
@@ -219,7 +203,7 @@ export default function HomeScreen({
               <Pressable
                 style={styles.editButton}
                 onPress={() => setEditingExercise(item)}
-                hitSlop={8}
+                hitSlop={12}
                 accessibilityLabel={t.home.editAccessibility(displayName)}
                 disabled={modalTransitioning}
               >
@@ -229,25 +213,22 @@ export default function HomeScreen({
             </Pressable>
           );
         }}
-        ListFooterComponent={
-          exercises.length === 0 ? (
-            <Pressable
-              style={({ pressed }) => [
-                styles.addCard,
-                { backgroundColor: accent.cardMuted, borderColor: accent.border },
-                pressed && styles.cardPressed,
-              ]}
-              onPress={onAddExercise}
-              disabled={modalTransitioning}
-            >
-              <View style={[styles.iconBadge, { backgroundColor: accent.accentSoft }]}>
-                <Ionicons name="add" size={26} color={accent.accent} />
-              </View>
-              <Text style={[styles.addCardText, { color: accent.text }]}>{t.home.addExercise}</Text>
-            </Pressable>
-          ) : null
-        }
       />
+      {/* M3 Extended FAB — 목록 스크롤과 무관하게 항상 같은 자리에 떠 있어서, 운동이 많아져도
+          "운동 추가"를 찾으러 스크롤하거나 헤더 공간을 차지할 필요가 없다. */}
+      <Pressable
+        style={({ pressed }) => [
+          styles.fab,
+          { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary },
+          pressed && styles.fabPressed,
+        ]}
+        onPress={onAddExercise}
+        disabled={modalTransitioning}
+        accessibilityLabel={t.home.addExercise}
+      >
+        <Ionicons name="add" size={22} color={accent.onPrimary} />
+        <Text style={[styles.fabText, { color: accent.onPrimary }]}>{t.home.addExercise}</Text>
+      </Pressable>
       <EditExerciseModal
         exercise={editingExercise}
         existingNames={exercises
@@ -318,7 +299,7 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: spacing.smd,
-    paddingBottom: spacing.lg,
+    paddingBottom: spacing.xl + 56, // 떠 있는 FAB에 마지막 카드가 가리지 않도록 여유를 둔다
   },
   empty: {
     alignItems: 'center',
@@ -341,37 +322,24 @@ const styles = StyleSheet.create({
   cardPressed: {
     opacity: 0.85,
   },
-  addCard: {
+  // M3 Extended FAB — 화면 우하단에 항상 같은 위치로 떠 있는 주 액션 버튼.
+  fab: {
+    position: 'absolute',
+    right: spacing.md,
+    bottom: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
+    gap: spacing.sm,
     paddingHorizontal: spacing.md + 4,
-    paddingVertical: spacing.md + 2,
-  },
-  addCardText: {
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-  },
-  // 검색창 위에 고정으로 떠 있는 버전 — 목록 안 카드처럼 매번 아이콘 배지가 크게 있을
-  // 필요가 없어서, 항상 화면을 차지하는 만큼 세로 공간을 줄인 얇은 버전을 따로 둔다.
-  pinnedAddCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    paddingHorizontal: spacing.smd,
-    paddingVertical: spacing.sm,
-  },
-  pinnedAddIconBadge: {
-    width: 28,
-    height: 28,
+    height: 56,
     borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.sm,
+  },
+  fabPressed: {
+    opacity: 0.9,
+  },
+  fabText: {
+    fontSize: fontSize.base,
+    fontWeight: '700',
   },
   iconBadge: {
     width: 48,
