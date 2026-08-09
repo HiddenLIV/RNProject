@@ -22,8 +22,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#0B0B0E",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundImage": "./assets/android-icon-background.png"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -64,7 +63,16 @@
       ],
       "expo-localization",
       "expo-font",
-      "expo-share-intent"
+      "expo-share-intent",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#0B0B0E",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
+      ]
     ],
     "extra": {
       "eas": {
