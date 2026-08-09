@@ -52,7 +52,12 @@ export default function ExerciseScreen({ exercise, onBack }: Props) {
         )}
       </View>
       <View style={[styles.tabBar, { borderTopColor: accent.border, backgroundColor: accent.background }]}>
-        <Pressable style={styles.tabButton} onPress={() => setTab('measure')}>
+        <Pressable
+          style={styles.tabButton}
+          onPress={() => setTab('measure')}
+          hitSlop={4}
+          android_ripple={{ color: 'rgba(0,0,0,0)' }}
+        >
           <Ionicons
             name={tab === 'measure' ? 'timer' : 'timer-outline'}
             size={22}
@@ -62,7 +67,12 @@ export default function ExerciseScreen({ exercise, onBack }: Props) {
             {t.exerciseScreen.measureTab}
           </Text>
         </Pressable>
-        <Pressable style={styles.tabButton} onPress={() => setTab('records')}>
+        <Pressable
+          style={styles.tabButton}
+          onPress={() => setTab('records')}
+          hitSlop={4}
+          android_ripple={{ color: 'rgba(0,0,0,0)' }}
+        >
           <Ionicons
             name={tab === 'records' ? 'list' : 'list-outline'}
             size={22}
@@ -112,8 +122,8 @@ const styles = StyleSheet.create({
   tabButton: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
-    paddingVertical: spacing.smd,
+    gap: 4,
+    paddingVertical: spacing.sm,
   },
   tabText: {
     fontSize: fontSize.sm,
