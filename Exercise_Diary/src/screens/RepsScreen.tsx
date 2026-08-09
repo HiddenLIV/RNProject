@@ -6,6 +6,7 @@ import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
 import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
+import Toast from '../components/Toast';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
@@ -20,25 +21,17 @@ type Props = {
   onGuideVideoChange: (guideVideoId: string | undefined) => void;
 };
 
-// 화면 로컬 편집 상태 — 무게는 소수점 입력 중간 상태("12.")를 그대로 보여줘야 해서
-// 문자열로 들고 있다가 저장 시점에 숫자로 변환한다. id는 배열 인덱스 대신 key로 써서
-// 세트 삭제 시 다른 행의 NumberStepper/TextInput 내부 편집 상태가 엉키지 않게 한다.
-type EditableSet = {
-  id: string;
-  reps: number;
-  weightText: string;
-};
-
 const MAX_REPS = 200;
-
-function newSet(prev?: EditableSet): EditableSet {
-  return { id: createId(), reps: prev?.reps ?? 1, weightText: prev?.weightText ?? '' };
-}
 
 export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
-  const [sets, setSets] = useState<EditableSet[]>([newSet()]);
+  // 입력은 "이번 세트" 한 칸에서만 하고, 추가할 때마다 기록 목록에 쌓는다 — 세트가
+  // 여러 개로 늘어나도 지금까지 몇 세트를 했는지 목록으로 바로 확인할 수 있게 하기 위함
+  // (여러 행을 동시에 수정하게 두면 총 세트 수를 한눈에 파악하기 어려웠다).
+  const [currentReps, setCurrentReps] = useState(1);
+  const [currentWeightText, setCurrentWeightText] = useState('');
+  const [loggedSets, setLoggedSets] = useState<RepsSet[]>([]);
   const [error, setError] = useState('');
   const [justSaved, setJustSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -100,41 +93,41 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
     Linking.openSettings();
   };
 
-  const updateSet = (index: number, patch: Partial<EditableSet>) => {
-    setJustSaved(false);
-    setError('');
-    setSets((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
-  };
-
   const addSet = () => {
     setJustSaved(false);
-    setSets((prev) => [...prev, newSet(prev[prev.length - 1])]);
+    if (currentReps < 1) {
+      setError(t.reps.errorMinReps);
+      return;
+    }
+    setError('');
+    setLoggedSets((prev) => [
+      ...prev,
+      { reps: currentReps, weight: exercise.usesWeight ? parseFloat(currentWeightText) || 0 : undefined },
+    ]);
   };
 
-  const removeSet = (index: number) => {
+  const removeLoggedSet = (index: number) => {
     setJustSaved(false);
-    setSets((prev) => prev.filter((_, i) => i !== index));
+    setLoggedSets((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
     if (saving) return; // 저장 중 연타 방지
-    if (sets.some((s) => s.reps < 1)) {
-      setError(t.reps.errorMinReps);
+    if (loggedSets.length === 0) {
+      setError(t.reps.errorNoSets);
       return;
     }
     setSaving(true);
-    const finalSets: RepsSet[] = sets.map((s) => ({
-      reps: s.reps,
-      weight: exercise.usesWeight ? parseFloat(s.weightText) || 0 : undefined,
-    }));
     await addRepsRecord(exercise.id, {
       id: createId(),
       measuredAt: new Date().toISOString(),
-      sets: finalSets,
+      sets: loggedSets,
       weightUnit: exercise.usesWeight ? exercise.weightUnit : undefined,
       videoRef: capturedVideo ?? undefined,
     });
-    setSets([newSet()]);
+    setLoggedSets([]);
+    setCurrentReps(1);
+    setCurrentWeightText('');
     setCapturedVideo(null);
     setError('');
     setJustSaved(true);
@@ -163,73 +156,97 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
         />
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <View style={[styles.sheet, { backgroundColor: accent.card }]}>
-          <View style={[styles.headerRow, { borderBottomColor: accent.border }]}>
-            <Text style={[styles.headerCell, { color: accent.textFaint }, styles.colIndex]}>{t.reps.setColumn}</Text>
+          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.reps.currentSetLabel}</Text>
+          <View style={styles.currentEntryRow}>
             {exercise.usesWeight && (
-              <Text style={[styles.headerCell, { color: accent.textFaint }, styles.colWeight]}>
-                {t.reps.weightColumn}
-              </Text>
+              <View style={styles.weightField}>
+                <TextInput
+                  style={[styles.weightInput, { borderBottomColor: accent.border, color: accent.text }]}
+                  value={currentWeightText}
+                  onChangeText={(weightText) => {
+                    setJustSaved(false);
+                    setCurrentWeightText(weightText);
+                  }}
+                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  placeholderTextColor={accent.textFaint}
+                />
+                <Text style={[styles.weightUnit, { color: accent.textMuted }]}>
+                  {exercise.weightUnit === 'lb' ? t.units.lb : t.units.kg}
+                </Text>
+              </View>
             )}
-            <Text style={[styles.headerCell, { color: accent.textFaint }, styles.colReps]}>{t.reps.repsColumn}</Text>
-            <View style={styles.colDelete} />
+            <View style={styles.currentReps}>
+              <NumberStepper
+                label=""
+                value={currentReps}
+                min={0}
+                max={MAX_REPS}
+                unit={t.units.reps}
+                editable
+                onChange={(reps) => {
+                  setJustSaved(false);
+                  setCurrentReps(reps);
+                }}
+              />
+            </View>
+            <Pressable
+              style={[styles.addButton, { backgroundColor: accent.primary }]}
+              onPress={addSet}
+              hitSlop={8}
+              accessibilityLabel={t.reps.addSetButton}
+            >
+              <Ionicons name="add" size={22} color={accent.onPrimary} />
+            </Pressable>
           </View>
 
-          {sets.map((set, index) => (
-            <View
-              key={set.id}
-              style={[styles.setRow, index > 0 && { borderTopWidth: 1, borderTopColor: accent.border }]}
-            >
-              <Text style={[styles.setIndex, { color: accent.textMuted }, styles.colIndex]}>{index + 1}</Text>
-              {exercise.usesWeight && (
-                <View style={[styles.weightField, styles.colWeight]}>
-                  <TextInput
-                    style={[styles.weightInput, { borderBottomColor: accent.border, color: accent.text }]}
-                    value={set.weightText}
-                    onChangeText={(weightText) => updateSet(index, { weightText })}
-                    keyboardType="decimal-pad"
-                    placeholder="0"
-                    placeholderTextColor={accent.textFaint}
-                  />
-                  <Text style={[styles.weightUnit, { color: accent.textMuted }]}>
-                    {exercise.weightUnit === 'lb' ? t.units.lb : t.units.kg}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.colReps}>
-                <NumberStepper
-                  label=""
-                  value={set.reps}
-                  min={0}
-                  max={MAX_REPS}
-                  unit={t.units.reps}
-                  editable
-                  compact
-                  onChange={(reps) => updateSet(index, { reps })}
-                />
-              </View>
-              <Pressable
-                style={[styles.colDelete, styles.removeButton, sets.length <= 1 && styles.removeButtonDisabled]}
-                onPress={() => removeSet(index)}
-                disabled={sets.length <= 1}
-                hitSlop={8}
-                accessibilityLabel={t.reps.removeSetAccessibility}
+          {loggedSets.length > 0 && (
+            <>
+              <Text
+                style={[
+                  styles.sectionLabel,
+                  styles.recordedLabel,
+                  { color: accent.textMuted, borderTopColor: accent.border },
+                ]}
               >
-                <Ionicons name="close" size={16} color={sets.length <= 1 ? accent.textFaint : accent.danger} />
-              </Pressable>
-            </View>
-          ))}
-
-          <Pressable style={[styles.addSetRow, { borderTopColor: accent.border }]} onPress={addSet}>
-            <Ionicons name="add" size={16} color={accent.primaryText} />
-            <Text style={[styles.addSetText, { color: accent.primaryText }]}>{t.reps.addSetButton}</Text>
-          </Pressable>
+                {t.reps.recordedSetsLabel}
+              </Text>
+              {loggedSets
+                .map((set, index) => ({ set, index }))
+                .reverse()
+                .map(({ set, index }) => (
+                  <View key={index} style={[styles.setRow, { borderTopColor: accent.border }]}>
+                    <Text style={[styles.setIndex, { color: accent.textMuted }]}>{t.reps.setNumberLabel(index + 1)}</Text>
+                    <Text style={[styles.setSummary, { color: accent.text }]}>
+                      {exercise.usesWeight
+                        ? `${set.weight ?? 0}${exercise.weightUnit === 'lb' ? t.units.lb : t.units.kg} × ${set.reps}${t.units.reps}`
+                        : `${set.reps}${t.units.reps}`}
+                    </Text>
+                    <Pressable
+                      style={styles.removeButton}
+                      onPress={() => removeLoggedSet(index)}
+                      hitSlop={8}
+                      accessibilityLabel={t.reps.removeSetAccessibility}
+                    >
+                      <Ionicons name="close" size={16} color={accent.danger} />
+                    </Pressable>
+                  </View>
+                ))}
+            </>
+          )}
         </View>
 
         {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
-        {justSaved && <Text style={[styles.saved, { color: accent.primaryText }]}>{t.reps.savedNotice}</Text>}
       </ScrollView>
+
+      <Toast visible={justSaved} message={t.reps.savedNotice} onHide={() => setJustSaved(false)} />
 
       <Pressable
         style={[
@@ -278,41 +295,50 @@ const styles = StyleSheet.create({
   },
   sheet: {
     borderRadius: radius.md,
-    overflow: 'hidden',
+    padding: spacing.smd,
+    gap: spacing.sm,
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.smd,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-  },
-  headerCell: {
+  sectionLabel: {
     fontSize: fontSize.xs,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
-  colIndex: {
-    width: 28,
+  recordedLabel: {
+    marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
   },
-  colWeight: {
-    width: 96,
+  currentEntryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
-  colReps: {
+  currentReps: {
     flex: 1,
   },
-  colDelete: {
-    width: 28,
+  addButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.smd,
-    paddingVertical: spacing.sm + 2,
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderTopWidth: 1,
   },
   setIndex: {
+    width: 48,
     fontSize: fontSize.base,
     fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+  setSummary: {
+    flex: 1,
+    fontSize: fontSize.base,
     fontVariant: ['tabular-nums'],
   },
   weightField: {
@@ -337,29 +363,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  removeButtonDisabled: {
-    opacity: 0.4,
-  },
-  addSetRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    paddingVertical: spacing.sm + 4,
-    borderTopWidth: 1,
-    borderStyle: 'dashed',
-  },
-  addSetText: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
-  },
   error: {
     fontSize: fontSize.sm,
-    textAlign: 'center',
-  },
-  saved: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
     textAlign: 'center',
   },
   saveButton: {
