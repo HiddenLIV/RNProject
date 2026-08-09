@@ -65,17 +65,18 @@ export const fontSize = {
 
 // shadowColor는 프리셋마다 달라지므로 여기 넣지 않는다 — 쓰는 쪽에서
 // `{ ...buttonShadowShape, shadowColor: accent.primary }`처럼 인라인으로 덧붙인다.
+// M3는 진한 드롭섀도우 대신 옅은 톤 기반 elevation을 쓴다 — opacity를 낮춰 그 느낌에 가깝게.
 export const buttonShadowShape: ViewStyle = {
-  shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.35,
-  shadowRadius: 14,
-  elevation: 5,
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.18,
+  shadowRadius: 10,
+  elevation: 3,
 };
 
 export const cardShadow: ViewStyle = {
   shadowColor: '#000000', // 라이트/다크 공통 — 두 팔레트의 shadow 값이 같다
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.4,
-  shadowRadius: 8,
-  elevation: 2,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.14,
+  shadowRadius: 6,
+  elevation: 1,
 };
