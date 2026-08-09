@@ -8,11 +8,11 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
-  TextInput,
   View,
 } from 'react-native';
 import Text from './AppText';
 import ExerciseIcon from './ExerciseIcon';
+import OutlinedTextField from './OutlinedTextField';
 import YoutubeSearchButton from './YoutubeSearchButton';
 import {
   CUSTOM_ICON_CHOICES,
@@ -150,8 +150,9 @@ export default function EditExerciseModal({
             showsVerticalScrollIndicator={false}
           >
             <Text style={[styles.title, { color: accent.text }]}>{t.editExercise.title}</Text>
-            <TextInput
-              style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
+            <OutlinedTextField
+              label={t.addExercise.namePlaceholder}
+              backgroundColor={accent.background}
               value={name}
               onChangeText={(text) => {
                 setName(text);
@@ -167,7 +168,12 @@ export default function EditExerciseModal({
                 return (
                   <Pressable
                     key={choice}
-                    style={[styles.iconChoice, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}
+                    style={[
+                      styles.iconChoice,
+                      selected
+                        ? { backgroundColor: accent.primary, borderColor: accent.primary }
+                        : { backgroundColor: 'transparent', borderColor: accent.primary },
+                    ]}
                     onPress={() => setIcon(choice)}
                     accessibilityLabel={t.addExercise.iconChoiceAccessibility}
                   >
@@ -219,15 +225,14 @@ export default function EditExerciseModal({
 
             <Text style={[styles.videoLabel, { color: accent.textMuted }]}>{t.editExercise.videoLinkLabel}</Text>
             <YoutubeSearchButton exerciseName={name} />
-            <TextInput
-              style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
+            <OutlinedTextField
+              label={t.editExercise.videoLinkPlaceholder}
+              backgroundColor={accent.background}
               value={videoLinkText}
               onChangeText={(text) => {
                 setVideoLinkText(text);
                 setError('');
               }}
-              placeholder={t.editExercise.videoLinkPlaceholder}
-              placeholderTextColor={accent.textFaint}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
@@ -329,13 +334,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginBottom: spacing.sm,
   },
-  input: {
-    borderWidth: 1.5,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.smd,
-    paddingVertical: spacing.sm + 2,
-    fontSize: fontSize.base,
-  },
   videoLabel: {
     fontSize: fontSize.base,
     fontWeight: '700',
@@ -349,6 +347,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.pill,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },

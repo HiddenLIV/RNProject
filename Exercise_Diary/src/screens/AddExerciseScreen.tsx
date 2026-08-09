@@ -9,12 +9,12 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
-  TextInput,
   View,
 } from 'react-native';
 import Text from '../components/AppText';
 import ExerciseIcon from '../components/ExerciseIcon';
 import MeasureTypeTag from '../components/MeasureTypeTag';
+import OutlinedTextField from '../components/OutlinedTextField';
 import YoutubeSearchButton from '../components/YoutubeSearchButton';
 import {
   CUSTOM_EXERCISE_ICON,
@@ -205,7 +205,14 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
                         <Text style={[styles.presetIndex, { color: accent.textFaint }, selected && { color: accent.accent }]}>
                           {String(index + 1).padStart(2, '0')}
                         </Text>
-                        <View style={[styles.presetIconBadge, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}>
+                        <View
+                          style={[
+                            styles.presetIconBadge,
+                            selected
+                              ? { backgroundColor: accent.primary, borderColor: accent.primary }
+                              : { backgroundColor: 'transparent', borderColor: accent.primary },
+                          ]}
+                        >
                           <Ionicons name={preset.icon} size={17} color={selected ? accent.onPrimary : accent.primary} />
                         </View>
                         <Text style={[styles.presetName, { color: accent.text }, selected && { color: accent.accent }]}>
@@ -222,12 +229,11 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
 
           <View style={styles.section}>
             <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.customSectionLabel}</Text>
-            <TextInput
-              style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
+            <OutlinedTextField
+              label={t.addExercise.namePlaceholder}
+              backgroundColor={accent.background}
               value={name}
               onChangeText={handleNameChange}
-              placeholder={t.addExercise.namePlaceholder}
-              placeholderTextColor={accent.textFaint}
               maxLength={EXERCISE_NAME_MAX_LENGTH}
             />
             <View style={styles.iconGrid}>
@@ -236,7 +242,12 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
                 return (
                   <Pressable
                     key={choice}
-                    style={[styles.iconChoice, { backgroundColor: selected ? accent.primary : accent.primarySoft }]}
+                    style={[
+                      styles.iconChoice,
+                      selected
+                        ? { backgroundColor: accent.primary, borderColor: accent.primary }
+                        : { backgroundColor: 'transparent', borderColor: accent.primary },
+                    ]}
                     onPress={() => setIcon(choice)}
                     accessibilityLabel={t.addExercise.iconChoiceAccessibility}
                   >
@@ -345,15 +356,14 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
           <View style={styles.section}>
             <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.videoLinkSectionLabel}</Text>
             <YoutubeSearchButton exerciseName={name} />
-            <TextInput
-              style={[styles.nameInput, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
+            <OutlinedTextField
+              label={t.addExercise.videoLinkPlaceholder}
+              backgroundColor={accent.background}
               value={videoLinkText}
               onChangeText={(text) => {
                 setVideoLinkText(text);
                 setError('');
               }}
-              placeholder={t.addExercise.videoLinkPlaceholder}
-              placeholderTextColor={accent.textFaint}
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
@@ -452,6 +462,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: radius.pill,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -459,13 +470,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSize.base,
     fontWeight: '700',
-  },
-  nameInput: {
-    borderWidth: 1.5,
-    borderRadius: radius.sm,
-    paddingHorizontal: spacing.smd,
-    paddingVertical: spacing.sm + 2,
-    fontSize: fontSize.base,
   },
   iconGrid: {
     flexDirection: 'row',
@@ -476,6 +480,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.pill,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
