@@ -189,6 +189,7 @@ export default function HomeScreen({
       <FlatList
         data={filteredExercises}
         keyExtractor={(exercise) => exercise.id}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           exercisesLoaded ? (

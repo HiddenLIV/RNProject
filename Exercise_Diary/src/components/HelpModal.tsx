@@ -38,7 +38,7 @@ export default function HelpModal({ visible, onClose, onReplayOnboarding, onDism
             <Ionicons name="close" size={24} color={accent.text} />
           </Pressable>
         </View>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           {t.help.sections.map((section, index) => (
             <View key={section.title} style={[styles.section, { backgroundColor: accent.card }]}>
               <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>

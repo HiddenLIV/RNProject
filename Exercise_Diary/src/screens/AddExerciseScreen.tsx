@@ -169,6 +169,7 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
           ref={scrollViewRef}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
           {availablePresets.length > 0 && (
             <View style={styles.section}>

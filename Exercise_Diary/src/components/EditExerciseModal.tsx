@@ -144,7 +144,11 @@ export default function EditExerciseModal({
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={[styles.card, { backgroundColor: accent.background, borderColor: accent.primary }]}>
-          <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerStyle={styles.cardContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <Text style={[styles.title, { color: accent.text }]}>{t.editExercise.title}</Text>
             <TextInput
               style={[styles.input, { borderColor: accent.border, color: accent.text, backgroundColor: accent.card }]}
