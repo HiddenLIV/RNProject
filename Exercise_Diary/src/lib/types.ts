@@ -62,6 +62,8 @@ export const BELL_INTERVAL_MAX_SECONDS = 120;
 
 // 테마 컬러 커스터마이징 — 포인트 컬러 프리셋
 export type ThemePresetId = 'default' | 'orange' | 'mint' | 'red' | 'blue';
+// storage.ts(저장값 검증)와 backup.ts(백업 파일 검증)가 같은 유효값 목록을 공유한다.
+export const THEME_PRESET_IDS: ThemePresetId[] = ['default', 'orange', 'mint', 'red', 'blue'];
 
 export type ThemePreset = {
   id: ThemePresetId;
@@ -71,6 +73,26 @@ export type ThemePreset = {
   accent: string;
   accentSoft: string;
   onPrimary: string; // primary 배경 위에 얹는 텍스트·아이콘 색 — 밝은 primary(민트 등)에서도 대비 확보
+};
+
+// 데이터 백업 및 내보내기
+export const BACKUP_SCHEMA_VERSION = 1;
+
+// 운동별 기록·설정을 exercise.id로 묶어, 내부 AsyncStorage 키 네이밍(레거시 'hang' 특례 포함)이
+// 백업 파일 형식에 그대로 노출되지 않게 한다 — storage.ts의 키 구조가 바뀌어도 백업 형식은 안정적이다.
+export type BackupExerciseData = {
+  records: TimeRecord[];
+  repsRecords: RepsRecord[];
+  settings: Settings;
+};
+
+export type BackupPayload = {
+  schemaVersion: typeof BACKUP_SCHEMA_VERSION;
+  exportedAt: string; // ISO 8601
+  appVersion: string; // Constants.expoConfig?.version — 문제 리포트 시 참고용
+  exercises: Exercise[];
+  theme: ThemePresetId;
+  exerciseData: Record<string, BackupExerciseData>;
 };
 
 // 라이트 모드 지원 — 기기 디스플레이 설정에 따라 바뀌는 베이스 톤

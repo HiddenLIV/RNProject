@@ -195,7 +195,6 @@ const jobs = [
   ['icon.png', render(1024, 'icon'), outDir],
   ['android-icon-foreground.png', render(1024, 'foreground', 0.62), outDir], // 어댑티브 세이프존
   ['android-icon-background.png', render(1024, 'background'), outDir],
-  ['android-icon-monochrome.png', render(1024, 'monochrome', 0.62), outDir],
   ['favicon.png', render(196, 'icon'), outDir],
   // 스플래시 배경은 흰색이므로 실루엣을 브랜드 마젠타로
   ['splash-icon.png', render(1024, 'foreground', 0.62, [0x9b, 0x27, 0x91]), outDir],

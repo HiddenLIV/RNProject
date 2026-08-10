@@ -2,12 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Text from '../components/AppText';
+import BackupModal from '../components/BackupModal';
 import EditExerciseModal from '../components/EditExerciseModal';
 import ExerciseIcon from '../components/ExerciseIcon';
 import HelpModal from '../components/HelpModal';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import OnboardingModal from '../components/OnboardingModal';
 import ThemeSwatchRow from '../components/ThemeSwatchRow';
+import Toast from '../components/Toast';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
@@ -36,6 +38,8 @@ export default function HomeScreen({
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [helpVisible, setHelpVisible] = useState(false);
   const [onboardingVisible, setOnboardingVisible] = useState(false);
+  const [backupVisible, setBackupVisible] = useState(false);
+  const [restoreToastVisible, setRestoreToastVisible] = useState(false);
   // 온보딩을 도움말 안의 "다시보기"로 열었는지 — 닫을 때 도움말로 돌아가야 하는지 판단에 쓴다.
   const [onboardingReplay, setOnboardingReplay] = useState(false);
   // 도움말↔온보딩 전환 중(닫히는 애니메이션이 끝나길 기다리는 동안)엔 "?" 버튼을 막아,
@@ -104,6 +108,14 @@ export default function HomeScreen({
     beginModalTransition(setHelpVisible, () => setOnboardingVisible(true));
   };
 
+  // 다른 모달로 넘어가지 않는 "그냥 닫기"(X 버튼)도 beginModalTransition을 거친다 — 그래야
+  // iOS 닫힘 애니메이션이 끝나기 전까지 modalTransitioning이 true로 유지되어, 그 사이 백업
+  // 버튼 등을 눌러 다른 Modal이 겹쳐 뜨는 걸 막을 수 있다(열 대상이 없을 뿐 열기 자체를
+  // 건너뛰는 게 아니라 없는 것과 같으므로 open은 no-op).
+  const handleCloseHelp = () => {
+    beginModalTransition(setHelpVisible, () => {});
+  };
+
   const handleHelpDismiss = () => {
     consumePendingModalOpen();
   };
@@ -113,7 +125,7 @@ export default function HomeScreen({
       setOnboardingReplay(false);
       beginModalTransition(setOnboardingVisible, () => setHelpVisible(true));
     } else {
-      setOnboardingVisible(false);
+      beginModalTransition(setOnboardingVisible, () => {});
     }
   };
 
@@ -138,15 +150,26 @@ export default function HomeScreen({
             <Text style={[styles.title, { color: accent.text }]}>{t.home.title}</Text>
             <Text style={[styles.subtitle, { color: accent.textMuted }]}>{t.home.subtitle}</Text>
           </View>
-          <Pressable
-            style={styles.helpButton}
-            onPress={() => setHelpVisible(true)}
-            hitSlop={8}
-            accessibilityLabel={t.home.help}
-            disabled={modalTransitioning}
-          >
-            <Ionicons name="help-circle-outline" size={28} color={accent.primaryText} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable
+              style={styles.helpButton}
+              onPress={() => setBackupVisible(true)}
+              hitSlop={8}
+              accessibilityLabel={t.backup.title}
+              disabled={modalTransitioning || helpVisible || onboardingVisible}
+            >
+              <Ionicons name="cloud-outline" size={26} color={accent.primaryText} />
+            </Pressable>
+            <Pressable
+              style={styles.helpButton}
+              onPress={() => setHelpVisible(true)}
+              hitSlop={8}
+              accessibilityLabel={t.home.help}
+              disabled={modalTransitioning || backupVisible}
+            >
+              <Ionicons name="help-circle-outline" size={28} color={accent.primaryText} />
+            </Pressable>
+          </View>
         </View>
         <ThemeSwatchRow />
         {showSearch && (
@@ -244,11 +267,26 @@ export default function HomeScreen({
       />
       <HelpModal
         visible={helpVisible}
-        onClose={() => setHelpVisible(false)}
+        onClose={handleCloseHelp}
         onReplayOnboarding={handleReplayOnboarding}
         onDismiss={handleHelpDismiss}
       />
       <OnboardingModal visible={onboardingVisible} onClose={handleCloseOnboarding} onDismiss={handleOnboardingDismiss} />
+      <BackupModal
+        visible={backupVisible}
+        onClose={() => setBackupVisible(false)}
+        onRestored={() => {
+          setBackupVisible(false);
+          loadExercises();
+          setRestoreToastVisible(true);
+        }}
+        onRestoreFailed={loadExercises}
+      />
+      <Toast
+        visible={restoreToastVisible}
+        message={t.backup.importSuccessToast}
+        onHide={() => setRestoreToastVisible(false)}
+      />
     </View>
   );
 }
@@ -270,6 +308,10 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flexShrink: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   helpButton: {
     padding: spacing.xs,

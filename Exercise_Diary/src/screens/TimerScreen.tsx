@@ -1,7 +1,7 @@
 import { AudioPlayer, createAudioPlayer } from 'expo-audio';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
 import Text from '../components/AppText';
 import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
@@ -11,7 +11,16 @@ import TimeDisplay from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import { speakCountdown, speakSecond, speakStart, stopFeedback } from '../lib/feedback';
 import { useLanguage, useTranslation } from '../lib/i18n';
-import { addRecord, createId, getSettings, removeRecord, saveSettings, updateRecord } from '../lib/storage';
+import {
+  addRecord,
+  createId,
+  getSettings,
+  getVoiceGuideEnabled,
+  removeRecord,
+  saveSettings,
+  setVoiceGuideEnabled,
+  updateRecord,
+} from '../lib/storage';
 import {
   BELL_INTERVAL_MAX_SECONDS,
   BELL_INTERVAL_MIN_SECONDS,
@@ -62,6 +71,18 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
     });
   };
 
+  // 운동별 설정과 달리 앱 전체에 공통으로 적용되는 값이라 exercise.id와 무관하게 한 번만 읽는다.
+  const [voiceGuideEnabled, setVoiceGuideEnabledState] = useState(true);
+
+  useEffect(() => {
+    getVoiceGuideEnabled().then(setVoiceGuideEnabledState);
+  }, []);
+
+  const handleVoiceGuideToggle = (value: boolean) => {
+    setVoiceGuideEnabledState(value); // 화면엔 즉시 반영
+    setVoiceGuideEnabled(value); // 저장은 백그라운드 — 실패해도 사용자에게 노출하지 않음
+  };
+
   // 공유 플레이어를 pause/seek로 재사용하면 안드로이드(삼성)에서 첫 재생의
   // AudioTrack이 열리지 않아 무음이 되는 문제가 있다(logcat으로 확인).
   // 벨마다 새 플레이어를 만들어 재생하고 이전 것은 해제한다.
@@ -89,12 +110,16 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
   );
 
   const timer = useHangTimer({
-    onCountdownSecond: (remainingSec) => speakCountdown(remainingSec, language),
-    onMeasureStart: () => speakStart(language, t.timer.speechStart),
+    onCountdownSecond: (remainingSec) => {
+      if (voiceGuideEnabled) speakCountdown(remainingSec, language);
+    },
+    onMeasureStart: () => {
+      if (voiceGuideEnabled) speakStart(language, t.timer.speechStart);
+    },
     onMeasureSecond: (second) => {
       if (second % settings.bellIntervalSeconds === 0) {
-        playBellSound();
-      } else {
+        playBellSound(); // 음성 안내 토글과 무관하게 항상 울린다
+      } else if (voiceGuideEnabled) {
         speakSecond(second, language);
       }
     },
@@ -302,6 +327,14 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
               unit={t.units.seconds}
               onChange={(v) => updateSettings({ bellIntervalSeconds: v })}
             />
+            <View style={styles.voiceGuideRow}>
+              <Text style={[styles.voiceGuideLabel, { color: accent.textMuted }]}>{t.timer.voiceGuideLabel}</Text>
+              <Switch
+                value={voiceGuideEnabled}
+                onValueChange={handleVoiceGuideToggle}
+                trackColor={{ true: accent.primary, false: accent.border }}
+              />
+            </View>
           </View>
           <Pressable
             style={[styles.button, { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary }]}
@@ -425,6 +458,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md + 4,
     paddingVertical: spacing.md,
     borderRadius: radius.md,
+  },
+  voiceGuideRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  voiceGuideLabel: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
   },
   label: {
     fontSize: fontSize.lg,
