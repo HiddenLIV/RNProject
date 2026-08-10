@@ -70,4 +70,4 @@ Data Safety 정의상 "수집(collection)"은 기기 밖으로 전송하는 것�
 ## 참고
 
 - 앱 아이콘(512×512), 피처 그래픽(1024×500)은 `store-assets/android/`에 생성되어 있음 (`npm run assets:icons`로 재생성)
-- 개인정보처리방침 URL은 호스팅 완료 후 이 문서 하단에 추가 예정
+- 개인정보처리방침 URL: https://hiddenliv.github.io/RNProject/

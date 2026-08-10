@@ -1,8 +1,18 @@
-# Exercise_Diary
+# HiddenReps (구 Exercise_Diary)
 
-풀업(턱걸이) 전 데드행(매달리기) 버틴 시간을 측정·기록하는 iOS/Android 앱. Expo SDK 57 (React Native 0.86) + TypeScript.
+데드행(매달리기)·플랭크 같은 시간형 운동부터 턱걸이·팔굽혀펴기·스쿼트·런지 같은 횟수·세트형 운동까지, 원하는 운동을 직접 추가/커스터마이징해 측정·기록하는 iOS/Android 앱. 앱 이름은 "HiddenReps"(한국어 표기 "나의 운동 일지")로 리브랜딩되었고, 저장소 디렉터리명은 이전 이름인 `Exercise_Diary`를 그대로 쓰고 있다. 패키지 식별자는 `com.hiddenlab.hiddenreps`. Expo SDK 57 (React Native 0.86) + TypeScript.
 
 > Expo has changed — 코드를 작성하기 전에 https://docs.expo.dev/versions/v57.0.0/ 의 정확한 버전 문서를 확인할 것.
+
+## 주요 기능
+
+- 운동 커스터마이징: 프리셋(턱걸이/팔굽혀펴기/스쿼트/런지 등)에서 고르거나 이름·아이콘·색상을 직접 정해 추가, 측정 방식(시간 / 횟수·세트)과 무게 기록 여부 선택
+- 측정: 시간형은 준비 카운트다운 + 벨 간격 알림, 횟수·세트형은 세트별 기록 누적. 타이머는 `Date.now()` 경과 시간 기반(코드 규칙 참고)
+- 자세 안내 영상: 운동별로 YouTube 링크를 검색·등록해 측정 화면에서 바로 재생
+- 운동 촬영: 카메라로 운동 영상을 찍어 기기에 저장하고 다시 재생
+- 기록: 운동별 최고 기록 표시, 세트별 상세 기록, 기록 시간 보정
+- 라이트/다크 테마 커스터마이징(`src/lib/themePresets.ts`), 다국어 지원(한국어/영어/일본어/중국어, `src/lib/i18n/locales/`)
+- 첫 실행 온보딩 안내, 홈 화면 도움말
 
 ## 명령어
 
@@ -24,13 +34,17 @@
 
 ## 코드 규칙
 
-- 화면은 `src/screens/`, 재사용 컴포넌트는 `src/components/`, 로직(타이머·저장 등)은 `src/lib/`에 둔다
-- 로컬 데이터 저장은 `@react-native-async-storage/async-storage` 사용
+- 화면은 `src/screens/`, 재사용 컴포넌트는 `src/components/`, 로직(타이머·저장·i18n 등)은 `src/lib/`에 둔다
+- 로컬 데이터 저장은 `@react-native-async-storage/async-storage` 사용 — 서버 전송 없음, 모든 기록은 기기 로컬에만 저장
 - 타이머는 `setInterval` 누적이 아니라 시작 시각(`Date.now()`) 기준 경과 시간으로 계산한다 (백그라운드 전환·프레임 드랍 시 오차 방지)
-- 생성형 에셋(앱 아이콘, 효과음)은 `scripts/`의 생성 스크립트로 만든다 — 수정할 때 스크립트를 고쳐 재생성 (`npm run assets:icons`, `npm run assets:bell`)
+- 새 UI 텍스트를 추가하면 `src/lib/i18n/locales/`의 4개 언어(ko/en/ja/zh) 파일을 모두 갱신한다
+- 테마 팔레트는 자주 바뀌므로 색상 관련 작업 전에 `src/theme.ts`, `src/lib/themePresets.ts`를 직접 확인한다 — 기억에 의존하지 않는다
+- 생성형 에셋(앱 아이콘, 효과음, 스토어용 아이콘/피처 그래픽)은 `scripts/`의 생성 스크립트로 만든다 — 수정할 때 스크립트를 고쳐 재생성 (`npm run assets:icons`, `npm run assets:bell`, `npm run assets:silence`)
 - 커밋 메시지는 한국어로 작성한다
 
 ## 문서 위치
 
 - `docs/specs/` — 기능별 요구사항 (무엇을, 왜)
 - `docs/design/` — 기능별 설계 (어떻게)
+- `docs/guides/` — 스토어 배포·마켓 등록 등 운영 가이드 (예: `앱스토어 배포 가이드.html`, `play-store-listing-copy.md`)
+- `docs/privacy-policy.html` — 개인정보처리방침 (GitHub Pages `gh-pages` 브랜치로 배포됨)

@@ -10,6 +10,11 @@
     --copper-ink: #7a4413;
     --plum: #93386f;
     --ok: #386b52;
+    --ok-bg: rgba(56, 107, 82, 0.12);
+    --warn: #a04516;
+    --warn-bg: rgba(160, 69, 22, 0.12);
+    --pend: #5a6470;
+    --pend-bg: rgba(90, 100, 112, 0.1);
     --card: #ffffff;
     --shadow: rgba(23, 34, 44, 0.08);
   }
@@ -24,6 +29,11 @@
       --copper-ink: #f0b483;
       --plum: #d381b1;
       --ok: #6fbb96;
+      --ok-bg: rgba(111, 187, 150, 0.14);
+      --warn: #e0975a;
+      --warn-bg: rgba(224, 151, 90, 0.14);
+      --pend: #9aa3ac;
+      --pend-bg: rgba(154, 163, 172, 0.14);
       --card: #1a2229;
       --shadow: rgba(0, 0, 0, 0.35);
     }
@@ -38,6 +48,11 @@
     --copper-ink: #f0b483;
     --plum: #d381b1;
     --ok: #6fbb96;
+    --ok-bg: rgba(111, 187, 150, 0.14);
+    --warn: #e0975a;
+    --warn-bg: rgba(224, 151, 90, 0.14);
+    --pend: #9aa3ac;
+    --pend-bg: rgba(154, 163, 172, 0.14);
     --card: #1a2229;
     --shadow: rgba(0, 0, 0, 0.35);
   }
@@ -51,6 +66,11 @@
     --copper-ink: #7a4413;
     --plum: #93386f;
     --ok: #386b52;
+    --ok-bg: rgba(56, 107, 82, 0.12);
+    --warn: #a04516;
+    --warn-bg: rgba(160, 69, 22, 0.12);
+    --pend: #5a6470;
+    --pend-bg: rgba(90, 100, 112, 0.1);
     --card: #ffffff;
     --shadow: rgba(23, 34, 44, 0.08);
   }
@@ -266,6 +286,7 @@
     font-size: 14.5px;
   }
   table.phases { min-width: 640px; }
+  table.status { min-width: 760px; }
   th, td {
     text-align: left;
     padding: 11px 16px;
@@ -282,6 +303,33 @@
   }
   td.num, td.cost { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
   tr:last-child td { border-bottom: none; }
+
+  /* ---------- status pills ---------- */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .pill.ok { background: var(--ok-bg); color: var(--ok); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.pend { background: var(--pend-bg); color: var(--pend); }
+  .pill::before { content: "●"; font-size: 8px; }
+
+  .status-summary {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin: 4px 0 20px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+  .status-summary strong { font-family: ui-monospace, monospace; }
 
   /* ---------- platform comparison ---------- */
   .split {
@@ -310,7 +358,6 @@
     margin-bottom: 14px;
   }
   .badge.ios { background: rgba(23,34,44,0.08); color: var(--ink-soft); }
-  :root[data-theme="dark"] .badge.ios, @media (prefers-color-scheme: dark) { }
   .badge.aos { background: rgba(147,56,111,0.12); color: var(--plum); }
   .platform-card h4 {
     font-family: "Iowan Old Style", Palatino, Georgia, serif;
@@ -404,29 +451,31 @@
   <div class="masthead">
     <div class="eyebrow">배포 매니페스트 · Exercise Diary</div>
     <h1 class="serif">나의 운동 일지 — 스토어 배포 가이드</h1>
-    <p class="sub">계정이 하나도 없는 상태에서 App Store(iOS)와 Google Play(Android)에 처음 배포하기까지의 전 과정. Expo가 현재 공식 권장하는 EAS Build + EAS Submit 방식 기준.</p>
+    <p class="sub">App Store(iOS)와 Google Play(Android)에 이 앱을 처음 배포하기까지의 전 과정과, 지금까지 실제로 준비된 자료 현황. Expo가 공식 권장하는 EAS Build + EAS Submit 방식 기준.</p>
     <div class="meta-row">
       <span class="tag">SDK 57 · RN 0.86</span>
+      <span class="tag">패키지 com.hiddenlab.hiddenreps</span>
       <span class="tag">EAS Build / Submit</span>
-      <span class="tag">작성일 2026-07-27</span>
+      <span class="tag">갱신일 2026-08-10</span>
     </div>
   </div>
 
   <nav class="rail">
     <a href="#overview"><span class="n">00</span> 전체 흐름</a>
-    <a href="#prep"><span class="n">01</span> 사전 준비</a>
-    <a href="#accounts"><span class="n">02</span> 계정 만들기</a>
+    <a href="#android-status"><span class="n">01</span> Android 자료 현황</a>
+    <a href="#prep"><span class="n">02</span> 남은 사전 준비</a>
+    <a href="#accounts"><span class="n">03</span> 계정 만들기</a>
     <div class="divider"></div>
-    <a href="#eas"><span class="n">03</span> EAS 설정</a>
-    <a href="#appjson"><span class="n">04</span> app.json 정리</a>
-    <a href="#build"><span class="n">05</span> 빌드하기</a>
+    <a href="#eas"><span class="n">04</span> EAS 설정</a>
+    <a href="#appjson"><span class="n">05</span> app.json 현황</a>
+    <a href="#build"><span class="n">06</span> 빌드하기</a>
     <div class="divider"></div>
-    <a href="#listing"><span class="n">06</span> 스토어 등록</a>
-    <a href="#submit"><span class="n">07</span> 제출하기</a>
-    <a href="#review"><span class="n">08</span> 심사·배포</a>
-    <a href="#updates"><span class="n">09</span> 이후 업데이트</a>
+    <a href="#listing"><span class="n">07</span> 스토어 등록</a>
+    <a href="#submit"><span class="n">08</span> 마켓 제출</a>
+    <a href="#review"><span class="n">09</span> 심사·배포</a>
+    <a href="#updates"><span class="n">10</span> 이후 업데이트</a>
     <div class="divider"></div>
-    <a href="#checklist"><span class="n">10</span> 체크리스트</a>
+    <a href="#checklist"><span class="n">11</span> 남은 체크리스트</a>
     <a href="#links">부록 · 링크</a>
   </nav>
 
@@ -440,7 +489,7 @@
             <tr><th>단계</th><th>내용</th><th>예상 소요</th><th>비용</th></tr>
           </thead>
           <tbody>
-            <tr><td class="num">1</td><td>사전 준비 — 식별자 확정, 개인정보처리방침, 스크린샷 소재</td><td>반나절~1일</td><td class="cost">무료</td></tr>
+            <tr><td class="num">1</td><td>사전 준비 — 식별자, 개인정보처리방침, 아이콘, 등록 카피, 스크린샷</td><td>반나절~1일</td><td class="cost">무료</td></tr>
             <tr><td class="num">2</td><td>계정 생성 — Expo, Apple, Google</td><td>Apple 승인까지 최대 48시간</td><td class="cost">Apple $99/년<br>Google $25(최초 1회)</td></tr>
             <tr><td class="num">3</td><td>EAS 설정 및 app.json 정리</td><td>1시간 이내</td><td class="cost">무료</td></tr>
             <tr><td class="num">4</td><td>EAS Build — iOS/Android 빌드</td><td>각 10~20분</td><td class="cost">무료 (Free 플랜 한도 내)</td></tr>
@@ -453,45 +502,114 @@
       <p class="callout"><strong>가장 중요한 차이</strong> — iOS는 계정 승인 후 바로 심사 제출이 가능하지만, Android(신규 개인 개발자 계정)는 최소 12명의 테스터를 모아 14일 연속 비공개 테스트를 거쳐야 프로덕션 트랙이 열립니다. 실제 일정은 Android 쪽이 더 오래 걸립니다.</p>
     </section>
 
-    <section id="prep">
-      <div class="sec-head"><span class="num">01</span><h2 class="serif">사전 준비 — 계정 없이 지금 할 수 있는 것</h2></div>
-
-      <h3 class="sub-head">1.1 앱 식별자(Bundle ID / Package name) 확정 — 가장 먼저 할 일</h3>
-      <p>현재 <code>app.json</code>에는 다음과 같이 되어 있습니다.</p>
-      <div class="code-block">
-        <div class="cap">app.json</div>
-        <pre>"ios": { "bundleIdentifier": "com.anonymous.timecheck" }
-"android": { "package": "com.anonymous.timecheck" }</pre>
+    <section id="android-status" class="wide">
+      <div class="sec-head"><span class="num">01</span><h2 class="serif">Android 배포에 필요한 자료 — 현재 현황</h2></div>
+      <p style="max-width:72ch">아래는 이 저장소를 기준으로 실제 확인한 상태다. 코드/문서로 확인 가능한 항목은 완료 여부를 표시했고, 계정 가입처럼 저장소 밖에서 진행되는 항목은 "확인 필요"로 남겨둔다.</p>
+      <div class="status-summary">
+        <span><span class="pill ok">완료</span> 9개</span>
+        <span><span class="pill pend">미착수 / 확인 필요</span> 4개</span>
       </div>
-      <p><code>com.anonymous.*</code>는 Expo가 자동으로 붙여준 임시 값이고, <code>timecheck</code>는 이 프로젝트의 옛 이름(현재는 "나의 운동 일지")입니다. <strong>이 값은 스토어에 한 번 올리고 나면 절대 바꿀 수 없습니다</strong> — iOS bundle ID, Android package name 모두 최초 업로드 후 고정됩니다. 지금 반드시 정리하고 넘어가야 합니다.</p>
+      <div class="table-wrap">
+        <table class="status">
+          <thead>
+            <tr><th>자료</th><th>상태</th><th>위치 / 값</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>패키지 식별자 (Android <code>package</code> / iOS <code>bundleIdentifier</code>)</td>
+              <td><span class="pill ok">완료</span></td>
+              <td><code>com.hiddenlab.hiddenreps</code> — <code>app.json</code></td>
+            </tr>
+            <tr>
+              <td>EAS 프로젝트 연결</td>
+              <td><span class="pill ok">완료</span></td>
+              <td><code>extra.eas.projectId</code> 등록됨 — <code>app.json</code></td>
+            </tr>
+            <tr>
+              <td>EAS 빌드 프로필 · 버전 자동 증가</td>
+              <td><span class="pill ok">완료</span></td>
+              <td><code>eas.json</code> — <code>appVersionSource: "remote"</code>, <code>build.production.autoIncrement: true</code></td>
+            </tr>
+            <tr>
+              <td>Android 앱 아이콘 (adaptive icon)</td>
+              <td><span class="pill ok">완료</span></td>
+              <td><code>assets/android-icon-foreground.png</code>, <code>android-icon-background.png</code> — <code>npm run assets:icons</code>로 생성</td>
+            </tr>
+            <tr>
+              <td>Play 등록용 고해상도 아이콘 (512×512)</td>
+              <td><span class="pill ok">완료</span></td>
+              <td><code>store-assets/android/icon-512.png</code></td>
+            </tr>
+            <tr>
+              <td>Play 피처 그래픽 (1024×500)</td>
+              <td><span class="pill ok">완료</span></td>
+              <td><code>store-assets/android/feature-graphic-1024x500.png</code></td>
+            </tr>
+            <tr>
+              <td>개인정보처리방침 작성 + 호스팅</td>
+              <td><span class="pill ok">완료</span></td>
+              <td><code>docs/privacy-policy.html</code> → <code>gh-pages</code> 브랜치로 배포, <a href="https://hiddenliv.github.io/RNProject/" target="_blank" rel="noopener">hiddenliv.github.io/RNProject</a></td>
+            </tr>
+            <tr>
+              <td>스토어 등록 카피 (이름/설명/데이터 안전/등급 답변)</td>
+              <td><span class="pill ok">완료</span></td>
+              <td><code>docs/guides/play-store-listing-copy.md</code> — Play Console에 그대로 복붙 가능</td>
+            </tr>
+            <tr>
+              <td>Android 스크린샷</td>
+              <td><span class="pill ok">완료</span></td>
+              <td>4장 확보(홈/횟수측정/타이머측정/기록) — <code>store-assets/android/screenshots/</code>, 현재 UI 디자인 기준으로 2026-08-10 재촬영</td>
+            </tr>
+            <tr>
+              <td>Google Play 서비스 계정 JSON (EAS Submit 자동화용)</td>
+              <td><span class="pill pend">미착수</span></td>
+              <td><code>eas.json</code>의 <code>submit.production</code>이 비어있음 — 08단계 참고</td>
+            </tr>
+            <tr>
+              <td>Google Play Console 계정 가입 · $25 결제</td>
+              <td><span class="pill pend">확인 필요</span></td>
+              <td>저장소만으로는 확인 불가 — 03단계 참고</td>
+            </tr>
+            <tr>
+              <td>Apple Developer Program 가입 · $99/년</td>
+              <td><span class="pill pend">확인 필요</span></td>
+              <td>저장소만으로는 확인 불가 — 03단계 참고</td>
+            </tr>
+            <tr>
+              <td>Android 비공개 테스트 테스터 12명 이메일</td>
+              <td><span class="pill pend">미착수</span></td>
+              <td>지인/커뮤니티에서 이메일 수집 필요 — 08, 09단계 참고</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="callout"><strong>실질적으로 남은 것</strong> — 자료 준비는 거의 끝났다. 남은 진짜 작업은 (1) Play/Apple 계정 실제 가입 여부 확인, (2) Google Play 서비스 계정 JSON 발급, (3) 테스터 12명 모집, (4) <code>eas build</code> → <code>eas submit</code> 실행, (5) iOS 스크린샷 촬영이다.</p>
+    </section>
+
+    <section id="prep">
+      <div class="sec-head"><span class="num">02</span><h2 class="serif">남은 사전 준비</h2></div>
+      <p>식별자·개인정보처리방침·아이콘·등록 카피·Android 스크린샷은 이미 끝났으므로(01 참고), 여기서는 아직 손대지 않은 것만 정리한다.</p>
+
+      <h3 class="sub-head">iOS 스크린샷</h3>
+      <p>App Store Connect는 6.7인치 기기 화면 스크린샷을 최소 3장 요구한다. <code>store-assets/</code>에는 현재 <code>android/</code> 폴더만 있고 iOS용은 없다. iOS 시뮬레이터(iPhone 15 Pro Max 등 6.7인치 기종)로 앱을 실행해 홈/측정/기록 화면을 캡처해 <code>store-assets/ios/screenshots/</code> 정도의 위치에 정리해두면 된다.</p>
+
+      <h3 class="sub-head">참고 — 이미 끝난 항목</h3>
       <ul>
-        <li>iOS와 Android 값이 같을 필요는 없지만, 보통 통일해서 관리합니다.</li>
-        <li>도메인이 없어도 됩니다. 예: <code>com.hiddenlab.hiddenreps</code>처럼 본인/팀을 식별할 수 있는 이름이면 충분합니다.</li>
-        <li>정하고 나면 <code>app.json</code>의 <code>ios.bundleIdentifier</code>, <code>android.package</code> 둘 다 수정합니다.</li>
+        <li><strong>식별자</strong> — <code>com.hiddenlab.hiddenreps</code>로 iOS/Android 모두 확정, <code>app.json</code>에 반영됨. 스토어에 한 번 올리면 이후 변경 불가하므로 재확인만 하면 됨.</li>
+        <li><strong>개인정보처리방침</strong> — <code>docs/privacy-policy.html</code> 작성 및 GitHub Pages(<code>gh-pages</code> 브랜치)로 호스팅 완료. 제출 시 URL만 그대로 붙여넣으면 됨.</li>
+        <li><strong>Android 스크린샷</strong> — 홈·횟수측정·타이머측정·기록 4장을 현재 UI(2026-08-10 기준)로 에뮬레이터에서 재촬영해 <code>store-assets/android/screenshots/</code>에 반영됨.</li>
+        <li><strong>등록 카피</strong> — <code>docs/guides/play-store-listing-copy.md</code>에 앱 이름·짧은 설명·긴 설명·데이터 안전 양식 답변·콘텐츠 등급 답변까지 정리되어 있음.</li>
       </ul>
-
-      <h3 class="sub-head">1.2 앱 아이콘 / 스플래시 확인</h3>
-      <ul>
-        <li><strong>iOS</strong> — 1024×1024, 알파 채널(투명 배경) 없는 PNG 필요. App Store Connect에 별도 업로드.</li>
-        <li><strong>Android</strong> — adaptive icon은 이미 <code>app.json</code>에 설정됨 (<code>scripts/make-icons.js</code>로 생성). 스토어에는 512×512 아이콘 1장 + 1024×500 피처 그래픽 1장이 추가로 필요.</li>
-      </ul>
-
-      <h3 class="sub-head">1.3 개인정보처리방침 — 필수, 지금 준비</h3>
-      <p>이 앱은 카메라, 사진 라이브러리, 마이크 권한을 사용하므로 <strong>양쪽 스토어 모두 개인정보처리방침 URL 등록이 필수</strong>입니다. 서버로 데이터를 전송하지 않고 AsyncStorage로 로컬 저장만 하므로, 내용은 "수집하는 개인정보 없음, 촬영한 영상/사진은 기기 내부에만 저장됨"으로 간단히 작성할 수 있습니다.</p>
-      <p>호스팅은 GitHub Pages(무료, 이 저장소에 정적 페이지 하나 추가) 또는 Notion 공개 페이지 링크로도 충분합니다. 심사 시 이 URL을 App Store Connect / Play Console 양쪽에 입력해야 합니다.</p>
-
-      <h3 class="sub-head">1.4 스토어 등록 소재 미리 준비</h3>
-      <p>앱 소개 문구(짧은 설명 + 긴 설명) — 다국어 지원 중이므로(en/ja/ko/zh) 한국어는 필수, 영어는 권장. 스크린샷은 iOS 6.7인치 기기 화면 최소 3장, Android 폰 스크린샷 최소 2장. 시뮬레이터/에뮬레이터로 캡처하면 됩니다.</p>
     </section>
 
     <section id="accounts" class="wide">
-      <div class="sec-head"><span class="num">02</span><h2 class="serif">계정 만들기</h2></div>
-      <p style="max-width:72ch">먼저 Expo 계정이 필요합니다 (무료, 양쪽 빌드/제출에 공통으로 사용).</p>
+      <div class="sec-head"><span class="num">03</span><h2 class="serif">계정 만들기</h2></div>
+      <p style="max-width:72ch">먼저 Expo 계정이 필요하다 (무료, 양쪽 빌드/제출에 공통으로 사용). 이미 로그인되어 있다면 건너뛴다.</p>
       <div class="code-block" style="max-width:72ch">
         <div class="cap">터미널</div>
         <pre>npx eas login</pre>
       </div>
-      <p style="max-width:72ch">계정이 없으면 <code>expo.dev/signup</code>에서 이메일로 무료 가입합니다. 그 다음 두 플랫폼 계정을 병렬로 준비합니다.</p>
+      <p style="max-width:72ch">계정이 없으면 <code>expo.dev/signup</code>에서 이메일로 무료 가입한다. Apple/Google 계정 가입 여부는 저장소 안에서 확인할 수 없으니, 아래 두 계정이 실제로 준비되어 있는지 먼저 확인한다.</p>
 
       <div class="split">
         <div class="platform-card">
@@ -510,7 +628,7 @@
           <p><strong>최초 1회 $25</strong> · play.google.com/console/signup 에서 Google 계정으로 가입 후 결제.</p>
           <ul>
             <li>본인 확인(신분증 등) 절차가 있을 수 있음.</li>
-            <li><strong>신규 개인 계정 제약</strong> — 프로덕션 트랙으로 바로 못 가고, 비공개 테스트에 테스터 12명 이상을 등록해 14일 연속 테스트를 완료해야 합니다.</li>
+            <li><strong>신규 개인 계정 제약</strong> — 프로덕션 트랙으로 바로 못 가고, 비공개 테스트에 테스터 12명 이상을 등록해 14일 연속 테스트를 완료해야 함.</li>
             <li>조직/사업자 인증 계정은 이 요건이 면제되기도 함.</li>
           </ul>
         </div>
@@ -518,50 +636,65 @@
     </section>
 
     <section id="eas">
-      <div class="sec-head"><span class="num">03</span><h2 class="serif">EAS 설정하기</h2></div>
-      <p>이 저장소에는 아직 <code>eas.json</code>이 없습니다. 프로젝트 루트에서 실행합니다.</p>
+      <div class="sec-head"><span class="num">04</span><h2 class="serif">EAS 설정 — 현재 상태</h2></div>
+      <p><code>eas.json</code>은 이미 생성되어 있다. <code>build:configure</code>를 다시 돌릴 필요는 없다. 현재 내용은 다음과 같다.</p>
       <div class="code-block">
-        <div class="cap">터미널</div>
-        <pre>npx eas login
-npx eas build:configure</pre>
-      </div>
-      <p><code>build:configure</code>를 실행하면 <code>app.json</code>에 <code>extra.eas.projectId</code>가 자동 추가되고(Expo 서버에 앱 등록), <code>development</code> / <code>preview</code> / <code>production</code> 세 가지 빌드 프로필을 담은 <code>eas.json</code>이 생성됩니다. 스토어 제출용은 <code>production</code> 프로필을 사용합니다.</p>
-      <p>버전을 수동으로 올리지 않도록 자동 증가를 켜두는 것을 권장합니다 (iOS <code>buildNumber</code>, Android <code>versionCode</code>를 EAS가 자동 관리).</p>
-      <div class="code-block">
-        <div class="cap">eas.json</div>
+        <div class="cap">eas.json (현재)</div>
         <pre>{
   "cli": {
+    "version": ">= 21.0.0",
     "appVersionSource": "remote"
   },
   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
     "production": {
       "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {}
   }
 }</pre>
       </div>
+      <p><code>appVersionSource: "remote"</code>와 <code>production.autoIncrement: true</code>가 이미 켜져 있어 iOS <code>buildNumber</code>, Android <code>versionCode</code>는 EAS가 자동으로 올려준다. 다만 <code>submit.production</code>이 비어 있어 Android 자동 제출(<code>eas submit</code>)에 필요한 트랙·서비스 계정 정보가 아직 없다 — 08단계에서 채워 넣는다.</p>
     </section>
 
     <section id="appjson">
-      <div class="sec-head"><span class="num">04</span><h2 class="serif">app.json 마무리 정리</h2></div>
-      <p>1.1에서 정한 값으로 식별자를 교체합니다.</p>
+      <div class="sec-head"><span class="num">05</span><h2 class="serif">app.json — 현재 상태</h2></div>
+      <p>식별자, 아이콘, 권한 관련 설정은 이미 정리되어 있다. 배포 관련 핵심 값만 발췌하면 다음과 같다.</p>
       <div class="code-block">
-        <div class="cap">app.json</div>
-        <pre>"ios": {
-  "supportsTablet": true,
-  "bundleIdentifier": "com.hiddenlab.hiddenreps"
+        <div class="cap">app.json (발췌)</div>
+        <pre>"name": "HiddenReps",
+"version": "1.0.0",
+"ios": {
+  "supportsTablet": false,
+  "bundleIdentifier": "com.hiddenlab.hiddenreps",
+  "infoPlist": { "ITSAppUsesNonExemptEncryption": false }
 },
 "android": {
   "package": "com.hiddenlab.hiddenreps",
-  <span class="cmt">// ...</span>
+  "adaptiveIcon": {
+    "backgroundColor": "#0B0B0E",
+    "foregroundImage": "./assets/android-icon-foreground.png",
+    "backgroundImage": "./assets/android-icon-background.png"
+  }
+},
+"extra": {
+  "eas": { "projectId": "26cd7654-0215-4e26-b32c-0f9aa0d89109" }
 }</pre>
       </div>
-      <p><code>version</code>은 사용자에게 보이는 마케팅 버전 번호입니다 — 업데이트할 때마다 올립니다. 권한 사용 문구(<code>expo-image-picker</code>, <code>expo-media-library</code> 플러그인 설정)는 이미 들어가 있어 별도 작업이 필요 없습니다.</p>
+      <p><code>version</code>(<code>1.0.0</code>)은 사용자에게 보이는 마케팅 버전 번호다 — 업데이트할 때마다 올린다. 빌드 번호/버전 코드는 04단계의 <code>autoIncrement</code> 설정 덕분에 수동으로 관리할 필요가 없다. 카메라·사진·마이크 권한 문구(<code>expo-image-picker</code>, <code>expo-media-library</code> 플러그인 설정)도 이미 들어가 있다.</p>
     </section>
 
     <section id="build">
-      <div class="sec-head"><span class="num">05</span><h2 class="serif">빌드하기 (EAS Build)</h2></div>
-      <p>인증서/키스토어는 EAS가 자동으로 생성·관리합니다. 첫 빌드 시 "Generate new keystore?" 같은 대화형 질문에는 그대로 Yes를 선택하면 됩니다.</p>
+      <div class="sec-head"><span class="num">06</span><h2 class="serif">빌드하기 (EAS Build)</h2></div>
+      <p>인증서/키스토어는 EAS가 자동으로 생성·관리한다. 첫 빌드 시 "Generate new keystore?" 같은 대화형 질문에는 그대로 Yes를 선택하면 된다.</p>
       <div class="code-block">
         <div class="cap">터미널</div>
         <pre><span class="cmt"># iOS 프로덕션 빌드</span>
@@ -574,41 +707,44 @@ npx eas build --platform android --profile production
 npx eas build --platform all --profile production</pre>
       </div>
       <ul>
-        <li>iOS 빌드 중 Apple 계정 로그인을 요구하며, Apple Developer Program 가입이 완료된 계정이어야 합니다. App Store Connect에 앱이 아직 없으면 EAS가 자동으로 만들어주는 옵션도 제공합니다.</li>
-        <li>빌드는 Expo 클라우드 서버에서 진행되며, 완료되면 <code>.ipa</code>(iOS) / <code>.aab</code>(Android) 파일을 터미널과 expo.dev 대시보드에서 확인할 수 있습니다.</li>
-        <li>Free 플랜은 월 빌드 횟수 제한이 있지만, 첫 배포와 몇 번의 재제출에는 충분합니다.</li>
+        <li>iOS 빌드 중 Apple 계정 로그인을 요구하며, Apple Developer Program 가입이 완료된 계정이어야 한다. App Store Connect에 앱이 아직 없으면 EAS가 자동으로 만들어주는 옵션도 제공한다.</li>
+        <li>빌드는 Expo 클라우드 서버에서 진행되며, 완료되면 <code>.ipa</code>(iOS) / <code>.aab</code>(Android) 파일을 터미널과 expo.dev 대시보드에서 확인할 수 있다.</li>
+        <li>Free 플랜은 월 빌드 횟수 제한이 있지만, 첫 배포와 몇 번의 재제출에는 충분하다.</li>
       </ul>
     </section>
 
     <section id="listing" class="wide">
-      <div class="sec-head"><span class="num">06</span><h2 class="serif">스토어 등록 정보 작성</h2></div>
+      <div class="sec-head"><span class="num">07</span><h2 class="serif">스토어 등록 정보 작성</h2></div>
+      <p style="max-width:72ch">Android 쪽은 <code>docs/guides/play-store-listing-copy.md</code>에 이름·짧은 설명·긴 설명·데이터 안전 답변·콘텐츠 등급 답변이 전부 정리되어 있어 Play Console에 그대로 옮기면 된다. iOS는 아직 별도 카피 문서가 없어 아래 항목을 참고해 작성한다.</p>
       <div class="split">
         <div class="platform-card">
           <div class="badge ios">iOS · App Store Connect</div>
           <h4 class="serif">앱 등록</h4>
-          <p>appstoreconnect.apple.com → 나의 앱 → + → 새 앱. 번들 ID는 5단계에서 등록한 값을 선택, SKU는 임의의 고유 문자열.</p>
+          <p>appstoreconnect.apple.com → 나의 앱 → + → 새 앱. 번들 ID는 <code>com.hiddenlab.hiddenreps</code> 선택, SKU는 임의의 고유 문자열.</p>
           <ul>
-            <li>앱 이름 · 부제 · 설명 · 스크린샷(6.7인치 필수)</li>
-            <li>개인정보처리방침 URL</li>
-            <li><strong>App Privacy</strong> — 서버 전송 데이터 없으므로 "수집 없음" 답변 가능. 단 YouTube 영상 재생 기능이 있다면 타사 콘텐츠 데이터 수집 가능성을 명시</li>
+            <li>앱 이름 · 부제 · 설명 · 스크린샷(6.7인치 필수, 02단계에서 준비)</li>
+            <li>개인정보처리방침 URL — <code>https://hiddenliv.github.io/RNProject/</code></li>
+            <li><strong>App Privacy</strong> — 서버 전송 데이터 없으므로 "수집 없음" 답변 가능. 단 YouTube 영상 재생 기능이 있으므로 타사 콘텐츠 데이터 수집 가능성을 명시</li>
             <li>연령 등급 설문, 수출 규정 준수(표준 암호화만 사용 → 예), 광고 식별자 사용 → 아니오</li>
           </ul>
         </div>
         <div class="platform-card">
           <div class="badge aos">Android · Play Console</div>
           <h4 class="serif">앱 등록</h4>
-          <p>Play Console → 앱 만들기. 스토어 등록정보, 개인정보처리방침 URL, 콘텐츠 등급(IARC) 설문을 작성합니다.</p>
+          <p>Play Console → 앱 만들기. <code>play-store-listing-copy.md</code>의 이름·설명을 그대로 붙여넣고, 아이콘(<code>icon-512.png</code>)·피처 그래픽(<code>feature-graphic-1024x500.png</code>)·스크린샷을 업로드.</p>
           <ul>
-            <li><strong>데이터 보안(Data Safety)</strong> 양식 — App Privacy와 동일한 취지, "수집 없음"으로 작성 가능</li>
-            <li>대상 연령층, 광고 포함 여부 → 없음</li>
-            <li><strong>비공개 테스트 트랙을 먼저 설정</strong> — 테스트 → 비공개 테스트 → 트랙 생성 → 테스터 이메일 12명 이상 추가 → 07단계의 <code>.aab</code>를 이 트랙에 먼저 업로드</li>
+            <li>개인정보처리방침 URL — <code>https://hiddenliv.github.io/RNProject/</code></li>
+            <li><strong>데이터 보안(Data Safety)</strong> 양식 — 카피 문서의 표(수집 없음/전송 없음)를 그대로 입력</li>
+            <li><strong>콘텐츠 등급(IARC)</strong> — 카피 문서 답변대로 진행 시 예상 등급 "전체 이용가"</li>
+            <li>대상 연령층 특정 아동 대상 아님, 광고 없음, 인앱 구매 없음</li>
+            <li><strong>비공개 테스트 트랙을 먼저 설정</strong> — 테스트 → 비공개 테스트 → 트랙 생성 → 테스터 이메일 12명 이상 추가 → 08단계의 <code>.aab</code>를 이 트랙에 먼저 업로드</li>
           </ul>
         </div>
       </div>
     </section>
 
     <section id="submit" class="wide">
-      <div class="sec-head"><span class="num">07</span><h2 class="serif">제출하기 (EAS Submit)</h2></div>
+      <div class="sec-head"><span class="num">08</span><h2 class="serif">마켓 제출하기 (EAS Submit)</h2></div>
       <div class="split">
         <div class="platform-card">
           <div class="badge ios">iOS</div>
@@ -618,26 +754,20 @@ npx eas build --platform all --profile production</pre>
   --platform ios \
   --profile production</pre>
           </div>
-          <p>Apple ID 로그인 후 App Store Connect에 자동 업로드됩니다. 업로드 후 App Store Connect에서 <strong>"심사를 위해 제출"</strong> 버튼을 직접 눌러야 실제 심사가 시작됩니다 — EAS submit은 업로드까지만 자동화합니다.</p>
+          <p>Apple ID 로그인 후 App Store Connect에 자동 업로드된다. 업로드 후 App Store Connect에서 <strong>"심사를 위해 제출"</strong> 버튼을 직접 눌러야 실제 심사가 시작된다 — EAS submit은 업로드까지만 자동화한다.</p>
         </div>
         <div class="platform-card">
           <div class="badge aos">Android</div>
-          <p>자동 제출을 위해 <strong>서비스 계정(Service Account) JSON 키</strong>가 필요합니다.</p>
+          <p>자동 제출을 위해 <strong>서비스 계정(Service Account) JSON 키</strong>가 필요하다. 현재 이 저장소에는 아직 발급되어 있지 않다 (<code>.gitignore</code>에 <code>google-service-account*.json</code> 패턴만 미리 등록된 상태).</p>
           <ol>
-            <li>Play Console → 설정 → API 액세스 → 새 서비스 계정 만들기</li>
-            <li>발급된 JSON 키를 저장 (<code>.gitignore</code>에 추가, 절대 커밋 금지)</li>
-            <li><code>eas.json</code>에 경로 지정 후 아래 명령 실행</li>
+            <li>Play Console → 설정 → API 액세스 → 새 서비스 계정 만들기 (Google Cloud Console 연동)</li>
+            <li>발급된 JSON 키를 프로젝트 루트에 저장 (예: <code>google-service-account.json</code>) — 이미 <code>.gitignore</code>에 등록되어 있어 실수로 커밋될 위험은 없음</li>
+            <li><code>eas.json</code>의 <code>submit.production</code>을 아래처럼 채워 넣는다</li>
           </ol>
-          <div class="code-block">
-            <div class="cap">터미널</div>
-            <pre>npx eas submit \
-  --platform android \
-  --profile production</pre>
-          </div>
         </div>
       </div>
       <div class="code-block" style="max-width:72ch">
-        <div class="cap">eas.json — submit 설정</div>
+        <div class="cap">eas.json — submit 설정 (채워 넣을 값)</div>
         <pre>"submit": {
   "production": {
     "android": {
@@ -647,42 +777,47 @@ npx eas build --platform all --profile production</pre>
   }
 }</pre>
       </div>
-      <p style="max-width:72ch">처음에는 <code>track</code>을 <code>internal</code> 또는 <code>alpha</code>(비공개 테스트)로 지정해 14일 테스트를 먼저 진행하고, 요건 충족 후 Play Console에서 프로덕션으로 승격합니다.</p>
+      <div class="code-block" style="max-width:72ch">
+        <div class="cap">터미널</div>
+        <pre>npx eas submit --platform android --profile production</pre>
+      </div>
+      <p style="max-width:72ch">처음에는 <code>track</code>을 <code>internal</code> 또는 <code>alpha</code>(비공개 테스트)로 지정해 14일 테스트를 먼저 진행하고, 09단계의 요건(테스터 12명, 14일 연속)을 충족한 뒤 Play Console에서 프로덕션으로 승격한다.</p>
     </section>
 
     <section id="review">
-      <div class="sec-head"><span class="num">08</span><h2 class="serif">심사 및 배포</h2></div>
+      <div class="sec-head"><span class="num">09</span><h2 class="serif">심사 및 배포</h2></div>
       <ul>
-        <li><strong>iOS</strong> — 보통 24~48시간 내 결과. 반려 시 App Store Connect의 "Resolution Center"에 사유가 명시되며, 수정 후 재제출합니다.</li>
-        <li><strong>Android</strong> — 신규 계정 첫 앱은 폐쇄 테스트 14일(2단계 참고) + 심사 며칠. 이후 업데이트 심사는 보통 몇 시간~수일.</li>
+        <li><strong>iOS</strong> — 보통 24~48시간 내 결과. 반려 시 App Store Connect의 "Resolution Center"에 사유가 명시되며, 수정 후 재제출한다.</li>
+        <li><strong>Android</strong> — 신규 계정 첫 앱은 폐쇄 테스트 14일(03단계 참고) + 심사 며칠. 이후 업데이트 심사는 보통 몇 시간~수일.</li>
       </ul>
-      <p>두 곳 다 첫 심사가 가장 오래 걸리고, 이후 업데이트는 훨씬 빠릅니다.</p>
+      <p>두 곳 다 첫 심사가 가장 오래 걸리고, 이후 업데이트는 훨씬 빠르다.</p>
     </section>
 
     <section id="updates">
-      <div class="sec-head"><span class="num">09</span><h2 class="serif">이후 업데이트 배포 방법</h2></div>
+      <div class="sec-head"><span class="num">10</span><h2 class="serif">이후 업데이트 배포 방법</h2></div>
       <h3 class="sub-head">네이티브 재빌드가 필요한 변경</h3>
-      <p>새 네이티브 모듈 추가, 권한 추가, Expo SDK 업그레이드 등 — <code>app.json</code>에서 버전을 올리고 <code>eas build</code> → <code>eas submit</code>을 그대로 반복합니다.</p>
+      <p>새 네이티브 모듈 추가, 권한 추가, Expo SDK 업그레이드 등 — <code>app.json</code>에서 버전을 올리고 <code>eas build</code> → <code>eas submit</code>을 그대로 반복한다.</p>
       <h3 class="sub-head">JS/TS 코드·에셋만 바뀐 경우</h3>
-      <p>EAS Update로 스토어 재심사 없이 즉시 배포할 수 있습니다.</p>
+      <p>EAS Update로 스토어 재심사 없이 즉시 배포할 수 있다.</p>
       <div class="code-block">
         <div class="cap">터미널</div>
         <pre>npx eas update --branch production --message "설명"</pre>
       </div>
-      <p>앱을 이미 설치한 사용자는 다음 실행 시 자동으로 최신 JS 번들을 받습니다. 단, 최초 배포에는 해당하지 않습니다 — 스토어 제출이 반드시 먼저 필요합니다.</p>
+      <p>앱을 이미 설치한 사용자는 다음 실행 시 자동으로 최신 JS 번들을 받는다. 단, 최초 배포에는 해당하지 않는다 — 스토어 제출이 반드시 먼저 필요하다.</p>
     </section>
 
     <section id="checklist" class="wide">
-      <div class="sec-head"><span class="num">10</span><h2 class="serif">지금 바로 처리해야 할 체크리스트</h2></div>
+      <div class="sec-head"><span class="num">11</span><h2 class="serif">지금 실제로 남은 체크리스트</h2></div>
+      <p style="max-width:72ch">식별자·개인정보처리방침·아이콘·등록 카피 등 저장소 안에서 끝낼 수 있는 자료 준비는 이미 완료됐다(01단계 참고). 아래는 저장소 밖에서, 또는 실제 실행이 필요한 남은 작업만 추린 것이다.</p>
       <div class="cl-progress" id="cl-progress">0 / 7 완료</div>
       <div class="checklist" id="checklist">
-        <label class="cl-item"><input type="checkbox" data-key="bundle"><span>app.json의 ios.bundleIdentifier / android.package를 com.anonymous.timecheck에서 최종 식별자로 변경 (1.1)</span></label>
-        <label class="cl-item"><input type="checkbox" data-key="privacy"><span>개인정보처리방침 페이지 작성 및 호스팅 (1.3)</span></label>
-        <label class="cl-item"><input type="checkbox" data-key="easconfigure"><span>npx eas build:configure로 eas.json 생성 (03)</span></label>
-        <label class="cl-item"><input type="checkbox" data-key="autoincrement"><span>eas.json에 appVersionSource: "remote" + autoIncrement 설정 (03)</span></label>
-        <label class="cl-item"><input type="checkbox" data-key="accounts"><span>Expo / Apple Developer / Google Play 계정 3개 가입 (02)</span></label>
-        <label class="cl-item"><input type="checkbox" data-key="screenshots"><span>스크린샷 소재 촬영 — iOS 6.7인치, Android 폰 (1.4)</span></label>
-        <label class="cl-item"><input type="checkbox" data-key="testers"><span>Android 비공개 테스트용 테스터 12명 이메일 확보 (06)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="apple-account"><span>Apple Developer Program 가입 여부 확인 (03)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="google-account"><span>Google Play Console 가입 · $25 결제 여부 확인 (03)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="service-account"><span>Google Play 서비스 계정 JSON 발급 후 eas.json submit.production.android에 연결 (08)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="ios-screenshots"><span>iOS 6.7인치 스크린샷 캡처 (02)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="testers"><span>Android 비공개 테스트용 테스터 12명 이메일 확보 (07)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="build"><span>eas build --platform all --profile production 실행 (06)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="submit"><span>Play Console 등록정보 입력 후 비공개 테스트 트랙에 첫 업로드 (07, 08)</span></label>
       </div>
       <button class="cl-reset" id="cl-reset">체크 초기화</button>
     </section>
@@ -695,6 +830,8 @@ npx eas build --platform all --profile production</pre>
         <div><span class="l-label">Apple Developer Program 가입</span> — <a href="https://developer.apple.com/programs/enroll/" target="_blank" rel="noopener">developer.apple.com/programs/enroll</a></div>
         <div><span class="l-label">Google Play Console 가입</span> — <a href="https://play.google.com/console/signup" target="_blank" rel="noopener">play.google.com/console/signup</a></div>
         <div><span class="l-label">Google Play 신규 계정 테스트 요건</span> — <a href="https://support.google.com/googleplay/android-developer/answer/14151465" target="_blank" rel="noopener">support.google.com/googleplay/android-developer/answer/14151465</a></div>
+        <div><span class="l-label">개인정보처리방침 (배포됨)</span> — <a href="https://hiddenliv.github.io/RNProject/" target="_blank" rel="noopener">hiddenliv.github.io/RNProject</a></div>
+        <div><span class="l-label">Play 등록 카피 원본</span> — <code>docs/guides/play-store-listing-copy.md</code></div>
       </div>
     </section>
 
@@ -704,7 +841,7 @@ npx eas build --platform all --profile production</pre>
 
 <script>
   (function () {
-    var STORAGE_KEY = "exercise-diary-deploy-checklist";
+    var STORAGE_KEY = "exercise-diary-deploy-checklist-v2";
     var items = Array.prototype.slice.call(document.querySelectorAll("#checklist input[type=checkbox]"));
     var progressEl = document.getElementById("cl-progress");
 
