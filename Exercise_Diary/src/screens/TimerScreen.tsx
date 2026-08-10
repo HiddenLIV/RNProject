@@ -344,7 +344,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
             <Pressable
               style={[
                 styles.adjustButton,
-                { backgroundColor: accent.primarySoft },
+                { borderColor: accent.accent },
                 pending.durationMs < MIN_RECORD_MS && styles.adjustButtonDisabled,
               ]}
               onPress={() => adjustPending(-1000)}
@@ -352,7 +352,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
             >
               <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.minusOneSecond}</Text>
             </Pressable>
-            <Pressable style={[styles.adjustButton, { backgroundColor: accent.primarySoft }]} onPress={() => adjustPending(1000)}>
+            <Pressable style={[styles.adjustButton, { borderColor: accent.accent }]} onPress={() => adjustPending(1000)}>
               <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.plusOneSecond}</Text>
             </Pressable>
           </View>
@@ -441,6 +441,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md + 4,
     paddingVertical: spacing.sm + 2,
     borderRadius: radius.pill,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
