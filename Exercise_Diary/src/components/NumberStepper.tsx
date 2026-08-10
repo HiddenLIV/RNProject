@@ -72,7 +72,7 @@ export default function NumberStepper({
       {label !== '' && <Text style={[styles.label, { color: accent.textMuted }]}>{label}</Text>}
       <View style={[styles.controls, compact && styles.controlsCompact]}>
         <Pressable
-          style={[styles.button, { backgroundColor: accent.primarySoft }, compact && styles.buttonCompact]}
+          style={[styles.button, { borderColor: accent.primary }, compact && styles.buttonCompact]}
           onPress={decrease}
           hitSlop={4}
         >
@@ -109,7 +109,7 @@ export default function NumberStepper({
           </Pressable>
         )}
         <Pressable
-          style={[styles.button, { backgroundColor: accent.primarySoft }, compact && styles.buttonCompact]}
+          style={[styles.button, { borderColor: accent.primary }, compact && styles.buttonCompact]}
           onPress={increase}
           hitSlop={4}
         >
@@ -147,12 +147,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: radius.pill,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonCompact: {
     width: 28,
     height: 28,
+    borderWidth: 1,
   },
   value: {
     fontSize: fontSize.base,
