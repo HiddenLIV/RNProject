@@ -1,7 +1,4 @@
-import { AudioPlayer, createAudioPlayer } from 'expo-audio';
-import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
-import { useEffect, useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
 import Text from '../components/AppText';
 import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
@@ -9,44 +6,27 @@ import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import TimeDisplay from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
-import { speakCountdown, speakSecond, speakStart, stopFeedback } from '../lib/feedback';
+import { speakCountdown, speakSecond, speakStart } from '../lib/feedback';
 import { useLanguage, useTranslation } from '../lib/i18n';
-import {
-  addRecord,
-  createId,
-  getSettings,
-  getVoiceGuideEnabled,
-  removeRecord,
-  saveSettings,
-  setVoiceGuideEnabled,
-  updateRecord,
-} from '../lib/storage';
 import {
   BELL_INTERVAL_MAX_SECONDS,
   BELL_INTERVAL_MIN_SECONDS,
   BELL_INTERVAL_STEP_SECONDS,
   COUNTDOWN_MAX_SECONDS,
   COUNTDOWN_MIN_SECONDS,
-  DEFAULT_SETTINGS,
   Exercise,
-  Settings,
-  VideoRef,
 } from '../lib/types';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { useAccentColors } from '../lib/ThemeContext';
+import { useAudioFocusHolder } from '../lib/useAudioFocusHolder';
 import { useHangTimer } from '../lib/useHangTimer';
-import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from '../lib/video';
+import { useKeepAwakeWhileActive } from '../lib/useKeepAwakeWhileActive';
+import { useMotivationalQuote } from '../lib/useMotivationalQuote';
+import { useTimerAudio } from '../lib/useTimerAudio';
+import { useTimerResult, MIN_RECORD_MS } from '../lib/useTimerResult';
+import { useTimerSettings } from '../lib/useTimerSettings';
+import { useVideoCapture } from '../lib/useVideoCapture';
 import { buttonShadowShape, fontSize, radius, spacing } from '../theme';
-
-// 1초 미만 정지는 오조작으로 보고 기록하지 않는다
-const MIN_RECORD_MS = 1000;
-
-type PendingResult = {
-  // 1초 이상이 되어 실제로 저장된 적이 있으면 그 기록의 id, 아직 저장 대상이 아니면 null
-  id: string | null;
-  durationMs: number;
-  measuredAt: string; // 정지 시각(ISO) — 보정 중 시간이 흘러도 측정 일시는 그대로 유지
-};
 
 type Props = {
   exercise: Exercise;
@@ -57,57 +37,15 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const language = useLanguage();
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
-  useEffect(() => {
-    getSettings(exercise.id).then(setSettings);
-  }, [exercise.id]);
-
-  const updateSettings = (patch: Partial<Settings>) => {
-    setSettings((prev) => {
-      const next = { ...prev, ...patch };
-      saveSettings(exercise.id, next);
-      return next;
-    });
-  };
-
-  // 운동별 설정과 달리 앱 전체에 공통으로 적용되는 값이라 exercise.id와 무관하게 한 번만 읽는다.
-  const [voiceGuideEnabled, setVoiceGuideEnabledState] = useState(true);
-
-  useEffect(() => {
-    getVoiceGuideEnabled().then(setVoiceGuideEnabledState);
-  }, []);
-
-  const handleVoiceGuideToggle = (value: boolean) => {
-    setVoiceGuideEnabledState(value); // 화면엔 즉시 반영
-    setVoiceGuideEnabled(value); // 저장은 백그라운드 — 실패해도 사용자에게 노출하지 않음
-  };
-
-  // 공유 플레이어를 pause/seek로 재사용하면 안드로이드(삼성)에서 첫 재생의
-  // AudioTrack이 열리지 않아 무음이 되는 문제가 있다(logcat으로 확인).
-  // 벨마다 새 플레이어를 만들어 재생하고 이전 것은 해제한다.
-  const bellRef = useRef<AudioPlayer | null>(null);
-
-  const releaseBell = () => {
-    bellRef.current?.release();
-    bellRef.current = null;
-  };
-
-  const playBellSound = () => {
-    releaseBell();
-    const player = createAudioPlayer(require('../../assets/sounds/bell.wav'));
-    bellRef.current = player;
-    player.play();
-  };
-
-  // 화면 이탈(홈·기록 탭 이동) 시 진행 중이던 음성·벨을 즉시 중단한다
-  useEffect(
-    () => () => {
-      stopFeedback();
-      releaseBell();
-    },
-    []
-  );
+  const { settings, updateSettings, voiceGuideEnabled, onVoiceGuideToggle } = useTimerSettings(exercise.id);
+  const video = useVideoCapture({
+    captureFailedTitle: t.timer.captureFailedTitle,
+    captureFailedBody: t.timer.captureFailedBody,
+    permissionFailedBody: t.timer.permissionFailedBody,
+  });
+  const result = useTimerResult(exercise.id);
+  const timerAudio = useTimerAudio();
 
   const timer = useHangTimer({
     onCountdownSecond: (remainingSec) => {
@@ -118,172 +56,43 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
     },
     onMeasureSecond: (second) => {
       if (second % settings.bellIntervalSeconds === 0) {
-        playBellSound(); // 음성 안내 토글과 무관하게 항상 울린다
+        timerAudio.playBellSound(); // 음성 안내 토글과 무관하게 항상 울린다
       } else if (voiceGuideEnabled) {
         speakSecond(second, language);
       }
     },
   });
 
-  // 측정 중 3초마다 동기부여 문구를 랜덤 교체 (직전 문구는 반복하지 않음)
-  const [quote, setQuote] = useState('');
-  useEffect(() => {
-    if (timer.phase !== 'running') return;
-    const quotes = t.quotes;
-    const pickNext = (prev: string) => {
-      if (quotes.length < 2) return quotes[0] ?? '';
-      let next = prev;
-      while (next === prev) {
-        next = quotes[Math.floor(Math.random() * quotes.length)];
-      }
-      return next;
-    };
-    setQuote((prev) => pickNext(prev));
-    const id = setInterval(() => setQuote((prev) => pickNext(prev)), 3000);
-    return () => clearInterval(id);
-  }, [timer.phase]);
-
-  // 측정·카운트다운 중 화면이 자동 잠금되면 JS 타이머가 멈춰 음성·벨이 끊기므로 화면을 깨워 둔다
   const isMeasuring = timer.phase === 'countdown' || timer.phase === 'running';
-  useEffect(() => {
-    if (!isMeasuring) return;
-    activateKeepAwakeAsync();
-    return () => {
-      deactivateKeepAwake();
-    };
-  }, [isMeasuring]);
-
-  // 측정 중 무음 루프를 재생해 오디오 포커스를 계속 점유한다 —
-  // doNotMix 모드와 함께 다른 앱의 음악·영상이 측정 시작 시 일시정지되고 측정 내내 재개되지 않는다
-  useEffect(() => {
-    if (!isMeasuring) return;
-    const holder = createAudioPlayer(require('../../assets/sounds/silence.wav'));
-    holder.loop = true;
-    holder.play();
-    return () => {
-      holder.release();
-    };
-  }, [isMeasuring]);
-
-  const stopAllSound = () => {
-    stopFeedback();
-    releaseBell();
-  };
+  useKeepAwakeWhileActive(isMeasuring);
+  useAudioFocusHolder(isMeasuring);
+  const quote = useMotivationalQuote(timer.phase === 'running', t.quotes);
 
   const handleCancel = () => {
     timer.cancel();
-    stopAllSound();
+    timerAudio.stopAllSound();
   };
-
-  // 촬영한 영상 참조 — 이번 세션(다시 시작·메인으로 나가기 전까지) 동안 유효하다.
-  // 촬영은 idle 단계에서만 가능하므로(측정 시작 전에만 촬영 버튼이 보임), 정지 시점
-  // (handleStop)에 기록을 만들 때 이 값을 함께 실어 저장한다.
-  const [capturedVideo, setCapturedVideo] = useState<VideoRef | null>(null);
-  const [viewingVideo, setViewingVideo] = useState(false);
-  const [permissionModal, setPermissionModal] = useState<PermissionState | null>(null);
-  const [videoBusy, setVideoBusy] = useState(false);
-
-  const runCapture = async () => {
-    try {
-      const result = await captureExerciseVideo();
-      if (result.status !== 'saved') return;
-      setCapturedVideo(result.ref);
-    } catch {
-      Alert.alert(t.timer.captureFailedTitle, t.timer.captureFailedBody);
-    } finally {
-      setVideoBusy(false);
-    }
-  };
-
-  const handleCapturePress = async () => {
-    if (videoBusy) return; // 연타 방지 — 권한 확인 중에도 이미 처리 중으로 간주한다
-    setVideoBusy(true);
-    try {
-      const state = await getVideoPermissionState();
-      if (state !== 'granted') {
-        setPermissionModal(state);
-        return;
-      }
-      await runCapture();
-    } catch {
-      Alert.alert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
-    } finally {
-      // runCapture가 실행됐다면 이미 false로 되돌려놨겠지만, 권한 확인 자체가
-      // 실패한 경우를 대비해 여기서도 항상 풀어준다.
-      setVideoBusy(false);
-    }
-  };
-
-  const handleGrantPermission = async () => {
-    setVideoBusy(true);
-    try {
-      const granted = await requestVideoPermissions();
-      if (!granted) {
-        setPermissionModal(await getVideoPermissionState());
-        return;
-      }
-      setPermissionModal(null);
-      await runCapture();
-    } catch {
-      Alert.alert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
-    } finally {
-      setVideoBusy(false);
-    }
-  };
-
-  const handleOpenSettings = () => {
-    setPermissionModal(null);
-    Linking.openSettings();
-  };
-
-  // 1초 이상이 되는 순간 즉시 저장하고, 이후 보정(±1초)마다 그 기록을 계속 갱신한다 —
-  // 메모리에만 있는 "아직 저장 안 된" 구간을 최소화해 앱이 백그라운드에서 종료돼도
-  // 직전까지 보정한 값이 이미 기기에 남아있게 한다.
-  const [pending, setPending] = useState<PendingResult | null>(null);
 
   const handleStop = () => {
     const durationMs = timer.stop();
-    stopAllSound();
+    timerAudio.stopAllSound();
     if (durationMs == null) return;
-    const measuredAt = new Date().toISOString();
-    if (durationMs >= MIN_RECORD_MS) {
-      const id = createId();
-      addRecord(exercise.id, { id, measuredAt, durationMs, videoRef: capturedVideo ?? undefined });
-      setPending({ id, durationMs, measuredAt });
-    } else {
-      setPending({ id: null, durationMs, measuredAt });
-    }
-  };
-
-  const adjustPending = (deltaMs: number) => {
-    if (!pending) return;
-    const durationMs = Math.max(0, pending.durationMs + deltaMs);
-    if (durationMs >= MIN_RECORD_MS) {
-      if (pending.id) {
-        updateRecord(exercise.id, pending.id, { durationMs });
-        setPending({ ...pending, durationMs });
-      } else {
-        const id = createId();
-        addRecord(exercise.id, { id, measuredAt: pending.measuredAt, durationMs, videoRef: capturedVideo ?? undefined });
-        setPending({ ...pending, id, durationMs });
-      }
-    } else {
-      if (pending.id) removeRecord(exercise.id, pending.id);
-      setPending({ ...pending, id: null, durationMs });
-    }
+    result.save(durationMs, video.capturedVideo ?? undefined);
   };
 
   const handleRestart = () => {
-    setCapturedVideo(null);
-    setPending(null);
+    video.resetCapturedVideo();
+    result.reset();
     timer.start(settings.countdownSeconds);
   };
 
   const handleGoMain = () => {
-    setCapturedVideo(null);
-    setPending(null);
+    video.resetCapturedVideo();
+    result.reset();
     timer.reset();
   };
+
+  const pending = result.pending;
 
   return (
     <KeyboardAvoidingView
@@ -302,10 +111,10 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
               onGuideVideoChange={onGuideVideoChange}
             />
             <CaptureVideoRow
-              capturedAssetId={capturedVideo?.assetId}
-              busy={videoBusy}
-              onCapture={handleCapturePress}
-              onViewCaptured={() => setViewingVideo(true)}
+              capturedAssetId={video.capturedVideo?.assetId}
+              busy={video.busy}
+              onCapture={video.handleCapturePress}
+              onViewCaptured={() => video.setViewingVideo(true)}
             />
           </View>
           <View style={[styles.settings, { backgroundColor: accent.card }]}>
@@ -331,7 +140,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
               <Text style={[styles.voiceGuideLabel, { color: accent.textMuted }]}>{t.timer.voiceGuideLabel}</Text>
               <Switch
                 value={voiceGuideEnabled}
-                onValueChange={handleVoiceGuideToggle}
+                onValueChange={onVoiceGuideToggle}
                 trackColor={{ true: accent.primary, false: accent.border }}
               />
             </View>
@@ -380,17 +189,20 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
                 { borderColor: accent.accent },
                 pending.durationMs < MIN_RECORD_MS && styles.adjustButtonDisabled,
               ]}
-              onPress={() => adjustPending(-1000)}
+              onPress={() => result.adjust(-1000, video.capturedVideo ?? undefined)}
               disabled={pending.durationMs < MIN_RECORD_MS}
             >
               <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.minusOneSecond}</Text>
             </Pressable>
-            <Pressable style={[styles.adjustButton, { borderColor: accent.accent }]} onPress={() => adjustPending(1000)}>
+            <Pressable
+              style={[styles.adjustButton, { borderColor: accent.accent }]}
+              onPress={() => result.adjust(1000, video.capturedVideo ?? undefined)}
+            >
               <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.plusOneSecond}</Text>
             </Pressable>
           </View>
-          {capturedVideo && (
-            <CaptureVideoRow capturedAssetId={capturedVideo.assetId} onViewCaptured={() => setViewingVideo(true)} />
+          {video.capturedVideo && (
+            <CaptureVideoRow capturedAssetId={video.capturedVideo.assetId} onViewCaptured={() => video.setViewingVideo(true)} />
           )}
           {pending.durationMs < MIN_RECORD_MS && (
             <Text style={[styles.notSaved, { color: accent.textFaint }]}>{t.timer.notSavedNotice}</Text>
@@ -418,12 +230,15 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
       </View>
 
       <CameraPermissionModal
-        state={permissionModal}
-        onGrant={handleGrantPermission}
-        onOpenSettings={handleOpenSettings}
-        onClose={() => setPermissionModal(null)}
+        state={video.permissionModal}
+        onGrant={video.handleGrantPermission}
+        onOpenSettings={video.handleOpenSettings}
+        onClose={video.closePermissionModal}
       />
-      <VideoPlayerModal assetId={viewingVideo ? capturedVideo?.assetId ?? null : null} onClose={() => setViewingVideo(false)} />
+      <VideoPlayerModal
+        assetId={video.viewingVideo ? video.capturedVideo?.assetId ?? null : null}
+        onClose={() => video.setViewingVideo(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
