@@ -34,7 +34,7 @@ export default function ExerciseScreen({ exercise, onBack }: Props) {
   return (
     <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={onBack} hitSlop={8}>
+        <Pressable style={styles.backButton} onPress={onBack} hitSlop={8} accessibilityLabel={t.common.back}>
           <Ionicons name="chevron-back" size={26} color={accent.primaryText} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: accent.text }]}>{getExerciseDisplayName(exerciseState, t)}</Text>

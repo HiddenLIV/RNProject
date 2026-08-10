@@ -166,9 +166,9 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
           <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.reps.currentSetLabel}</Text>
           <View style={styles.currentEntryRow}>
             {exercise.usesWeight && (
-              <View style={styles.weightField}>
+              <View style={[styles.weightField, { borderColor: accent.primary }]}>
                 <TextInput
-                  style={[styles.weightInput, { borderBottomColor: accent.border, color: accent.text }]}
+                  style={[styles.weightInput, { color: accent.text }]}
                   value={currentWeightText}
                   onChangeText={(weightText) => {
                     setJustSaved(false);
@@ -341,23 +341,30 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     fontVariant: ['tabular-nums'],
   },
+  // 옆에 나란히 오는 횟수 스테퍼(48px 원형 버튼)와 시각적 무게가 비슷하도록, 테두리 없는
+  // 밑줄 텍스트 대신 같은 높이의 알약형 박스로 감싼다.
   weightField: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 4,
+    height: 48,
+    minWidth: 76,
+    paddingHorizontal: spacing.sm,
+    borderWidth: 1.5,
+    borderRadius: radius.pill,
   },
   weightInput: {
-    minWidth: 44,
-    borderWidth: 0,
-    borderBottomWidth: 1.5,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 4,
-    fontSize: fontSize.base,
+    minWidth: 28,
+    padding: 0,
+    fontSize: fontSize.lg,
+    fontWeight: '700',
     textAlign: 'center',
     fontVariant: ['tabular-nums'],
   },
   weightUnit: {
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
+    fontWeight: '600',
   },
   removeButton: {
     alignItems: 'center',

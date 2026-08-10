@@ -153,7 +153,7 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
   return (
     <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={onBack} hitSlop={8}>
+        <Pressable style={styles.backButton} onPress={onBack} hitSlop={8} accessibilityLabel={t.common.back}>
           <Ionicons name="chevron-back" size={26} color={accent.primaryText} />
         </Pressable>
         <Text style={[styles.headerTitle, { color: accent.text }]}>{t.addExercise.headerTitle}</Text>
@@ -285,7 +285,10 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
                   { borderColor: accent.border, backgroundColor: accent.background },
                   measureType === 'reps' && segmentSelectedStyle,
                 ]}
-                onPress={() => setMeasureType('reps')}
+                onPress={() => {
+                  setMeasureType('reps');
+                  setUsesWeight(true); // 횟수·세트를 직접 고르면 무게 기록을 기본으로 켠다
+                }}
               >
                 <Text
                   style={[

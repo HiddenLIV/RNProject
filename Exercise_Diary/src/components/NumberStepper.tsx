@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Text from './AppText';
+import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { fontSize, radius, spacing } from '../theme';
 
@@ -33,8 +34,12 @@ export default function NumberStepper({
   onChange,
 }: Props) {
   const accent = useAccentColors();
+  const t = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  // label이 없는(compact) 경우엔 unit("회" 등)을 대신 설명어로 써 스크린리더에서
+  // 그냥 "감소"/"증가"만 읽히는 것을 피한다.
+  const descriptor = label || unit;
 
   const decrease = () => {
     if (value > min) onChange(Math.max(min, value - step));
@@ -75,6 +80,7 @@ export default function NumberStepper({
           style={[styles.button, { borderColor: accent.primary }, compact && styles.buttonCompact]}
           onPress={decrease}
           hitSlop={4}
+          accessibilityLabel={t.common.decreaseAccessibility(descriptor)}
         >
           <Ionicons name="remove" size={compact ? 15 : 20} color={accent.primary} />
         </Pressable>
@@ -112,6 +118,7 @@ export default function NumberStepper({
           style={[styles.button, { borderColor: accent.primary }, compact && styles.buttonCompact]}
           onPress={increase}
           hitSlop={4}
+          accessibilityLabel={t.common.increaseAccessibility(descriptor)}
         >
           <Ionicons name="add" size={compact ? 15 : 20} color={accent.primary} />
         </Pressable>
@@ -157,7 +164,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   value: {
-    fontSize: fontSize.base,
+    // 버튼 안 아이콘(20px)과 나란히 놓였을 때 값 텍스트가 상대적으로 작아 보이지 않도록
+    // fontSize.base(16)보다 한 단계 키운다.
+    fontSize: fontSize.lg,
     fontWeight: '700',
     minWidth: 52,
     textAlign: 'center',
