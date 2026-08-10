@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
+  LayoutAnimation,
   Modal,
   Platform,
   Pressable,
@@ -47,6 +50,8 @@ export default function EditExerciseModal({
 }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const videoLinkFocusedRef = useRef(false);
   const [name, setName] = useState('');
   const [icon, setIcon] = useState<Exercise['icon']>(CUSTOM_ICON_CHOICES[0]);
   const [measureType, setMeasureType] = useState<MeasureType>('time');
@@ -54,6 +59,7 @@ export default function EditExerciseModal({
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg');
   const [videoLinkText, setVideoLinkText] = useState('');
   const [error, setError] = useState('');
+  const [iconPickerExpanded, setIconPickerExpanded] = useState(false);
 
   useEffect(() => {
     if (exercise) {
@@ -64,6 +70,7 @@ export default function EditExerciseModal({
       setWeightUnit(exercise.weightUnit ?? 'kg');
       setVideoLinkText(exercise.guideVideoId ? `https://youtu.be/${exercise.guideVideoId}` : '');
       setError('');
+      setIconPickerExpanded(false);
     }
   }, [exercise]);
 
@@ -76,6 +83,19 @@ export default function EditExerciseModal({
       onConsumeSharedVideoLink?.();
     }
   }, [exercise, sharedVideoLink, videoLinkText, onConsumeSharedVideoLink]);
+
+  useEffect(() => {
+    // 맨 아래 있는 유튜브 링크 인풋에 포커스가 가 있는 동안만, 키보드가 다 올라와
+    // 뷰포트 리사이즈가 끝난 뒤(포커스 시점엔 아직 안 끝나 있어 바로 스크롤하면 위치가 어긋난다)
+    // 화면을 끝까지 내려 인풋이 키보드에 가리지 않게 한다. 이름 인풋 등 위쪽 필드는 대상 아님.
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const subscription = Keyboard.addListener(showEvent, () => {
+      if (videoLinkFocusedRef.current) {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   if (!exercise) return null;
 
@@ -142,9 +162,10 @@ export default function EditExerciseModal({
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[styles.card, { backgroundColor: accent.background, borderColor: accent.primary }]}>
           <ScrollView
+            ref={scrollViewRef}
             contentContainerStyle={styles.cardContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -162,26 +183,47 @@ export default function EditExerciseModal({
               autoFocus
             />
 
-            <View style={styles.iconGrid}>
-              {ICON_CHOICES.map((choice) => {
-                const selected = icon === choice;
-                return (
-                  <Pressable
-                    key={choice}
-                    style={[
-                      styles.iconChoice,
-                      selected
-                        ? { backgroundColor: accent.primary, borderColor: accent.primary }
-                        : { backgroundColor: 'transparent', borderColor: accent.primary },
-                    ]}
-                    onPress={() => setIcon(choice)}
-                    accessibilityLabel={t.addExercise.iconChoiceAccessibility}
-                  >
-                    <ExerciseIcon icon={choice} size={20} color={selected ? accent.onPrimary : accent.primary} />
-                  </Pressable>
-                );
-              })}
-            </View>
+            <Pressable
+              style={styles.iconToggleRow}
+              onPress={() => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                setIconPickerExpanded((v) => !v);
+              }}
+            >
+              <View style={styles.iconToggleLeft}>
+                <View style={[styles.iconPreviewBadge, { backgroundColor: accent.primary, borderColor: accent.primary }]}>
+                  <ExerciseIcon icon={icon} size={18} color={accent.onPrimary} />
+                </View>
+                <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.addExercise.iconChoiceAccessibility}</Text>
+              </View>
+              <Ionicons name={iconPickerExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={accent.textMuted} />
+            </Pressable>
+            {iconPickerExpanded && (
+              <View style={styles.iconGrid}>
+                {ICON_CHOICES.map((choice) => {
+                  const selected = icon === choice;
+                  return (
+                    <Pressable
+                      key={choice}
+                      style={[
+                        styles.iconChoice,
+                        selected
+                          ? { backgroundColor: accent.primary, borderColor: accent.primary }
+                          : { backgroundColor: 'transparent', borderColor: accent.primary },
+                      ]}
+                      onPress={() => {
+                        setIcon(choice);
+                        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                        setIconPickerExpanded(false);
+                      }}
+                      accessibilityLabel={t.addExercise.iconChoiceAccessibility}
+                    >
+                      <ExerciseIcon icon={choice} size={20} color={selected ? accent.onPrimary : accent.primary} />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
 
             <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.addExercise.measureTypeSectionLabel}</Text>
             <View style={styles.segmentRow}>
@@ -236,6 +278,17 @@ export default function EditExerciseModal({
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
+              onFocus={() => {
+                videoLinkFocusedRef.current = true;
+                // 다른 인풋(이름 등)에서 이미 키보드가 떠 있는 상태로 여기로 포커스만 옮기면
+                // 키보드 show/hide 전환이 없어 keyboardDidShow가 안 터진다 — 그 경우를 위해
+                // 포커스 시점에도 한 번 스크롤한다(키보드가 새로 올라오는 경우엔 이 호출이
+                // 리사이즈 전이라 부족해도, 뒤이은 keyboardDidShow가 다시 보정해준다).
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }}
+              onBlur={() => {
+                videoLinkFocusedRef.current = false;
+              }}
             />
 
             {measureType === 'reps' && (
@@ -338,9 +391,28 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     fontWeight: '700',
   },
+  iconToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  iconToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  iconPreviewBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   iconGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: spacing.sm,
   },
   iconChoice: {
