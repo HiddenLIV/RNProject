@@ -9,4 +9,5 @@ export const HELP_SECTION_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
   'videocam-outline',
   'play-circle-outline',
   'create-outline',
+  'cloud-outline',
 ];

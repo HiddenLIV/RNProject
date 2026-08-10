@@ -7,7 +7,6 @@ import EditExerciseModal from '../components/EditExerciseModal';
 import ExerciseIcon from '../components/ExerciseIcon';
 import HelpModal from '../components/HelpModal';
 import MeasureTypeTag from '../components/MeasureTypeTag';
-import OnboardingModal from '../components/OnboardingModal';
 import ThemeSwatchRow from '../components/ThemeSwatchRow';
 import Toast from '../components/Toast';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
@@ -37,13 +36,10 @@ export default function HomeScreen({
   const [searchQuery, setSearchQuery] = useState('');
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [helpVisible, setHelpVisible] = useState(false);
-  const [onboardingVisible, setOnboardingVisible] = useState(false);
   const [backupVisible, setBackupVisible] = useState(false);
   const [restoreToastVisible, setRestoreToastVisible] = useState(false);
-  // 온보딩을 도움말 안의 "다시보기"로 열었는지 — 닫을 때 도움말로 돌아가야 하는지 판단에 쓴다.
-  const [onboardingReplay, setOnboardingReplay] = useState(false);
-  // 도움말↔온보딩 전환 중(닫히는 애니메이션이 끝나길 기다리는 동안)엔 "?" 버튼을 막아,
-  // 그 사이 도움말을 다시 열어 두 Modal이 동시에 visible이 되는 경우를 원천 차단한다.
+  // 도움말을 닫는 애니메이션이 끝나길 기다리는 동안엔 백업 버튼을 막아, 그 사이 백업 모달을
+  // 열어 두 Modal이 동시에 visible이 되는 경우를 원천 차단한다.
   const [modalTransitioning, setModalTransitioning] = useState(false);
   // RN Modal 두 개를 동시에 열어두면 iOS에서 표시가 깨지므로, 항상 하나를 완전히 닫은 뒤에
   // 다른 하나를 연다. iOS는 Modal의 onDismiss(닫힘 애니메이션이 끝난 시점)로 이 시점을 정확히
@@ -103,33 +99,15 @@ export default function HomeScreen({
     pending?.();
   };
 
-  const handleReplayOnboarding = () => {
-    setOnboardingReplay(true);
-    beginModalTransition(setHelpVisible, () => setOnboardingVisible(true));
-  };
-
-  // 다른 모달로 넘어가지 않는 "그냥 닫기"(X 버튼)도 beginModalTransition을 거친다 — 그래야
-  // iOS 닫힘 애니메이션이 끝나기 전까지 modalTransitioning이 true로 유지되어, 그 사이 백업
-  // 버튼 등을 눌러 다른 Modal이 겹쳐 뜨는 걸 막을 수 있다(열 대상이 없을 뿐 열기 자체를
-  // 건너뛰는 게 아니라 없는 것과 같으므로 open은 no-op).
+  // "그냥 닫기"(X 버튼)도 beginModalTransition을 거친다 — 그래야 iOS 닫힘 애니메이션이
+  // 끝나기 전까지 modalTransitioning이 true로 유지되어, 그 사이 백업 버튼을 눌러 다른 Modal이
+  // 겹쳐 뜨는 걸 막을 수 있다(열 대상이 없을 뿐 열기 자체를 건너뛰는 게 아니라 없는 것과
+  // 같으므로 open은 no-op).
   const handleCloseHelp = () => {
     beginModalTransition(setHelpVisible, () => {});
   };
 
   const handleHelpDismiss = () => {
-    consumePendingModalOpen();
-  };
-
-  const handleCloseOnboarding = () => {
-    if (onboardingReplay) {
-      setOnboardingReplay(false);
-      beginModalTransition(setOnboardingVisible, () => setHelpVisible(true));
-    } else {
-      beginModalTransition(setOnboardingVisible, () => {});
-    }
-  };
-
-  const handleOnboardingDismiss = () => {
     consumePendingModalOpen();
   };
 
@@ -156,7 +134,7 @@ export default function HomeScreen({
               onPress={() => setBackupVisible(true)}
               hitSlop={8}
               accessibilityLabel={t.backup.title}
-              disabled={modalTransitioning || helpVisible || onboardingVisible}
+              disabled={modalTransitioning || helpVisible}
             >
               <Ionicons name="cloud-outline" size={26} color={accent.primaryText} />
             </Pressable>
@@ -230,7 +208,7 @@ export default function HomeScreen({
                 accessibilityLabel={t.home.editAccessibility(displayName)}
                 disabled={modalTransitioning}
               >
-                <Ionicons name="pencil" size={18} color={accent.textMuted} />
+                <Ionicons name="create-outline" size={20} color={accent.primary} />
               </Pressable>
               <Ionicons name="chevron-forward" size={22} color={accent.primary} style={styles.chevron} />
             </Pressable>
@@ -268,10 +246,8 @@ export default function HomeScreen({
       <HelpModal
         visible={helpVisible}
         onClose={handleCloseHelp}
-        onReplayOnboarding={handleReplayOnboarding}
         onDismiss={handleHelpDismiss}
       />
-      <OnboardingModal visible={onboardingVisible} onClose={handleCloseOnboarding} onDismiss={handleOnboardingDismiss} />
       <BackupModal
         visible={backupVisible}
         onClose={() => setBackupVisible(false)}

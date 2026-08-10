@@ -4,6 +4,9 @@ const ko: Translations = {
   common: {
     cancel: '취소',
     delete: '삭제',
+    back: '뒤로가기',
+    decreaseAccessibility: (label: string) => `${label} 감소`,
+    increaseAccessibility: (label: string) => `${label} 증가`,
   },
   measureType: {
     time: '시간',
@@ -42,12 +45,6 @@ const ko: Translations = {
     searchPlaceholder: '운동 검색',
     searchClearAccessibility: '검색어 지우기',
     noSearchResults: '검색 결과가 없어요.',
-  },
-  onboarding: {
-    skip: '건너뛰기',
-    next: '다음',
-    start: '시작하기',
-    replayLabel: '온보딩 다시보기',
   },
   exerciseScreen: {
     measureTab: '측정',
@@ -182,6 +179,11 @@ const ko: Translations = {
         title: '운동 커스터마이징',
         description:
           '홈 화면 운동 카드의 연필 아이콘으로 이름·자세 영상 링크를 수정하거나 더 이상 안 쓰는 운동을 삭제할 수 있어요.',
+      },
+      {
+        title: '데이터 백업',
+        description:
+          '홈 화면 상단의 구름 아이콘을 눌러 운동 목록과 기록을 파일로 내보내거나, 다른 기기의 백업 파일로 복원할 수 있어요.',
       },
     ],
   },

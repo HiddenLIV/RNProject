@@ -4,6 +4,9 @@ const en = {
   common: {
     cancel: 'Cancel',
     delete: 'Delete',
+    back: 'Back',
+    decreaseAccessibility: (label: string) => `Decrease ${label}`,
+    increaseAccessibility: (label: string) => `Increase ${label}`,
   },
   measureType: {
     time: 'Time',
@@ -42,12 +45,6 @@ const en = {
     searchPlaceholder: 'Search exercises',
     searchClearAccessibility: 'Clear search',
     noSearchResults: 'No exercises match your search.',
-  },
-  onboarding: {
-    skip: 'Skip',
-    next: 'Next',
-    start: 'Get Started',
-    replayLabel: 'Replay Intro',
   },
   exerciseScreen: {
     measureTab: 'Measure',
@@ -182,6 +179,11 @@ const en = {
         title: 'Customize Exercises',
         description:
           'Use the pencil icon on a home screen exercise card to rename it, update its guide video link, or delete an exercise you no longer use.',
+      },
+      {
+        title: 'Back Up Your Data',
+        description:
+          'Tap the cloud icon at the top of the home screen to export all your exercises and records to a file, or restore them from a backup file on another device.',
       },
     ],
   },

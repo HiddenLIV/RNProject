@@ -4,6 +4,9 @@ const ja: Translations = {
   common: {
     cancel: 'キャンセル',
     delete: '削除',
+    back: '戻る',
+    decreaseAccessibility: (label: string) => `${label}を減らす`,
+    increaseAccessibility: (label: string) => `${label}を増やす`,
   },
   measureType: {
     time: '時間',
@@ -42,12 +45,6 @@ const ja: Translations = {
     searchPlaceholder: '運動を検索',
     searchClearAccessibility: '検索をクリア',
     noSearchResults: '一致する運動が見つかりません。',
-  },
-  onboarding: {
-    skip: 'スキップ',
-    next: '次へ',
-    start: 'はじめる',
-    replayLabel: 'イントロをもう一度見る',
   },
   exerciseScreen: {
     measureTab: '測定',
@@ -182,6 +179,11 @@ const ja: Translations = {
         title: '運動をカスタマイズする',
         description:
           'ホーム画面の運動カードの鉛筆アイコンから、名前やフォーム動画リンクを編集したり、使わなくなった運動を削除したりできます。',
+      },
+      {
+        title: 'データをバックアップする',
+        description:
+          'ホーム画面上部の雲アイコンをタップすると、運動と記録をファイルに書き出したり、他の端末のバックアップファイルから復元したりできます。',
       },
     ],
   },

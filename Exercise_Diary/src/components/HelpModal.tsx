@@ -10,12 +10,11 @@ import { fontSize, radius, spacing } from '../theme';
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onReplayOnboarding: () => void;
   // iOS에서만 호출됨(RN Modal 스펙) — 완전히 닫힌 뒤에 다른 Modal을 열어야 할 때 씀
   onDismiss?: () => void;
 };
 
-export default function HelpModal({ visible, onClose, onReplayOnboarding, onDismiss }: Props) {
+export default function HelpModal({ visible, onClose, onDismiss }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   return (
@@ -50,13 +49,6 @@ export default function HelpModal({ visible, onClose, onReplayOnboarding, onDism
               </View>
             </View>
           ))}
-          <Pressable
-            style={[styles.replayButton, { borderColor: accent.border }]}
-            onPress={onReplayOnboarding}
-          >
-            <Ionicons name="play-circle-outline" size={18} color={accent.accentText} />
-            <Text style={[styles.replayText, { color: accent.accentText }]}>{t.onboarding.replayLabel}</Text>
-          </Pressable>
         </ScrollView>
       </SafeAreaView>
       </SafeAreaProvider>
@@ -118,19 +110,5 @@ const styles = StyleSheet.create({
   sectionDescription: {
     fontSize: fontSize.sm,
     lineHeight: 20,
-  },
-  replayButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radius.pill,
-    borderWidth: 1.5,
-  },
-  replayText: {
-    fontSize: fontSize.sm,
-    fontWeight: '700',
   },
 });

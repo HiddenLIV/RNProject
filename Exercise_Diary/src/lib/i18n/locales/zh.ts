@@ -4,6 +4,9 @@ const zh: Translations = {
   common: {
     cancel: '取消',
     delete: '删除',
+    back: '返回',
+    decreaseAccessibility: (label: string) => `减少${label}`,
+    increaseAccessibility: (label: string) => `增加${label}`,
   },
   measureType: {
     time: '时间',
@@ -42,12 +45,6 @@ const zh: Translations = {
     searchPlaceholder: '搜索运动',
     searchClearAccessibility: '清除搜索',
     noSearchResults: '没有找到匹配的运动。',
-  },
-  onboarding: {
-    skip: '跳过',
-    next: '下一步',
-    start: '开始使用',
-    replayLabel: '重新查看介绍',
   },
   exerciseScreen: {
     measureTab: '测量',
@@ -182,6 +179,11 @@ const zh: Translations = {
         title: '自定义运动',
         description:
           '通过主页运动卡片上的铅笔图标，可以修改名称、动作示范视频链接，或删除不再使用的运动。',
+      },
+      {
+        title: '备份数据',
+        description:
+          '点击主页顶部的云朵图标，可以将运动和记录导出为文件，也可以用备份文件在其他设备上恢复数据。',
       },
     ],
   },
