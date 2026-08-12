@@ -39,12 +39,14 @@
 - 타이머는 `setInterval` 누적이 아니라 시작 시각(`Date.now()`) 기준 경과 시간으로 계산한다 (백그라운드 전환·프레임 드랍 시 오차 방지)
 - 새 UI 텍스트를 추가하면 `src/lib/i18n/locales/`의 4개 언어(ko/en/ja/zh) 파일을 모두 갱신한다
 - 테마 팔레트는 자주 바뀌므로 색상 관련 작업 전에 `src/theme.ts`, `src/lib/themePresets.ts`를 직접 확인한다 — 기억에 의존하지 않는다
-- 생성형 에셋(앱 아이콘, 효과음, 스토어용 아이콘/피처 그래픽)은 `scripts/`의 생성 스크립트로 만든다 — 수정할 때 스크립트를 고쳐 재생성 (`npm run assets:icons`, `npm run assets:bell`, `npm run assets:silence`)
+- 생성형 에셋(앱 아이콘, 효과음, 스토어용 아이콘/피처 그래픽/스크린샷)은 `scripts/`의 생성 스크립트로 만든다 — 수정할 때 스크립트를 고쳐 재생성 (`npm run assets:icons`, `npm run assets:feature-graphic`, `npm run assets:store-screenshots`, `npm run assets:bell`, `npm run assets:silence`)
+- `scripts/make-icons.js`는 실제 런처 아이콘(`assets/icon.png` 등)과 더 이상 같은 디자인을 생성하지 않는다 — 아이콘은 2026-08-09에 그라데이션+글로우 디자인으로 교체되며 스크립트 없이 이미지 파일만 직접 갈아 끼워졌다. 아이콘 관련 작업 전엔 스크립트 출력이 실제 에셋과 일치하는지 먼저 확인할 것. 피처 그래픽(`npm run assets:feature-graphic`)은 `scripts/make-feature-graphic.js`가 `sharp`로 실제 아이콘의 foreground 레이어를 합성해 만들며, 이 스크립트는 별개로 최신 상태다.
+- Play Console용 스크린샷(휴대전화 + 태블릿 7·10인치)은 각 기기 폴더의 `raw/`(`store-assets/android/screenshots/raw/`, `.../tablet-7in/raw/`, `.../tablet-10in/raw/`) 원본 캡처를 `scripts/make-store-screenshots.js`(sharp)가 둥근 베젤 기기 프레임(휴대전화=노치, 태블릿=카메라 점) 안에 넣고 밝은 배경(`#FAF6F8`) + 브랜드 마젠타 헤드라인 카피를 얹어 각 기기 폴더에 재생성한다(`npm run assets:store-screenshots`). 헤드라인 카피는 스크립트 안 `shots` 배열, 기기별 프레임 크기는 `DEVICES` 배열에서 관리한다. 원본 캡처를 새로 찍었으면 해당 기기의 `raw/`에 같은 파일명으로 교체한 뒤 스크립트를 다시 돌린다.
 - 커밋 메시지는 한국어로 작성한다
 
 ## 문서 위치
 
 - `docs/specs/` — 기능별 요구사항 (무엇을, 왜)
 - `docs/design/` — 기능별 설계 (어떻게)
-- `docs/guides/` — 스토어 배포·마켓 등록 등 운영 가이드 (예: `앱스토어 배포 가이드.html`, `play-store-listing-copy.md`)
+- `docs/guides/` — 스토어 배포·마켓 등록 등 운영 가이드. 배포 가이드는 플랫폼별로 분리되어 있다 (`구글플레이 배포 가이드.html`, `앱스토어 배포 가이드.html`, `play-store-listing-copy.md`)
 - `docs/privacy-policy.html` — 개인정보처리방침 (GitHub Pages `gh-pages` 브랜치로 배포됨)
