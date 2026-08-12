@@ -45,3 +45,8 @@ yarn-error.*
 
 # EAS Submit — Google Play 서비스 계정 키
 google-service-account*.json
+hiddenlabs-*.json
+
+# 빌드 산출물
+*.aab
+*.apk

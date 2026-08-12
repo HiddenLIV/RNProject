@@ -16,6 +16,7 @@ import ExerciseIcon from '../components/ExerciseIcon';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import OutlinedTextField from '../components/OutlinedTextField';
 import YoutubeSearchButton from '../components/YoutubeSearchButton';
+import { shouldShowInterstitial, showInterstitialAndWait } from '../lib/ads';
 import {
   CUSTOM_EXERCISE_ICON,
   EXERCISE_NAME_MAX_LENGTH,
@@ -144,6 +145,10 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
       ...(measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : {}),
     };
     await addExercise(exercise);
+    const totalCount = existingExercises.length + 1;
+    if (shouldShowInterstitial(totalCount)) {
+      await showInterstitialAndWait();
+    }
     onCreated();
   };
 

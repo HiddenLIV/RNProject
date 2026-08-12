@@ -73,7 +73,15 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-6810020420008072~5306176842",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "맞춤 광고를 제공하기 위해 기기 식별자를 사용합니다."
+        }
+      ]
     ],
     "extra": {
       "eas": {

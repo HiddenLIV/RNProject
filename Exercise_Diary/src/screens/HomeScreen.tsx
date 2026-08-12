@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Text from '../components/AppText';
 import BackupModal from '../components/BackupModal';
+import BottomBannerAd from '../components/BottomBannerAd';
 import EditExerciseModal from '../components/EditExerciseModal';
 import ExerciseIcon from '../components/ExerciseIcon';
 import HelpModal from '../components/HelpModal';
@@ -121,115 +122,118 @@ export default function HomeScreen({
   }, [exercises, showSearch, trimmedQuery, t]);
 
   return (
-    <View style={[styles.container, { backgroundColor: accent.background }]}>
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerText}>
-            <Text style={[styles.title, { color: accent.text }]}>{t.home.title}</Text>
-            <Text style={[styles.subtitle, { color: accent.textMuted }]}>{t.home.subtitle}</Text>
-          </View>
-          <View style={styles.headerActions}>
-            <Pressable
-              style={styles.helpButton}
-              onPress={() => setBackupVisible(true)}
-              hitSlop={8}
-              accessibilityLabel={t.backup.title}
-              disabled={modalTransitioning || helpVisible}
-            >
-              <Ionicons name="cloud-outline" size={26} color={accent.primaryText} />
-            </Pressable>
-            <Pressable
-              style={styles.helpButton}
-              onPress={() => setHelpVisible(true)}
-              hitSlop={8}
-              accessibilityLabel={t.home.help}
-              disabled={modalTransitioning || backupVisible}
-            >
-              <Ionicons name="help-circle-outline" size={28} color={accent.primaryText} />
-            </Pressable>
-          </View>
-        </View>
-        <ThemeSwatchRow />
-        {showSearch && (
-          <View style={[styles.searchBox, { borderColor: accent.border, backgroundColor: accent.card }]}>
-            <Ionicons name="search" size={18} color={accent.textFaint} />
-            <TextInput
-              style={[styles.searchInput, { color: accent.text }]}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder={t.home.searchPlaceholder}
-              placeholderTextColor={accent.textFaint}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="search"
-            />
-            {searchQuery.length > 0 && (
-              <Pressable onPress={() => setSearchQuery('')} hitSlop={15} accessibilityLabel={t.home.searchClearAccessibility}>
-                <Ionicons name="close-circle" size={18} color={accent.textFaint} />
-              </Pressable>
-            )}
-          </View>
-        )}
-      </View>
-      <FlatList
-        data={filteredExercises}
-        keyExtractor={(exercise) => exercise.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          exercisesLoaded ? (
-            <View style={styles.empty}>
-              <Ionicons name="body-outline" size={40} color={accent.textFaint} />
-              <Text style={[styles.emptyText, { color: accent.textMuted }]}>
-                {trimmedQuery ? t.home.noSearchResults : t.home.emptyExercises}
-              </Text>
+    <View style={[styles.screen, { backgroundColor: accent.background }]}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerRow}>
+            <View style={styles.headerText}>
+              <Text style={[styles.title, { color: accent.text }]}>{t.home.title}</Text>
+              <Text style={[styles.subtitle, { color: accent.textMuted }]}>{t.home.subtitle}</Text>
             </View>
-          ) : null
-        }
-        renderItem={({ item }) => {
-          const displayName = getExerciseDisplayName(item, t);
-          return (
-            <Pressable
-              style={({ pressed }) => [styles.card, { backgroundColor: accent.card }, pressed && styles.cardPressed]}
-              onPress={() => onSelectExercise(item)}
-              disabled={modalTransitioning}
-            >
-              <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
-                <ExerciseIcon icon={item.icon} size={26} color={accent.onPrimary} />
-              </View>
-              <View style={styles.cardInfo}>
-                <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
-                <MeasureTypeTag measureType={item.measureType} />
-              </View>
+            <View style={styles.headerActions}>
               <Pressable
-                style={styles.editButton}
-                onPress={() => setEditingExercise(item)}
-                hitSlop={12}
-                accessibilityLabel={t.home.editAccessibility(displayName)}
+                style={styles.helpButton}
+                onPress={() => setBackupVisible(true)}
+                hitSlop={8}
+                accessibilityLabel={t.backup.title}
+                disabled={modalTransitioning || helpVisible}
+              >
+                <Ionicons name="cloud-outline" size={26} color={accent.primaryText} />
+              </Pressable>
+              <Pressable
+                style={styles.helpButton}
+                onPress={() => setHelpVisible(true)}
+                hitSlop={8}
+                accessibilityLabel={t.home.help}
+                disabled={modalTransitioning || backupVisible}
+              >
+                <Ionicons name="help-circle-outline" size={28} color={accent.primaryText} />
+              </Pressable>
+            </View>
+          </View>
+          <ThemeSwatchRow />
+          {showSearch && (
+            <View style={[styles.searchBox, { borderColor: accent.border, backgroundColor: accent.card }]}>
+              <Ionicons name="search" size={18} color={accent.textFaint} />
+              <TextInput
+                style={[styles.searchInput, { color: accent.text }]}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder={t.home.searchPlaceholder}
+                placeholderTextColor={accent.textFaint}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="search"
+              />
+              {searchQuery.length > 0 && (
+                <Pressable onPress={() => setSearchQuery('')} hitSlop={15} accessibilityLabel={t.home.searchClearAccessibility}>
+                  <Ionicons name="close-circle" size={18} color={accent.textFaint} />
+                </Pressable>
+              )}
+            </View>
+          )}
+        </View>
+        <FlatList
+          data={filteredExercises}
+          keyExtractor={(exercise) => exercise.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={
+            exercisesLoaded ? (
+              <View style={styles.empty}>
+                <Ionicons name="body-outline" size={40} color={accent.textFaint} />
+                <Text style={[styles.emptyText, { color: accent.textMuted }]}>
+                  {trimmedQuery ? t.home.noSearchResults : t.home.emptyExercises}
+                </Text>
+              </View>
+            ) : null
+          }
+          renderItem={({ item }) => {
+            const displayName = getExerciseDisplayName(item, t);
+            return (
+              <Pressable
+                style={({ pressed }) => [styles.card, { backgroundColor: accent.card }, pressed && styles.cardPressed]}
+                onPress={() => onSelectExercise(item)}
                 disabled={modalTransitioning}
               >
-                <Ionicons name="create-outline" size={20} color={accent.primary} />
+                <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
+                  <ExerciseIcon icon={item.icon} size={26} color={accent.onPrimary} />
+                </View>
+                <View style={styles.cardInfo}>
+                  <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
+                  <MeasureTypeTag measureType={item.measureType} />
+                </View>
+                <Pressable
+                  style={styles.editButton}
+                  onPress={() => setEditingExercise(item)}
+                  hitSlop={12}
+                  accessibilityLabel={t.home.editAccessibility(displayName)}
+                  disabled={modalTransitioning}
+                >
+                  <Ionicons name="create-outline" size={20} color={accent.primary} />
+                </Pressable>
+                <Ionicons name="chevron-forward" size={22} color={accent.primary} style={styles.chevron} />
               </Pressable>
-              <Ionicons name="chevron-forward" size={22} color={accent.primary} style={styles.chevron} />
-            </Pressable>
-          );
-        }}
-      />
-      {/* M3 Extended FAB — 목록 스크롤과 무관하게 항상 같은 자리에 떠 있어서, 운동이 많아져도
-          "운동 추가"를 찾으러 스크롤하거나 헤더 공간을 차지할 필요가 없다. */}
-      <Pressable
-        style={({ pressed }) => [
-          styles.fab,
-          { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary },
-          pressed && styles.fabPressed,
-        ]}
-        onPress={onAddExercise}
-        disabled={modalTransitioning}
-        accessibilityLabel={t.home.addExercise}
-      >
-        <Ionicons name="add" size={22} color={accent.onPrimary} />
-        <Text style={[styles.fabText, { color: accent.onPrimary }]}>{t.home.addExercise}</Text>
-      </Pressable>
+            );
+          }}
+        />
+        {/* M3 Extended FAB — 목록 스크롤과 무관하게 항상 같은 자리에 떠 있어서, 운동이 많아져도
+            "운동 추가"를 찾으러 스크롤하거나 헤더 공간을 차지할 필요가 없다. */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.fab,
+            { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary },
+            pressed && styles.fabPressed,
+          ]}
+          onPress={onAddExercise}
+          disabled={modalTransitioning}
+          accessibilityLabel={t.home.addExercise}
+        >
+          <Ionicons name="add" size={22} color={accent.onPrimary} />
+          <Text style={[styles.fabText, { color: accent.onPrimary }]}>{t.home.addExercise}</Text>
+        </Pressable>
+      </View>
+      <BottomBannerAd />
       <EditExerciseModal
         exercise={editingExercise}
         existingNames={exercises
@@ -268,6 +272,11 @@ export default function HomeScreen({
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+  // 배너 광고(BottomBannerAd)는 이 안쪽 padding 바깥, screen 최하단에 전체 너비로 배치된다 —
+  // 적응형 배너는 기기 전체 너비를 기준으로 크기가 계산되기 때문이다.
   container: {
     flex: 1,
     paddingHorizontal: spacing.md,

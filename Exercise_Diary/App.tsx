@@ -8,6 +8,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AddExerciseScreen from './src/screens/AddExerciseScreen';
 import ExerciseScreen from './src/screens/ExerciseScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import { initializeAds } from './src/lib/ads';
 import { LanguageProvider } from './src/lib/i18n';
 import { fontAssets } from './src/lib/fonts';
 import { ThemeProvider, useAccentColors } from './src/lib/ThemeContext';
@@ -47,6 +48,7 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
     // playsInSilentMode: 무음 스위치가 켜져 있어도 초 읽기 음성이 나오도록
     // doNotMix: 측정 중 우리 오디오가 재생되면 다른 앱의 음악·영상을 일시정지
     setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'doNotMix' });
+    initializeAds();
   }, []);
 
   // 안드로이드 하드웨어/제스처 뒤로 가기: 홈이 아니면 홈으로, 홈에서는 기본 동작(앱 종료)
