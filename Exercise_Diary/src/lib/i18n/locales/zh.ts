@@ -5,6 +5,7 @@ const zh: Translations = {
     cancel: '取消',
     delete: '删除',
     back: '返回',
+    confirm: '确定',
     decreaseAccessibility: (label: string) => `减少${label}`,
     increaseAccessibility: (label: string) => `增加${label}`,
   },

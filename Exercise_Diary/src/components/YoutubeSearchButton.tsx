@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import Text from './AppText';
+import { showAlert } from '../lib/alert';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { openYoutubeSearch } from '../lib/youtube';
@@ -23,14 +24,14 @@ export default function YoutubeSearchButton({ exerciseName }: Props) {
     if (busy) return;
     const trimmed = exerciseName.trim();
     if (!trimmed) {
-      Alert.alert(t.youtubeSearch.emptyNameTitle, t.youtubeSearch.emptyNameBody);
+      showAlert(t.youtubeSearch.emptyNameTitle, t.youtubeSearch.emptyNameBody);
       return;
     }
     setBusy(true);
     const result = await openYoutubeSearch(trimmed, t.youtubeSearch.keyword);
     setBusy(false);
     if (!result.ok) {
-      Alert.alert(t.youtubeSearch.openErrorTitle, t.youtubeSearch.openErrorBody);
+      showAlert(t.youtubeSearch.openErrorTitle, t.youtubeSearch.openErrorBody);
     }
   };
 

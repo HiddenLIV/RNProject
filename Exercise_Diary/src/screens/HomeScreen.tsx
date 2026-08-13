@@ -174,10 +174,11 @@ export default function HomeScreen({
           )}
         </View>
         <FlatList
+          style={styles.flatList}
           data={filteredExercises}
           keyExtractor={(exercise) => exercise.id}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, filteredExercises.length === 0 && styles.listEmpty]}
           ListEmptyComponent={
             exercisesLoaded ? (
               <View style={styles.empty}>
@@ -324,9 +325,17 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     padding: 0,
   },
+  flatList: {
+    flex: 1,
+  },
   list: {
     gap: spacing.smd,
     paddingBottom: spacing.xl + 56, // 떠 있는 FAB에 마지막 카드가 가리지 않도록 여유를 둔다
+  },
+  // 목록이 비었을 때 empty 컴포넌트가 화면 세로 중앙에 오도록 content container 자체를 채운다.
+  listEmpty: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   empty: {
     alignItems: 'center',

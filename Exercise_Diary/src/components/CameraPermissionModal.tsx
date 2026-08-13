@@ -1,4 +1,5 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import AlertHost from './AlertHost';
 import Text from './AppText';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
@@ -39,6 +40,7 @@ export default function CameraPermissionModal({ state, onGrant, onOpenSettings, 
           </View>
         </View>
       </View>
+      <AlertHost embedded />
     </Modal>
   );
 }

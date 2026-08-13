@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Text from './AppText';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import YoutubeSearchButton from './YoutubeSearchButton';
+import { showAlert } from '../lib/alert';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { updateExercise } from '../lib/storage';
@@ -67,7 +68,7 @@ export default function GuideVideoPanel({ exerciseId, exerciseName, videoId, onG
   };
 
   const handleDeletePress = () => {
-    Alert.alert(t.guideVideoPanel.deleteConfirmTitle, t.guideVideoPanel.deleteConfirmBody, [
+    showAlert(t.guideVideoPanel.deleteConfirmTitle, t.guideVideoPanel.deleteConfirmBody, [
       { text: t.common.cancel, style: 'cancel' },
       {
         text: t.common.delete,

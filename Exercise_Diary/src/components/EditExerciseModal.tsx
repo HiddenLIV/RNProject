@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   LayoutAnimation,
@@ -13,10 +12,12 @@ import {
   Switch,
   View,
 } from 'react-native';
+import AlertHost from './AlertHost';
 import Text from './AppText';
 import ExerciseIcon from './ExerciseIcon';
 import OutlinedTextField from './OutlinedTextField';
 import YoutubeSearchButton from './YoutubeSearchButton';
+import { showAlert } from '../lib/alert';
 import {
   CUSTOM_ICON_CHOICES,
   EXERCISE_NAME_MAX_LENGTH,
@@ -147,7 +148,7 @@ export default function EditExerciseModal({
   };
 
   const handleDelete = () => {
-    Alert.alert(t.editExercise.deleteTitle, t.editExercise.deleteBody(getExerciseDisplayName(exercise, t)), [
+    showAlert(t.editExercise.deleteTitle, t.editExercise.deleteBody(getExerciseDisplayName(exercise, t)), [
       { text: t.common.cancel, style: 'cancel' },
       {
         text: t.common.delete,
@@ -359,6 +360,7 @@ export default function EditExerciseModal({
             </Pressable>
           </ScrollView>
         </View>
+        <AlertHost embedded />
       </KeyboardAvoidingView>
     </Modal>
   );

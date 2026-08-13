@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import Text from '../components/AppText';
 import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
@@ -8,6 +8,7 @@ import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import Toast from '../components/Toast';
 import VideoPlayerModal from '../components/VideoPlayerModal';
+import { showAlert } from '../lib/alert';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
@@ -48,7 +49,7 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       const result = await captureExerciseVideo();
       if (result.status === 'saved') setCapturedVideo(result.ref);
     } catch {
-      Alert.alert(t.timer.captureFailedTitle, t.timer.captureFailedBody);
+      showAlert(t.timer.captureFailedTitle, t.timer.captureFailedBody);
     } finally {
       setVideoBusy(false);
     }
@@ -65,7 +66,7 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       }
       await runCapture();
     } catch {
-      Alert.alert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
+      showAlert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
     } finally {
       setVideoBusy(false);
     }
@@ -82,7 +83,7 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       setPermissionModal(null);
       await runCapture();
     } catch {
-      Alert.alert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
+      showAlert(t.timer.captureFailedTitle, t.timer.permissionFailedBody);
     } finally {
       setVideoBusy(false);
     }

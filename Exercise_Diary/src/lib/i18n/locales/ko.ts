@@ -5,6 +5,7 @@ const ko: Translations = {
     cancel: '취소',
     delete: '삭제',
     back: '뒤로가기',
+    confirm: '확인',
     decreaseAccessibility: (label: string) => `${label} 감소`,
     increaseAccessibility: (label: string) => `${label} 증가`,
   },

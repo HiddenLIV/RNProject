@@ -5,6 +5,7 @@ const ja: Translations = {
     cancel: 'キャンセル',
     delete: '削除',
     back: '戻る',
+    confirm: 'OK',
     decreaseAccessibility: (label: string) => `${label}を減らす`,
     increaseAccessibility: (label: string) => `${label}を増やす`,
   },

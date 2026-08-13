@@ -5,6 +5,7 @@ const en = {
     cancel: 'Cancel',
     delete: 'Delete',
     back: 'Back',
+    confirm: 'OK',
     decreaseAccessibility: (label: string) => `Decrease ${label}`,
     increaseAccessibility: (label: string) => `Increase ${label}`,
   },

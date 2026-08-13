@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
+import { showAlert } from './alert';
 import { VideoRef } from './types';
 import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from './video';
 
@@ -23,7 +24,7 @@ export function useVideoCapture(messages: Messages) {
       if (result.status !== 'saved') return;
       setCapturedVideo(result.ref);
     } catch {
-      Alert.alert(messages.captureFailedTitle, messages.captureFailedBody);
+      showAlert(messages.captureFailedTitle, messages.captureFailedBody);
     } finally {
       setBusy(false);
     }
@@ -40,7 +41,7 @@ export function useVideoCapture(messages: Messages) {
       }
       await runCapture();
     } catch {
-      Alert.alert(messages.captureFailedTitle, messages.permissionFailedBody);
+      showAlert(messages.captureFailedTitle, messages.permissionFailedBody);
     } finally {
       // runCapture가 실행됐다면 이미 false로 되돌려놨겠지만, 권한 확인 자체가
       // 실패한 경우를 대비해 여기서도 항상 풀어준다.
@@ -59,7 +60,7 @@ export function useVideoCapture(messages: Messages) {
       setPermissionModal(null);
       await runCapture();
     } catch {
-      Alert.alert(messages.captureFailedTitle, messages.permissionFailedBody);
+      showAlert(messages.captureFailedTitle, messages.permissionFailedBody);
     } finally {
       setBusy(false);
     }

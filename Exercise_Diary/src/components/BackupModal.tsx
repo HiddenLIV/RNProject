@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import AlertHost from './AlertHost';
 import Text from './AppText';
 import Toast from './Toast';
+import { showAlert } from '../lib/alert';
 import { BackupError, exportBackup, pickBackupFile } from '../lib/backup';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
@@ -45,7 +47,7 @@ export default function BackupModal({ visible, onClose, onRestored, onRestoreFai
       setExportToastVisible(true);
     } catch (err) {
       const code = err instanceof BackupError ? err.code : null;
-      Alert.alert(
+      showAlert(
         t.backup.exportErrorTitle,
         code === 'SHARE_UNAVAILABLE' ? t.backup.errorShareUnavailable : t.backup.exportErrorMessage,
       );
@@ -60,7 +62,7 @@ export default function BackupModal({ visible, onClose, onRestored, onRestoreFai
       accent.setPresetId(payload.theme);
       onRestored();
     } catch {
-      Alert.alert(t.backup.importErrorTitle, t.backup.importErrorMessage);
+      showAlert(t.backup.importErrorTitle, t.backup.importErrorMessage);
       // 저장소가 부분적으로만 바뀌었을 가능성이 있으므로, 모달은 열어둔 채 목록만 최신 상태로
       // 다시 읽어와 화면이 실제 저장소 내용과 어긋나지 않게 한다.
       onRestoreFailed();
@@ -78,18 +80,15 @@ export default function BackupModal({ visible, onClose, onRestored, onRestoreFai
         setBusy('idle');
         return;
       }
-      Alert.alert(t.backup.importConfirmTitle, t.backup.importConfirmMessage, [
+      // 커스텀 알림은 바깥 탭/뒤로가기로 닫아도 cancel 버튼의 onPress를 그대로 실행해주므로,
+      // 별도의 onDismiss 없이도 'importing' 상태가 항상 풀린다.
+      showAlert(t.backup.importConfirmTitle, t.backup.importConfirmMessage, [
         { text: t.backup.cancel, style: 'cancel', onPress: () => setBusy('idle') },
         { text: t.backup.importConfirmButton, style: 'destructive', onPress: () => applyImport(payload) },
-      ], {
-        // 안드로이드에서 뒤로가기/바깥 탭으로 얼럿을 닫으면 버튼 onPress가 전혀 호출되지
-        // 않는다 — onDismiss가 없으면 busy가 'importing'에 계속 머물러 두 행이 영구히
-        // 비활성화된다.
-        onDismiss: () => setBusy('idle'),
-      });
+      ]);
     } catch (err) {
       const code = err instanceof BackupError ? err.code : null;
-      Alert.alert(t.backup.importErrorTitle, importErrorMessage(code));
+      showAlert(t.backup.importErrorTitle, importErrorMessage(code));
       setBusy('idle');
     }
   };
@@ -154,6 +153,7 @@ export default function BackupModal({ visible, onClose, onRestored, onRestoreFai
             onHide={() => setExportToastVisible(false)}
           />
         </SafeAreaView>
+        {visible && <AlertHost embedded />}
       </SafeAreaProvider>
     </Modal>
   );

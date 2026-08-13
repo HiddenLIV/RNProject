@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AddExerciseScreen from './src/screens/AddExerciseScreen';
+import AlertHost from './src/components/AlertHost';
 import ExerciseScreen from './src/screens/ExerciseScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import { initializeAds } from './src/lib/ads';
@@ -90,6 +91,7 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
         )}
         <StatusBar style="auto" />
       </SafeAreaView>
+      <AlertHost />
     </SafeAreaProvider>
   );
 }
