@@ -16,6 +16,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./hiddenlabs-58e6a5a2b633.json",
+        "track": "alpha",
+        "releaseStatus": "draft"
+      }
+    }
   }
 }

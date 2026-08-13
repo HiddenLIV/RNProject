@@ -143,6 +143,12 @@ const ko: Translations = {
     grant: '권한 허용',
     openSettings: '설정으로 이동',
   },
+  forceUpdate: {
+    title: '업데이트가 필요해요',
+    body: '더 안정적인 사용을 위해 최신 버전으로 업데이트해 주세요.',
+    later: '나중에',
+    updateButton: '업데이트하기',
+  },
   videoPlayer: {
     closeAccessibility: '닫기',
     notFound: '영상을 찾을 수 없습니다',

@@ -143,6 +143,12 @@ const en = {
     grant: 'Allow Access',
     openSettings: 'Open Settings',
   },
+  forceUpdate: {
+    title: 'Update Available',
+    body: 'Please update to the latest version for a more stable experience.',
+    later: 'Later',
+    updateButton: 'Update Now',
+  },
   videoPlayer: {
     closeAccessibility: 'Close',
     notFound: 'Video not found',

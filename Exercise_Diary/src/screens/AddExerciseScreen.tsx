@@ -375,6 +375,7 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
+              importantForAutofill="no"
               onFocus={() => {
                 videoLinkFocusedRef.current = true;
                 // 다른 인풋(이름 등)에서 이미 키보드가 떠 있는 상태로 여기로 포커스만 옮기면

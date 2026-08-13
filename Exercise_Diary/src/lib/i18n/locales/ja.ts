@@ -143,6 +143,12 @@ const ja: Translations = {
     grant: 'アクセスを許可',
     openSettings: '設定を開く',
   },
+  forceUpdate: {
+    title: 'アップデートのお知らせ',
+    body: 'より安定してご利用いただくため、最新バージョンへアップデートしてください。',
+    later: '後で',
+    updateButton: 'アップデートする',
+  },
   videoPlayer: {
     closeAccessibility: '閉じる',
     notFound: '動画が見つかりません',

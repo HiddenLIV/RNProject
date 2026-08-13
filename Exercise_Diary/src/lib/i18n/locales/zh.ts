@@ -143,6 +143,12 @@ const zh: Translations = {
     grant: '允许访问',
     openSettings: '前往设置',
   },
+  forceUpdate: {
+    title: '有可用更新',
+    body: '为了更稳定地使用本应用，请更新到最新版本。',
+    later: '以后再说',
+    updateButton: '立即更新',
+  },
   videoPlayer: {
     closeAccessibility: '关闭',
     notFound: '未找到视频',

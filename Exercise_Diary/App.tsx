@@ -8,8 +8,10 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AddExerciseScreen from './src/screens/AddExerciseScreen';
 import AlertHost from './src/components/AlertHost';
 import ExerciseScreen from './src/screens/ExerciseScreen';
+import ForceUpdateModal from './src/components/ForceUpdateModal';
 import HomeScreen from './src/screens/HomeScreen';
 import { initializeAds } from './src/lib/ads';
+import { checkForceUpdate } from './src/lib/forceUpdate';
 import { LanguageProvider } from './src/lib/i18n';
 import { fontAssets } from './src/lib/fonts';
 import { ThemeProvider, useAccentColors } from './src/lib/ThemeContext';
@@ -44,17 +46,31 @@ type AppContentProps = {
 function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentProps) {
   const accent = useAccentColors();
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
+  const [forceUpdateStoreUrl, setForceUpdateStoreUrl] = useState<string | null>(null);
 
   useEffect(() => {
     // playsInSilentMode: 무음 스위치가 켜져 있어도 초 읽기 음성이 나오도록
     // doNotMix: 측정 중 우리 오디오가 재생되면 다른 앱의 음악·영상을 일시정지
     setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'doNotMix' });
     initializeAds();
+    // 콜드 스타트 1회만 체크 — 실패해도 forceUpdate.ts 내부에서 이미 흡수하지만 이중 안전망으로 catch
+    checkForceUpdate()
+      .then((result) => {
+        if (result.blocked) setForceUpdateStoreUrl(result.storeUrl);
+      })
+      .catch(() => {});
   }, []);
 
-  // 안드로이드 하드웨어/제스처 뒤로 가기: 홈이 아니면 홈으로, 홈에서는 기본 동작(앱 종료)
+  const dismissForceUpdate = () => setForceUpdateStoreUrl(null);
+
+  // 안드로이드 하드웨어/제스처 뒤로 가기: 업데이트 바텀시트가 떠 있으면 "나중에"와 동일하게 닫기만 하고,
+  // 그 외엔 홈이 아니면 홈으로, 홈에서는 기본 동작(앱 종료)
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (forceUpdateStoreUrl) {
+        dismissForceUpdate();
+        return true;
+      }
       if (screen.name !== 'home') {
         setScreen({ name: 'home' });
         return true;
@@ -62,7 +78,7 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
       return false;
     });
     return () => sub.remove();
-  }, [screen]);
+  }, [screen, forceUpdateStoreUrl]);
 
   return (
     <SafeAreaProvider>
@@ -92,6 +108,11 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
         <StatusBar style="auto" />
       </SafeAreaView>
       <AlertHost />
+      <ForceUpdateModal
+        visible={!!forceUpdateStoreUrl}
+        storeUrl={forceUpdateStoreUrl ?? ''}
+        onDismiss={dismissForceUpdate}
+      />
     </SafeAreaProvider>
   );
 }

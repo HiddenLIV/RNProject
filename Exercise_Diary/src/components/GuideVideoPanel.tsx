@@ -110,6 +110,7 @@ export default function GuideVideoPanel({ exerciseId, exerciseName, videoId, onG
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="url"
+            importantForAutofill="no"
             autoFocus
           />
           {linkError !== '' && <Text style={[styles.error, { color: accent.danger }]}>{linkError}</Text>}
