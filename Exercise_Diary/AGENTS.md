@@ -44,6 +44,16 @@
 - Play Console용 스크린샷(휴대전화 + 태블릿 7·10인치)은 각 기기 폴더의 `raw/`(`store-assets/android/screenshots/raw/`, `.../tablet-7in/raw/`, `.../tablet-10in/raw/`) 원본 캡처를 `scripts/make-store-screenshots.js`(sharp)가 둥근 베젤 기기 프레임(휴대전화=노치, 태블릿=카메라 점) 안에 넣고 밝은 배경(`#FAF6F8`) + 브랜드 마젠타 헤드라인 카피를 얹어 각 기기 폴더에 재생성한다(`npm run assets:store-screenshots`). 헤드라인 카피는 스크립트 안 `shots` 배열, 기기별 프레임 크기는 `DEVICES` 배열에서 관리한다. 원본 캡처를 새로 찍었으면 해당 기기의 `raw/`에 같은 파일명으로 교체한 뒤 스크립트를 다시 돌린다.
 - 커밋 메시지는 한국어로 작성한다
 
+## 코딩 컨벤션 (린트/포맷)
+
+- `npm run lint` (`expo lint`, ESLint flat config) / `npm run format` (Prettier)
+- 스타일(들여쓰기·따옴표·세미콜론)은 전부 Prettier가 강제한다 — 사람이 스타일로 논쟁할 필요 없음
+- ESLint는 정확성·명시성에 집중한다:
+  - `@typescript-eslint/no-explicit-any` — `any` 금지, 타입을 명시해야 코드만 읽고 계약을 파악할 수 있다
+  - `simple-import-sort` — import/export 순서 자동 정렬, 파일마다 제각각인 순서로 생기는 diff 노이즈 방지
+  - `eslint-config-expo` 기본 규칙(React Hooks 규칙 포함, React Compiler 대비 렌더 중 ref 접근·effect 내 setState 직접 호출 등을 에러로 잡음)
+- 새 코드를 작성/수정하면 해당 파일에 한해 `npm run lint`로 확인한다 (기존 코드 전체의 기존 위반은 별도 작업으로 다룬다)
+
 ## 문서 위치
 
 - `docs/specs/` — 기능별 요구사항 (무엇을, 왜)
