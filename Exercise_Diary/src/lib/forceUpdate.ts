@@ -35,14 +35,33 @@ function isNumericVersion(value: string): boolean {
   return value.split('.').every((segment) => Number.isFinite(Number(segment)) && segment.trim() !== '');
 }
 
-function isValidPlatformInfo(value: unknown): value is PlatformVersionInfo {
+// gh-pages 계정이 탈취/변조되면 storeUrl로 임의 사이트를 심을 수 있으므로,
+// 실제 스토어 도메인인지 확인한 뒤에만 업데이트 안내에 사용한다.
+const ALLOWED_STORE_HOSTS: Record<'ios' | 'android', readonly string[]> = {
+  ios: ['apps.apple.com'],
+  android: ['play.google.com'],
+};
+
+function isAllowedStoreUrl(platform: 'ios' | 'android', storeUrl: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(storeUrl);
+    return protocol === 'https:' && ALLOWED_STORE_HOSTS[platform].includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
+function isValidPlatformInfo(
+  value: unknown,
+  platform: 'ios' | 'android'
+): value is PlatformVersionInfo {
   if (!value || typeof value !== 'object') return false;
   const info = value as Record<string, unknown>;
   return (
     typeof info.minVersion === 'string' &&
     isNumericVersion(info.minVersion) &&
     typeof info.storeUrl === 'string' &&
-    info.storeUrl.trim().length > 0
+    isAllowedStoreUrl(platform, info.storeUrl)
   );
 }
 
@@ -74,8 +93,9 @@ export async function checkForceUpdate(): Promise<ForceUpdateResult> {
   const config = await fetchRemoteVersionConfig();
   if (!config) return { blocked: false };
 
+  const platform = Platform.OS === 'ios' ? 'ios' : 'android';
   const info = Platform.OS === 'ios' ? config.ios : config.android;
-  if (!isValidPlatformInfo(info)) return { blocked: false };
+  if (!isValidPlatformInfo(info, platform)) return { blocked: false };
 
   const current = Constants.expoConfig?.version;
   if (!current) return { blocked: false };

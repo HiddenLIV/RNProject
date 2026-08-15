@@ -81,7 +81,8 @@
           "iosAppId": "ca-app-pub-3940256099942544~1458002511",
           "userTrackingUsageDescription": "맞춤 광고를 제공하기 위해 기기 식별자를 사용합니다."
         }
-      ]
+      ],
+      "./plugins/withAndroidAllowBackup.js"
     ],
     "extra": {
       "eas": {
