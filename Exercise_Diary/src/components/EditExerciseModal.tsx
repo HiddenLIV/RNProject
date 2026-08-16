@@ -12,11 +12,7 @@ import {
   Switch,
   View,
 } from 'react-native';
-import AlertHost from './AlertHost';
-import Text from './AppText';
-import ExerciseIcon from './ExerciseIcon';
-import OutlinedTextField from './OutlinedTextField';
-import YoutubeSearchButton from './YoutubeSearchButton';
+
 import { showAlert } from '../lib/alert';
 import {
   CUSTOM_ICON_CHOICES,
@@ -26,11 +22,16 @@ import {
   inferPresetKey,
 } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
-import { useAccentColors } from '../lib/ThemeContext';
 import { removeExercise, updateExercise } from '../lib/storage';
+import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise, MeasureType } from '../lib/types';
 import { parseYoutubeLink } from '../lib/youtube';
-import { fontSize, radius, spacing } from '../theme';
+import { cardShadow, fontSize, radius, spacing } from '../theme';
+import AlertHost from './AlertHost';
+import Text from './AppText';
+import ExerciseIcon from './ExerciseIcon';
+import OutlinedTextField from './OutlinedTextField';
+import YoutubeSearchButton from './YoutubeSearchButton';
 
 type Props = {
   exercise: Exercise | null;
@@ -164,7 +165,8 @@ export default function EditExerciseModal({
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={[styles.card, { backgroundColor: accent.background, borderColor: accent.primary }]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={[styles.card, { backgroundColor: accent.card, ...cardShadow }]}>
           <ScrollView
             ref={scrollViewRef}
             contentContainerStyle={styles.cardContent}
@@ -174,7 +176,7 @@ export default function EditExerciseModal({
             <Text style={[styles.title, { color: accent.text }]}>{t.editExercise.title}</Text>
             <OutlinedTextField
               label={t.addExercise.namePlaceholder}
-              backgroundColor={accent.background}
+              backgroundColor={accent.card}
               value={name}
               onChangeText={(text) => {
                 setName(text);
@@ -270,7 +272,7 @@ export default function EditExerciseModal({
             <YoutubeSearchButton exerciseName={name} />
             <OutlinedTextField
               label={t.editExercise.videoLinkPlaceholder}
-              backgroundColor={accent.background}
+              backgroundColor={accent.card}
               value={videoLinkText}
               onChangeText={(text) => {
                 setVideoLinkText(text);
@@ -379,7 +381,6 @@ const styles = StyleSheet.create({
     width: '100%',
     maxHeight: '85%',
     borderRadius: radius.md,
-    borderWidth: 1.5,
     padding: spacing.lg,
   },
   cardContent: {
