@@ -190,9 +190,18 @@ const ko: Translations = {
       {
         title: '데이터 백업',
         description:
-          '홈 화면 상단의 구름 아이콘을 눌러 운동 목록과 기록을 파일로 내보내거나, 다른 기기의 백업 파일로 복원할 수 있어요.',
+          '홈 화면 상단의 설정 아이콘을 눌러 운동 목록과 기록을 파일로 내보내거나, 다른 기기의 백업 파일로 복원할 수 있어요.',
       },
     ],
+  },
+  settings: {
+    title: '설정',
+    closeAccessibility: '닫기',
+    colorSectionLabel: '포인트 컬러',
+    modeSectionLabel: '화면 모드',
+    modeSystem: '시스템 설정 따름',
+    modeLight: '라이트',
+    modeDark: '다크',
   },
   backup: {
     title: '백업/복원',

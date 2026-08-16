@@ -1,21 +1,22 @@
 import { setAudioModeAsync } from 'expo-audio';
 import { useFonts } from 'expo-font';
-import { StatusBar } from 'expo-status-bar';
 import { useShareIntent } from 'expo-share-intent';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import AddExerciseScreen from './src/screens/AddExerciseScreen';
+
 import AlertHost from './src/components/AlertHost';
-import ExerciseScreen from './src/screens/ExerciseScreen';
 import ForceUpdateModal from './src/components/ForceUpdateModal';
-import HomeScreen from './src/screens/HomeScreen';
 import { initializeAds } from './src/lib/ads';
+import { fontAssets } from './src/lib/fonts';
 import { checkForceUpdate } from './src/lib/forceUpdate';
 import { LanguageProvider } from './src/lib/i18n';
-import { fontAssets } from './src/lib/fonts';
 import { ThemeProvider, useAccentColors } from './src/lib/ThemeContext';
 import { Exercise } from './src/lib/types';
+import AddExerciseScreen from './src/screens/AddExerciseScreen';
+import ExerciseScreen from './src/screens/ExerciseScreen';
+import HomeScreen from './src/screens/HomeScreen';
 
 type Screen = { name: 'home' } | { name: 'exercise'; exercise: Exercise } | { name: 'addExercise' };
 
@@ -105,7 +106,10 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
             onConsumeSharedVideoLink={onConsumeSharedVideoLink}
           />
         )}
-        <StatusBar style="auto" />
+        {/* expo-status-bar의 "auto"는 기기 시스템 설정만 보고 밝기를 정해서, 화면 모드를
+            시스템과 반대로 고정했을 때(예: 기기는 라이트인데 앱은 다크) 상태바가 배경과
+            거의 같은 색이 돼 안 보인다 — 앱이 실제로 쓰는 팔레트(accent.colorScheme) 기준으로 정한다. */}
+        <StatusBar style={accent.colorScheme === 'light' ? 'dark' : 'light'} />
       </SafeAreaView>
       <AlertHost />
       <ForceUpdateModal

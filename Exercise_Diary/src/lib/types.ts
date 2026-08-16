@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+
 import { CustomIconKey } from './customIcons';
 
 export type MeasureType = 'time' | 'reps';
@@ -92,11 +93,19 @@ export type BackupPayload = {
   appVersion: string; // Constants.expoConfig?.version — 문제 리포트 시 참고용
   exercises: Exercise[];
   theme: ThemePresetId;
+  // 이번 기능 이전 백업 파일엔 없는 필드라 optional — 없으면 storage.ts가 'system'으로 취급한다.
+  // 필드를 추가만 했을 뿐 기존 필드는 그대로라 BACKUP_SCHEMA_VERSION은 올리지 않는다.
+  colorSchemeOverride?: ColorSchemeOverride;
   exerciseData: Record<string, BackupExerciseData>;
 };
 
 // 라이트 모드 지원 — 기기 디스플레이 설정에 따라 바뀌는 베이스 톤
 export type ColorScheme = 'light' | 'dark';
+
+// 화면 모드 수동 선택 — 'system'이면 기존처럼 useColorScheme()을 그대로 따른다.
+export type ColorSchemeOverride = 'system' | 'light' | 'dark';
+// storage.ts(저장값 검증)와 backup.ts(백업 파일 검증)가 같은 유효값 목록을 공유한다.
+export const COLOR_SCHEME_OVERRIDE_VALUES: ColorSchemeOverride[] = ['system', 'light', 'dark'];
 
 export type BaseColors = {
   background: string;

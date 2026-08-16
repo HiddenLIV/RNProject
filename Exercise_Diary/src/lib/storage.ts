@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import {
   BackupPayload,
+  COLOR_SCHEME_OVERRIDE_VALUES,
+  ColorSchemeOverride,
   DEFAULT_SETTINGS,
   Exercise,
   RepsRecord,
@@ -13,6 +16,7 @@ import {
 const EXERCISES_KEY = 'timecheck:exercises:v1';
 const THEME_KEY = 'timecheck:theme:v1';
 const VOICE_GUIDE_KEY = 'timecheck:voiceGuide:v1';
+const COLOR_SCHEME_OVERRIDE_KEY = 'timecheck:colorSchemeOverride:v1';
 
 // id: 'hang'인 운동은 앱의 기존(최초) 데이터가 쓰던 고정 키를 그대로 쓴다 —
 // 그 덕분에 이번 기능을 위한 별도 마이그레이션이 필요 없다.
@@ -148,9 +152,15 @@ export function restoreFromBackup(payload: BackupPayload): Promise<void> {
       .flatMap((e) => [recordsKey(e.id), settingsKey(e.id), repsKey(e.id)]);
 
     const theme = THEME_PRESET_IDS.includes(payload.theme) ? payload.theme : 'default';
+    // 이번 기능 이전 형식의 백업 파일엔 이 필드가 아예 없을 수 있다 — 그런 경우 'system'으로 처리한다.
+    const colorSchemeOverride =
+      payload.colorSchemeOverride && COLOR_SCHEME_OVERRIDE_VALUES.includes(payload.colorSchemeOverride)
+        ? payload.colorSchemeOverride
+        : 'system';
     const entries: [string, string][] = [
       [EXERCISES_KEY, JSON.stringify(payload.exercises)],
       [THEME_KEY, JSON.stringify(theme)],
+      [COLOR_SCHEME_OVERRIDE_KEY, JSON.stringify(colorSchemeOverride)],
     ];
     for (const exercise of payload.exercises) {
       const data = payload.exerciseData[exercise.id];
@@ -185,4 +195,14 @@ export async function getVoiceGuideEnabled(): Promise<boolean> {
 
 export function setVoiceGuideEnabled(enabled: boolean): Promise<void> {
   return AsyncStorage.setItem(VOICE_GUIDE_KEY, JSON.stringify(enabled));
+}
+
+export async function getColorSchemeOverride(): Promise<ColorSchemeOverride> {
+  const raw = await readJson<ColorSchemeOverride | null>(COLOR_SCHEME_OVERRIDE_KEY, null);
+  return raw && COLOR_SCHEME_OVERRIDE_VALUES.includes(raw) ? raw : 'system';
+}
+
+// 다른 값과 합쳐 쓰는 read-modify-write가 아니라 단순 덮어쓰기라 enqueueWrite 큐가 필요 없다.
+export function setColorSchemeOverride(value: ColorSchemeOverride): Promise<void> {
+  return AsyncStorage.setItem(COLOR_SCHEME_OVERRIDE_KEY, JSON.stringify(value));
 }

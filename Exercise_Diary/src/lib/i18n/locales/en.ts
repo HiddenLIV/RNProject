@@ -190,9 +190,18 @@ const en = {
       {
         title: 'Back Up Your Data',
         description:
-          'Tap the cloud icon at the top of the home screen to export all your exercises and records to a file, or restore them from a backup file on another device.',
+          'Tap the settings icon at the top of the home screen to export all your exercises and records to a file, or restore them from a backup file on another device.',
       },
     ],
+  },
+  settings: {
+    title: 'Settings',
+    closeAccessibility: 'Close',
+    colorSectionLabel: 'Accent Color',
+    modeSectionLabel: 'Display Mode',
+    modeSystem: 'Follow System',
+    modeLight: 'Light',
+    modeDark: 'Dark',
   },
   backup: {
     title: 'Backup & Restore',

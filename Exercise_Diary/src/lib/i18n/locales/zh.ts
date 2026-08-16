@@ -190,9 +190,18 @@ const zh: Translations = {
       {
         title: '备份数据',
         description:
-          '点击主页顶部的云朵图标，可以将运动和记录导出为文件，也可以用备份文件在其他设备上恢复数据。',
+          '点击主页顶部的设置图标，可以将运动和记录导出为文件，也可以用备份文件在其他设备上恢复数据。',
       },
     ],
+  },
+  settings: {
+    title: '设置',
+    closeAccessibility: '关闭',
+    colorSectionLabel: '主题色',
+    modeSectionLabel: '显示模式',
+    modeSystem: '跟随系统',
+    modeLight: '浅色',
+    modeDark: '深色',
   },
   backup: {
     title: '备份与恢复',

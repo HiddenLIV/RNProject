@@ -190,9 +190,18 @@ const ja: Translations = {
       {
         title: 'データをバックアップする',
         description:
-          'ホーム画面上部の雲アイコンをタップすると、運動と記録をファイルに書き出したり、他の端末のバックアップファイルから復元したりできます。',
+          'ホーム画面上部の設定アイコンをタップすると、運動と記録をファイルに書き出したり、他の端末のバックアップファイルから復元したりできます。',
       },
     ],
+  },
+  settings: {
+    title: '設定',
+    closeAccessibility: '閉じる',
+    colorSectionLabel: 'アクセントカラー',
+    modeSectionLabel: '表示モード',
+    modeSystem: 'システム設定に従う',
+    modeLight: 'ライト',
+    modeDark: 'ダーク',
   },
   backup: {
     title: 'バックアップと復元',

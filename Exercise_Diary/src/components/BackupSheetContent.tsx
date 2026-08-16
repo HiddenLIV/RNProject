@@ -57,6 +57,7 @@ export default function BackupSheetContent({ onRestored, onRestoreFailed }: Prop
     try {
       await restoreFromBackup(payload);
       accent.setPresetId(payload.theme);
+      accent.setColorSchemeOverride(payload.colorSchemeOverride ?? 'system');
       onRestored();
     } catch {
       showAlert(t.backup.importErrorTitle, t.backup.importErrorMessage);

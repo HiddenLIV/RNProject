@@ -3,14 +3,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import Text from '../components/AppText';
-import BackupSheetContent from '../components/BackupSheetContent';
 import BottomBannerAd from '../components/BottomBannerAd';
 import BottomSheet from '../components/BottomSheet';
 import EditExerciseModal from '../components/EditExerciseModal';
 import ExerciseIcon from '../components/ExerciseIcon';
 import HelpSheetContent from '../components/HelpSheetContent';
 import MeasureTypeTag from '../components/MeasureTypeTag';
-import ThemeSwatchRow from '../components/ThemeSwatchRow';
+import SettingsSheetContent from '../components/SettingsSheetContent';
 import Toast from '../components/Toast';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { tapLight } from '../lib/haptics';
@@ -44,7 +43,7 @@ export default function HomeScreen({
   // 타임아웃 워치독으로 이걸 막아야 했다). sheetKind는 닫을 때도 그대로 둬서, 닫힘 슬라이드
   // 애니메이션이 재생되는 동안에도 내용이 갑자기 비어 보이지 않게 한다 — sheetOpen만 시트의
   // 실제 표시 여부(=Modal의 visible)를 담당한다.
-  const [sheetKind, setSheetKind] = useState<'help' | 'backup'>('help');
+  const [sheetKind, setSheetKind] = useState<'help' | 'settings'>('help');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [restoreToastVisible, setRestoreToastVisible] = useState(false);
 
@@ -63,8 +62,8 @@ export default function HomeScreen({
     setSheetKind('help');
     setSheetOpen(true);
   };
-  const openBackup = () => {
-    setSheetKind('backup');
+  const openSettings = () => {
+    setSheetKind('settings');
     setSheetOpen(true);
   };
   const closeSheet = () => setSheetOpen(false);
@@ -90,23 +89,22 @@ export default function HomeScreen({
             <View style={styles.headerActions}>
               <Pressable
                 style={styles.helpButton}
-                onPress={openBackup}
-                hitSlop={8}
-                accessibilityLabel={t.backup.title}
-              >
-                <Ionicons name="cloud-outline" size={26} color={accent.primaryText} />
-              </Pressable>
-              <Pressable
-                style={styles.helpButton}
                 onPress={openHelp}
                 hitSlop={8}
                 accessibilityLabel={t.home.help}
               >
-                <Ionicons name="help-circle-outline" size={28} color={accent.primaryText} />
+                <Ionicons name="help-circle-outline" size={26} color={accent.primaryText} />
+              </Pressable>
+              <Pressable
+                style={styles.helpButton}
+                onPress={openSettings}
+                hitSlop={8}
+                accessibilityLabel={t.settings.title}
+              >
+                <Ionicons name="settings-outline" size={26} color={accent.primaryText} />
               </Pressable>
             </View>
           </View>
-          <ThemeSwatchRow />
           {showSearch && (
             <View
               style={[
@@ -224,13 +222,13 @@ export default function HomeScreen({
       <BottomSheet
         visible={sheetOpen}
         onClose={closeSheet}
-        title={sheetKind === 'backup' ? t.backup.title : t.help.title}
+        title={sheetKind === 'settings' ? t.settings.title : t.help.title}
         closeAccessibilityLabel={
-          sheetKind === 'backup' ? t.backup.closeAccessibility : t.help.closeAccessibility
+          sheetKind === 'settings' ? t.settings.closeAccessibility : t.help.closeAccessibility
         }
       >
-        {sheetKind === 'backup' ? (
-          <BackupSheetContent
+        {sheetKind === 'settings' ? (
+          <SettingsSheetContent
             onRestored={() => {
               closeSheet();
               loadExercises();

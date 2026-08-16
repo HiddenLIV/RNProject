@@ -34,9 +34,11 @@ export default function BottomSheet({
       <SafeAreaProvider>
         <View style={styles.backdrop}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+          {/* accent.background(화면 배경)을 그대로 쓰면 뒤에 어둡게 깔린 백드롭과 거의 같은 톤이라
+              시트 경계가 안 보인다 — 화면 배경보다 한 단계 밝은/어두운 cardMuted로 구분한다. */}
           <SafeAreaView
             edges={['bottom']}
-            style={[styles.sheet, { backgroundColor: accent.background }]}
+            style={[styles.sheet, { backgroundColor: accent.cardMuted }]}
           >
             <View style={styles.header}>
               <View style={styles.headerSpacer} />

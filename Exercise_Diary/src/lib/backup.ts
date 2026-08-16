@@ -1,9 +1,24 @@
+import Constants from 'expo-constants';
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import Constants from 'expo-constants';
-import { getExercises, getRecords, getRepsRecords, getSettings, getThemePreset } from './storage';
-import { BACKUP_SCHEMA_VERSION, BackupExerciseData, BackupPayload, Exercise, THEME_PRESET_IDS } from './types';
+
+import {
+  getColorSchemeOverride,
+  getExercises,
+  getRecords,
+  getRepsRecords,
+  getSettings,
+  getThemePreset,
+} from './storage';
+import {
+  BACKUP_SCHEMA_VERSION,
+  BackupExerciseData,
+  BackupPayload,
+  COLOR_SCHEME_OVERRIDE_VALUES,
+  Exercise,
+  THEME_PRESET_IDS,
+} from './types';
 
 export type BackupErrorCode =
   | 'SHARE_UNAVAILABLE'
@@ -23,6 +38,7 @@ export class BackupError extends Error {
 async function collectBackupPayload(): Promise<BackupPayload> {
   const exercises = await getExercises();
   const theme = await getThemePreset();
+  const colorSchemeOverride = await getColorSchemeOverride();
   const exerciseData: Record<string, BackupExerciseData> = {};
   await Promise.all(
     exercises.map(async (exercise) => {
@@ -40,6 +56,7 @@ async function collectBackupPayload(): Promise<BackupPayload> {
     appVersion: Constants.expoConfig?.version ?? 'unknown',
     exercises,
     theme,
+    colorSchemeOverride,
     exerciseData,
   };
 }
@@ -111,6 +128,13 @@ function isBackupPayloadShape(value: unknown): value is BackupPayload {
   ) {
     return false;
   }
+  // 이번 기능 이전 백업 파일엔 아예 없는 필드라 optional — 있다면 유효한 값이어야 한다.
+  if (
+    v.colorSchemeOverride !== undefined &&
+    !COLOR_SCHEME_OVERRIDE_VALUES.includes(v.colorSchemeOverride as (typeof COLOR_SCHEME_OVERRIDE_VALUES)[number])
+  ) {
+    return false;
+  }
   if (!v.exercises.every(isBackupExerciseShape)) return false;
 
   const exerciseData = v.exerciseData as Record<string, unknown>;
@@ -144,6 +168,15 @@ export async function pickBackupFile(): Promise<BackupPayload | null> {
     parsed = JSON.parse(text);
   } catch {
     throw new BackupError('INVALID_JSON');
+  }
+  // 화면 모드는 부가 정보라, 값이 깨져 있다고(오타 등) 운동 데이터 전체를 가져오지 못하게
+  // 막을 이유는 없다 — 형태 검증 전에 미리 지워서 나머지 파일은 정상 처리되게 한다
+  // (storage.ts의 restoreFromBackup이 필드가 없을 때와 똑같이 'system'으로 처리한다).
+  if (parsed && typeof parsed === 'object' && 'colorSchemeOverride' in parsed) {
+    const raw = parsed as Record<string, unknown>;
+    if (!COLOR_SCHEME_OVERRIDE_VALUES.includes(raw.colorSchemeOverride as (typeof COLOR_SCHEME_OVERRIDE_VALUES)[number])) {
+      delete raw.colorSchemeOverride;
+    }
   }
   if (!isBackupPayloadShape(parsed)) throw new BackupError('INVALID_SHAPE');
   if (parsed.schemaVersion !== BACKUP_SCHEMA_VERSION) throw new BackupError('UNSUPPORTED_VERSION');

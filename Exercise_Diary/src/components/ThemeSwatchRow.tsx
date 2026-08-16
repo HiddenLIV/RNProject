@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native';
+
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { radius, spacing } from '../theme';
@@ -35,7 +36,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    marginBottom: spacing.smd,
   },
   dot: {
     width: 26,
