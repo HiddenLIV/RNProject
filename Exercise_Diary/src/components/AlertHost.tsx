@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { BackHandler, Modal, Pressable, StyleSheet, View } from 'react-native';
-import Text from './AppText';
+
 import { AlertButton, AlertButtonStyle, AlertRequest, registerAlertListener } from '../lib/alert';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
-import { fontSize, radius, spacing } from '../theme';
+import { cardShadow, fontSize, radius, spacing } from '../theme';
+import Text from './AppText';
 
 type Props = {
   // true면 자체 <Modal>을 새로 열지 않고 절대 위치 오버레이로만 그린다 — EditExerciseModal·
-  // BackupModal·CameraPermissionModal처럼 이미 자체 <Modal> 안에서 이 컴포넌트를 마운트하는
+  // BottomSheet·CameraPermissionModal처럼 이미 자체 <Modal> 안에서 이 컴포넌트를 마운트하는
   // 경우에 쓴다. iOS는 이미 present된 Modal 위에 또 다른 Modal을 present하려 하면 조용히
   // 실패하기 때문에(경고만 찍히고 알림이 아예 안 뜸), 그 경우엔 새 네이티브 Modal 대신 이미
   // 떠 있는 화면 안에 겹쳐 그린다. 이때는 onRequestClose가 없어 안드로이드 하드웨어 뒤로가기가
@@ -17,7 +18,7 @@ type Props = {
 };
 
 // Alert.alert를 대신하는 앱 전체 공용 알림. App.tsx 최상단에 한 번(embedded 아님) 마운트되어
-// 화면 전환과 무관한 대부분의 showAlert() 호출을 구독하고, EditExerciseModal·BackupModal·
+// 화면 전환과 무관한 대부분의 showAlert() 호출을 구독하고, EditExerciseModal·BottomSheet·
 // CameraPermissionModal은 자기 자신의 <Modal> 안에 embedded 인스턴스를 추가로 두어 자신이
 // 열려 있는 동안의 알림을 대신 받는다(registerAlertListener는 스택이라 나중에 마운트된 쪽이
 // 우선한다). 스타일은 CameraPermissionModal의 backdrop/card/버튼 배치를 그대로 따른다.
@@ -79,7 +80,10 @@ export default function AlertHost({ embedded = false }: Props) {
 
   const content = (
     <Pressable style={styles.backdrop} onPress={handleDismiss}>
-      <Pressable style={[styles.card, { backgroundColor: accent.background }]} onPress={() => {}}>
+      <Pressable
+        style={[styles.card, { backgroundColor: accent.card, borderColor: accent.primary }]}
+        onPress={() => {}}
+      >
         <Text style={[styles.title, { color: accent.text }]}>{request.title}</Text>
         {request.message && (
           <Text style={[styles.body, { color: accent.textMuted }]}>{request.message}</Text>
@@ -91,7 +95,9 @@ export default function AlertHost({ embedded = false }: Props) {
               style={[styles.button, { backgroundColor: backgroundColorFor(button.style) }]}
               onPress={() => handlePress(button)}
             >
-              <Text style={[styles.buttonText, { color: textColorFor(button.style) }]}>{button.text}</Text>
+              <Text style={[styles.buttonText, { color: textColorFor(button.style) }]}>
+                {button.text}
+              </Text>
             </Pressable>
           ))}
         </View>
@@ -124,8 +130,10 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     borderRadius: radius.md,
+    borderWidth: 1.5,
     padding: spacing.lg,
     gap: spacing.sm,
+    ...cardShadow,
   },
   title: {
     fontSize: fontSize.lg,

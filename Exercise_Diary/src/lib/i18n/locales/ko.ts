@@ -221,6 +221,8 @@ const ko: Translations = {
     empty: '아직 기록이 없습니다.\n측정으로 첫 기록을 남겨보세요.',
     best: '최고 기록',
     bestBadge: '최고',
+    deleteConfirmTitle: '기록 삭제',
+    deleteConfirmBody: '이 기록을 삭제할까요? 되돌릴 수 없습니다.',
     deleteAccessibility: '기록 삭제',
     videoAccessibility: '촬영 영상 보기',
     setsAndReps: (sets, reps) => `${sets}세트 · ${reps}회`,

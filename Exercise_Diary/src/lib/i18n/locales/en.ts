@@ -222,6 +222,8 @@ const en = {
     empty: 'No records yet.\nFinish a set to log your first one.',
     best: 'Best Record',
     bestBadge: 'Best',
+    deleteConfirmTitle: 'Delete Record',
+    deleteConfirmBody: 'Delete this record? This can’t be undone.',
     deleteAccessibility: 'Delete record',
     videoAccessibility: 'View recorded video',
     setsAndReps: (sets: number, reps: number) => `${sets} sets · ${reps} reps`,

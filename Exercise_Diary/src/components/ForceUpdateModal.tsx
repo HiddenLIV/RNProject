@@ -12,15 +12,15 @@ type Props = {
 };
 
 // 하단에서 올라오는 업데이트 안내 바텀시트 — "나중에"·백드롭 탭·뒤로가기 모두 onDismiss로 닫힌다.
-// visible을 Modal에 그대로 넘겨(언마운트 대신) HelpModal·BackupModal과 동일하게 닫힘 슬라이드
-// 애니메이션이 재생되게 한다.
+// visible을 Modal에 그대로 넘겨(언마운트 대신) BottomSheet(도움말·백업/복원)와 동일하게 닫힘
+// 슬라이드 애니메이션이 재생되게 한다.
 export default function ForceUpdateModal({ visible, storeUrl, onDismiss }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
-      {/* HelpModal·BackupModal과 같은 이유로 Modal 내부에 SafeAreaProvider를 새로 둔다 —
+      {/* BottomSheet와 같은 이유로 Modal 내부에 SafeAreaProvider를 새로 둔다 —
           별도 네이티브 창이라 바깥 SafeAreaProvider의 bottom 값(홈 인디케이터 인셋)을 못 물려받는다. */}
       <SafeAreaProvider>
         <View style={styles.backdrop}>

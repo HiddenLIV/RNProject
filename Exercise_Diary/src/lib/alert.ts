@@ -19,7 +19,7 @@ export type AlertRequest = {
 
 type Listener = (request: AlertRequest | null) => void;
 
-// EditExerciseModal·BackupModal처럼 이미 자체 <Modal>을 띄운 화면은 그 안에 자신만의
+// EditExerciseModal·BottomSheet처럼 이미 자체 <Modal>을 띄운 화면은 그 안에 자신만의
 // AlertHost(embedded)를 마운트해 리스너 스택 맨 위를 차지한다 — iOS는 이미 present된 Modal
 // 위에 또 다른 Modal을 present하려 하면 조용히 실패하므로(경고만 찍히고 아무 일도 안 일어남),
 // 그 경우엔 새 네이티브 Modal을 열지 않고 이미 떠 있는 화면 안에 겹쳐 그리는 쪽으로 처리해야 한다.

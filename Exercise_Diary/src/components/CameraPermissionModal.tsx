@@ -1,10 +1,11 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import AlertHost from './AlertHost';
-import Text from './AppText';
+
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { PermissionState } from '../lib/video';
-import { fontSize, radius, spacing } from '../theme';
+import { cardShadow, fontSize, radius, spacing } from '../theme';
+import AlertHost from './AlertHost';
+import Text from './AppText';
 
 type Props = {
   state: PermissionState | null; // null이면 렌더링 안 함, 'granted'는 호출부에서 애초에 이 모달을 안 띄움
@@ -22,12 +23,14 @@ export default function CameraPermissionModal({ state, onGrant, onOpenSettings, 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
-        <View style={[styles.card, { backgroundColor: accent.background }]}>
+        <View style={[styles.card, { backgroundColor: accent.card, borderColor: accent.primary }]}>
           <Text style={[styles.title, { color: accent.text }]}>{t.cameraPermission.title}</Text>
           <Text style={[styles.body, { color: accent.textMuted }]}>{t.cameraPermission.body}</Text>
           <View style={styles.buttonRow}>
             <Pressable style={[styles.button, { backgroundColor: accent.card }]} onPress={onClose}>
-              <Text style={[styles.secondaryButtonText, { color: accent.text }]}>{t.cameraPermission.cancel}</Text>
+              <Text style={[styles.secondaryButtonText, { color: accent.text }]}>
+                {t.cameraPermission.cancel}
+              </Text>
             </Pressable>
             <Pressable
               style={[styles.button, { backgroundColor: accent.primary }]}
@@ -56,8 +59,10 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     borderRadius: radius.md,
+    borderWidth: 1.5,
     padding: spacing.lg,
     gap: spacing.sm,
+    ...cardShadow,
   },
   title: {
     fontSize: fontSize.lg,

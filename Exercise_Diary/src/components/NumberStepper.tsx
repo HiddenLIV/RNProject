@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-import Text from './AppText';
+
+import { tapLight } from '../lib/haptics';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { fontSize, radius, spacing } from '../theme';
+import Text from './AppText';
 
 type Props = {
   label: string;
@@ -42,11 +44,17 @@ export default function NumberStepper({
   const descriptor = label || unit;
 
   const decrease = () => {
-    if (value > min) onChange(Math.max(min, value - step));
+    if (value > min) {
+      tapLight();
+      onChange(Math.max(min, value - step));
+    }
   };
 
   const increase = () => {
-    if (value < max) onChange(Math.min(max, value + step));
+    if (value < max) {
+      tapLight();
+      onChange(Math.min(max, value + step));
+    }
   };
 
   const startEditing = () => {
@@ -109,7 +117,10 @@ export default function NumberStepper({
                 styles.value,
                 { color: accent.text },
                 compact && styles.valueCompact,
-                editable && { textDecorationLine: 'underline', textDecorationColor: accent.primary },
+                editable && {
+                  textDecorationLine: 'underline',
+                  textDecorationColor: accent.primary,
+                },
               ]}
             >{`${value}${unit}`}</Text>
           </Pressable>

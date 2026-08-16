@@ -1,6 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
+} from 'react-native';
+
 import Text from '../components/AppText';
 import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
@@ -10,11 +20,17 @@ import Toast from '../components/Toast';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import { showAlert } from '../lib/alert';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
+import { notifySuccess, tapLight, tapMedium } from '../lib/haptics';
 import { useTranslation } from '../lib/i18n';
-import { useAccentColors } from '../lib/ThemeContext';
 import { addRepsRecord, createId } from '../lib/storage';
+import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise, RepsSet, VideoRef } from '../lib/types';
-import { captureExerciseVideo, getVideoPermissionState, PermissionState, requestVideoPermissions } from '../lib/video';
+import {
+  captureExerciseVideo,
+  getVideoPermissionState,
+  PermissionState,
+  requestVideoPermissions,
+} from '../lib/video';
 import { buttonShadowShape, fontSize, radius, spacing } from '../theme';
 
 type Props = {
@@ -101,14 +117,19 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       return;
     }
     setError('');
+    tapMedium();
     setLoggedSets((prev) => [
       ...prev,
-      { reps: currentReps, weight: exercise.usesWeight ? parseFloat(currentWeightText) || 0 : undefined },
+      {
+        reps: currentReps,
+        weight: exercise.usesWeight ? parseFloat(currentWeightText) || 0 : undefined,
+      },
     ]);
   };
 
   const removeLoggedSet = (index: number) => {
     setJustSaved(false);
+    tapLight();
     setLoggedSets((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -133,6 +154,7 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
     setError('');
     setJustSaved(true);
     setSaving(false);
+    notifySuccess();
   };
 
   return (
@@ -141,7 +163,9 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={16}
     >
-      <Text style={[styles.title, { color: accent.text }]}>{getExerciseDisplayName(exercise, t)}</Text>
+      <Text style={[styles.title, { color: accent.text }]}>
+        {getExerciseDisplayName(exercise, t)}
+      </Text>
       <View style={styles.videoButtons}>
         <GuideVideoPanel
           exerciseId={exercise.id}
@@ -164,7 +188,9 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.sheet, { backgroundColor: accent.card }]}>
-          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.reps.currentSetLabel}</Text>
+          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
+            {t.reps.currentSetLabel}
+          </Text>
           <View style={styles.currentEntryRow}>
             {exercise.usesWeight && (
               <View style={[styles.weightField, { borderColor: accent.primary }]}>
@@ -224,7 +250,9 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
                 .reverse()
                 .map(({ set, index }) => (
                   <View key={index} style={[styles.setRow, { borderTopColor: accent.border }]}>
-                    <Text style={[styles.setIndex, { color: accent.textMuted }]}>{t.reps.setNumberLabel(index + 1)}</Text>
+                    <Text style={[styles.setIndex, { color: accent.textMuted }]}>
+                      {t.reps.setNumberLabel(index + 1)}
+                    </Text>
                     <Text style={[styles.setSummary, { color: accent.text }]}>
                       {exercise.usesWeight
                         ? `${set.weight ?? 0}${exercise.weightUnit === 'lb' ? t.units.lb : t.units.kg} × ${set.reps}${t.units.reps}`
@@ -258,7 +286,9 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
         onPress={handleSave}
         disabled={saving}
       >
-        <Text style={[styles.saveButtonText, { color: accent.onPrimary }]}>{t.reps.saveButton}</Text>
+        <Text style={[styles.saveButtonText, { color: accent.onPrimary }]}>
+          {t.reps.saveButton}
+        </Text>
       </Pressable>
 
       <CameraPermissionModal
@@ -267,7 +297,10 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
         onOpenSettings={handleOpenSettings}
         onClose={() => setPermissionModal(null)}
       />
-      <VideoPlayerModal assetId={viewingVideo ? capturedVideo?.assetId ?? null : null} onClose={() => setViewingVideo(false)} />
+      <VideoPlayerModal
+        assetId={viewingVideo ? (capturedVideo?.assetId ?? null) : null}
+        onClose={() => setViewingVideo(false)}
+      />
     </KeyboardAvoidingView>
   );
 }

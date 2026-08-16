@@ -221,6 +221,8 @@ const zh: Translations = {
     empty: '还没有记录。\n完成一次测量，留下你的第一条记录吧。',
     best: '最佳记录',
     bestBadge: '最佳',
+    deleteConfirmTitle: '删除记录',
+    deleteConfirmBody: '要删除这条记录吗？此操作无法撤销。',
     deleteAccessibility: '删除记录',
     videoAccessibility: '查看拍摄的视频',
     setsAndReps: (sets, reps) => `${sets}组 · ${reps}次`,

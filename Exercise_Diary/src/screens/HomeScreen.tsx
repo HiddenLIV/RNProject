@@ -1,19 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, TextInput, View } from 'react-native';
+
 import Text from '../components/AppText';
-import BackupModal from '../components/BackupModal';
+import BackupSheetContent from '../components/BackupSheetContent';
 import BottomBannerAd from '../components/BottomBannerAd';
+import BottomSheet from '../components/BottomSheet';
 import EditExerciseModal from '../components/EditExerciseModal';
 import ExerciseIcon from '../components/ExerciseIcon';
-import HelpModal from '../components/HelpModal';
+import HelpSheetContent from '../components/HelpSheetContent';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import ThemeSwatchRow from '../components/ThemeSwatchRow';
 import Toast from '../components/Toast';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
+import { tapLight } from '../lib/haptics';
 import { useTranslation } from '../lib/i18n';
-import { useAccentColors } from '../lib/ThemeContext';
 import { getExercises } from '../lib/storage';
+import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise } from '../lib/types';
 import { buttonShadowShape, cardShadow, fontSize, radius, spacing } from '../theme';
 
@@ -36,19 +39,14 @@ export default function HomeScreen({
   const [exercisesLoaded, setExercisesLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
-  const [helpVisible, setHelpVisible] = useState(false);
-  const [backupVisible, setBackupVisible] = useState(false);
+  // 도움말·백업/복원은 한 개의 바텀시트(BottomSheet)를 공유하고 내용만 바꿔 끼운다 — 그래서
+  // RN Modal 두 개가 동시에 열리는 경우 자체가 구조적으로 생기지 않는다(예전엔 상태 플래그와
+  // 타임아웃 워치독으로 이걸 막아야 했다). sheetKind는 닫을 때도 그대로 둬서, 닫힘 슬라이드
+  // 애니메이션이 재생되는 동안에도 내용이 갑자기 비어 보이지 않게 한다 — sheetOpen만 시트의
+  // 실제 표시 여부(=Modal의 visible)를 담당한다.
+  const [sheetKind, setSheetKind] = useState<'help' | 'backup'>('help');
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [restoreToastVisible, setRestoreToastVisible] = useState(false);
-  // 도움말을 닫는 애니메이션이 끝나길 기다리는 동안엔 백업 버튼을 막아, 그 사이 백업 모달을
-  // 열어 두 Modal이 동시에 visible이 되는 경우를 원천 차단한다.
-  const [modalTransitioning, setModalTransitioning] = useState(false);
-  // RN Modal 두 개를 동시에 열어두면 iOS에서 표시가 깨지므로, 항상 하나를 완전히 닫은 뒤에
-  // 다른 하나를 연다. iOS는 Modal의 onDismiss(닫힘 애니메이션이 끝난 시점)로 이 시점을 정확히
-  // 알 수 있어 그걸 쓰고, Android는 visible=false 즉시 내용이 사라지므로 바로 이어서 열어도 된다.
-  const pendingModalOpenRef = useRef<(() => void) | null>(null);
-  // onDismiss가 어떤 이유로든 안 오면 "?" 버튼이 영구히 막히므로, 안전망으로 일정 시간 뒤
-  // 강제로 잠금을 푼다(iOS 전체화면 Modal 전환은 보통 0.5초 안팎이라 여유 있게 잡음).
-  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadExercises = () => {
     getExercises().then((next) => {
@@ -61,56 +59,15 @@ export default function HomeScreen({
     loadExercises();
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
-    };
-  }, []);
-
-  // 하나를 닫고(setHide) → 완전히 닫힌 뒤(iOS: onDismiss, Android: 즉시) → 다른 하나를 연다(open).
-  // onDismiss와 워치독 타임아웃이 같은 pendingModalOpenRef를 "먼저 도착하는 쪽이 소비"하는
-  // 방식으로 다투게 해서, onDismiss가 늦게 와도 open()이 조용히 유실되지 않게 한다
-  // (워치독은 안전망으로 직접 실행하고, 그 뒤에 실제로 onDismiss가 오면 이미 null이라 no-op).
-  const beginModalTransition = (setHide: (v: boolean) => void, open: () => void) => {
-    if (Platform.OS === 'ios') {
-      setModalTransitioning(true);
-      if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
-      pendingModalOpenRef.current = () => {
-        if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
-        transitionTimeoutRef.current = null;
-        setModalTransitioning(false);
-        open();
-      };
-      transitionTimeoutRef.current = setTimeout(() => {
-        transitionTimeoutRef.current = null;
-        const pending = pendingModalOpenRef.current;
-        pendingModalOpenRef.current = null;
-        pending?.();
-      }, 1000);
-      setHide(false);
-    } else {
-      setHide(false);
-      open();
-    }
+  const openHelp = () => {
+    setSheetKind('help');
+    setSheetOpen(true);
   };
-
-  const consumePendingModalOpen = () => {
-    const pending = pendingModalOpenRef.current;
-    pendingModalOpenRef.current = null;
-    pending?.();
+  const openBackup = () => {
+    setSheetKind('backup');
+    setSheetOpen(true);
   };
-
-  // "그냥 닫기"(X 버튼)도 beginModalTransition을 거친다 — 그래야 iOS 닫힘 애니메이션이
-  // 끝나기 전까지 modalTransitioning이 true로 유지되어, 그 사이 백업 버튼을 눌러 다른 Modal이
-  // 겹쳐 뜨는 걸 막을 수 있다(열 대상이 없을 뿐 열기 자체를 건너뛰는 게 아니라 없는 것과
-  // 같으므로 open은 no-op).
-  const handleCloseHelp = () => {
-    beginModalTransition(setHelpVisible, () => {});
-  };
-
-  const handleHelpDismiss = () => {
-    consumePendingModalOpen();
-  };
+  const closeSheet = () => setSheetOpen(false);
 
   const showSearch = exercises.length > 0;
   const trimmedQuery = searchQuery.trim().toLocaleLowerCase();
@@ -133,19 +90,17 @@ export default function HomeScreen({
             <View style={styles.headerActions}>
               <Pressable
                 style={styles.helpButton}
-                onPress={() => setBackupVisible(true)}
+                onPress={openBackup}
                 hitSlop={8}
                 accessibilityLabel={t.backup.title}
-                disabled={modalTransitioning || helpVisible}
               >
                 <Ionicons name="cloud-outline" size={26} color={accent.primaryText} />
               </Pressable>
               <Pressable
                 style={styles.helpButton}
-                onPress={() => setHelpVisible(true)}
+                onPress={openHelp}
                 hitSlop={8}
                 accessibilityLabel={t.home.help}
-                disabled={modalTransitioning || backupVisible}
               >
                 <Ionicons name="help-circle-outline" size={28} color={accent.primaryText} />
               </Pressable>
@@ -153,7 +108,12 @@ export default function HomeScreen({
           </View>
           <ThemeSwatchRow />
           {showSearch && (
-            <View style={[styles.searchBox, { borderColor: accent.border, backgroundColor: accent.card }]}>
+            <View
+              style={[
+                styles.searchBox,
+                { borderColor: accent.border, backgroundColor: accent.card },
+              ]}
+            >
               <Ionicons name="search" size={18} color={accent.textFaint} />
               <TextInput
                 style={[styles.searchInput, { color: accent.text }]}
@@ -166,7 +126,11 @@ export default function HomeScreen({
                 returnKeyType="search"
               />
               {searchQuery.length > 0 && (
-                <Pressable onPress={() => setSearchQuery('')} hitSlop={15} accessibilityLabel={t.home.searchClearAccessibility}>
+                <Pressable
+                  onPress={() => setSearchQuery('')}
+                  hitSlop={15}
+                  accessibilityLabel={t.home.searchClearAccessibility}
+                >
                   <Ionicons name="close-circle" size={18} color={accent.textFaint} />
                 </Pressable>
               )}
@@ -193,9 +157,12 @@ export default function HomeScreen({
             const displayName = getExerciseDisplayName(item, t);
             return (
               <Pressable
-                style={({ pressed }) => [styles.card, { backgroundColor: accent.card }, pressed && styles.cardPressed]}
+                style={({ pressed }) => [
+                  styles.card,
+                  { backgroundColor: accent.card },
+                  pressed && styles.cardPressed,
+                ]}
                 onPress={() => onSelectExercise(item)}
-                disabled={modalTransitioning}
               >
                 <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
                   <ExerciseIcon icon={item.icon} size={26} color={accent.onPrimary} />
@@ -209,11 +176,15 @@ export default function HomeScreen({
                   onPress={() => setEditingExercise(item)}
                   hitSlop={12}
                   accessibilityLabel={t.home.editAccessibility(displayName)}
-                  disabled={modalTransitioning}
                 >
                   <Ionicons name="create-outline" size={20} color={accent.primary} />
                 </Pressable>
-                <Ionicons name="chevron-forward" size={22} color={accent.primary} style={styles.chevron} />
+                <Ionicons
+                  name="chevron-forward"
+                  size={22}
+                  color={accent.primary}
+                  style={styles.chevron}
+                />
               </Pressable>
             );
           }}
@@ -226,8 +197,10 @@ export default function HomeScreen({
             { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary },
             pressed && styles.fabPressed,
           ]}
-          onPress={onAddExercise}
-          disabled={modalTransitioning}
+          onPress={() => {
+            tapLight();
+            onAddExercise();
+          }}
           accessibilityLabel={t.home.addExercise}
         >
           <Ionicons name="add" size={22} color={accent.onPrimary} />
@@ -248,21 +221,27 @@ export default function HomeScreen({
           loadExercises();
         }}
       />
-      <HelpModal
-        visible={helpVisible}
-        onClose={handleCloseHelp}
-        onDismiss={handleHelpDismiss}
-      />
-      <BackupModal
-        visible={backupVisible}
-        onClose={() => setBackupVisible(false)}
-        onRestored={() => {
-          setBackupVisible(false);
-          loadExercises();
-          setRestoreToastVisible(true);
-        }}
-        onRestoreFailed={loadExercises}
-      />
+      <BottomSheet
+        visible={sheetOpen}
+        onClose={closeSheet}
+        title={sheetKind === 'backup' ? t.backup.title : t.help.title}
+        closeAccessibilityLabel={
+          sheetKind === 'backup' ? t.backup.closeAccessibility : t.help.closeAccessibility
+        }
+      >
+        {sheetKind === 'backup' ? (
+          <BackupSheetContent
+            onRestored={() => {
+              closeSheet();
+              loadExercises();
+              setRestoreToastVisible(true);
+            }}
+            onRestoreFailed={loadExercises}
+          />
+        ) : (
+          <HelpSheetContent />
+        )}
+      </BottomSheet>
       <Toast
         visible={restoreToastVisible}
         message={t.backup.importSuccessToast}

@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { SectionList, StyleSheet, View } from 'react-native';
+
 import Text from '../components/AppText';
 import RecordItem from '../components/RecordItem';
 import RepsRecordItem, { totalReps } from '../components/RepsRecordItem';
 import { formatDuration } from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
-import { useTranslation } from '../lib/i18n';
-import { useAccentColors } from '../lib/ThemeContext';
+import { showAlert } from '../lib/alert';
+import { Translations, useTranslation } from '../lib/i18n';
 import { getRecords, getRepsRecords, removeRecord, removeRepsRecord } from '../lib/storage';
+import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise, RepsRecord, TimeRecord } from '../lib/types';
 import { cardShadow, fontSize, radius, spacing } from '../theme';
 
@@ -18,10 +20,18 @@ function formatDateTitle(iso: string, weekdays: string[]): string {
   return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${weekdays[d.getDay()]})`;
 }
 
+// 삭제는 되돌릴 수 없으므로(최고 기록이 걸린 세트일 수도 있다) 항상 확인을 받는다
+function confirmDelete(t: Translations, onConfirm: () => void) {
+  showAlert(t.records.deleteConfirmTitle, t.records.deleteConfirmBody, [
+    { text: t.common.cancel, style: 'cancel' },
+    { text: t.common.delete, style: 'destructive', onPress: onConfirm },
+  ]);
+}
+
 // 기록이 최신순이므로 삽입 순서를 보존하는 Map으로 묶으면 섹션도 최신 날짜부터 나온다
 function groupByDate<T extends { measuredAt: string }>(
   records: T[],
-  weekdays: string[]
+  weekdays: string[],
 ): { title: string; data: T[] }[] {
   const byDate = new Map<string, T[]>();
   for (const record of records) {
@@ -57,13 +67,17 @@ function TimeRecordsScreen({ exercise }: Props) {
     getRecords(exercise.id).then(setRecords);
   }, [exercise.id]);
 
-  const handleDelete = async (id: string) => {
-    const next = await removeRecord(exercise.id, id);
-    setRecords(next);
+  const handleDelete = (id: string) => {
+    confirmDelete(t, async () => {
+      const next = await removeRecord(exercise.id, id);
+      setRecords(next);
+    });
   };
 
   const bestRecord =
-    records.length > 0 ? records.reduce((best, r) => (r.durationMs > best.durationMs ? r : best)) : null;
+    records.length > 0
+      ? records.reduce((best, r) => (r.durationMs > best.durationMs ? r : best))
+      : null;
 
   const sections = useMemo(() => groupByDate(records, t.weekdays), [records, t.weekdays]);
 
@@ -108,13 +122,17 @@ function RepsRecordsScreen({ exercise }: Props) {
     getRepsRecords(exercise.id).then(setRecords);
   }, [exercise.id]);
 
-  const handleDelete = async (id: string) => {
-    const next = await removeRepsRecord(exercise.id, id);
-    setRecords(next);
+  const handleDelete = (id: string) => {
+    confirmDelete(t, async () => {
+      const next = await removeRepsRecord(exercise.id, id);
+      setRecords(next);
+    });
   };
 
   const bestRecord =
-    records.length > 0 ? records.reduce((best, r) => (totalReps(r) > totalReps(best) ? r : best)) : null;
+    records.length > 0
+      ? records.reduce((best, r) => (totalReps(r) > totalReps(best) ? r : best))
+      : null;
 
   const sections = useMemo(() => groupByDate(records, t.weekdays), [records, t.weekdays]);
 

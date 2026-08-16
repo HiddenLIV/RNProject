@@ -221,6 +221,8 @@ const ja: Translations = {
     empty: 'まだ記録がありません。\n測定して最初の記録を残しましょう。',
     best: 'ベスト記録',
     bestBadge: 'ベスト',
+    deleteConfirmTitle: '記録を削除',
+    deleteConfirmBody: 'この記録を削除しますか？元に戻せません。',
     deleteAccessibility: '記録を削除',
     videoAccessibility: '撮影した動画を見る',
     setsAndReps: (sets, reps) => `${sets}セット・${reps}回`,

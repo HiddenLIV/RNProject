@@ -1,4 +1,5 @@
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
+
 import Text from '../components/AppText';
 import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
@@ -6,8 +7,11 @@ import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import TimeDisplay from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
+import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { speakCountdown, speakSecond, speakStart } from '../lib/feedback';
+import { tapHeavy, tapLight, tapMedium } from '../lib/haptics';
 import { useLanguage, useTranslation } from '../lib/i18n';
+import { useAccentColors } from '../lib/ThemeContext';
 import {
   BELL_INTERVAL_MAX_SECONDS,
   BELL_INTERVAL_MIN_SECONDS,
@@ -16,14 +20,12 @@ import {
   COUNTDOWN_MIN_SECONDS,
   Exercise,
 } from '../lib/types';
-import { getExerciseDisplayName } from '../lib/exercisePresets';
-import { useAccentColors } from '../lib/ThemeContext';
 import { useAudioFocusHolder } from '../lib/useAudioFocusHolder';
 import { useHangTimer } from '../lib/useHangTimer';
 import { useKeepAwakeWhileActive } from '../lib/useKeepAwakeWhileActive';
 import { useMotivationalQuote } from '../lib/useMotivationalQuote';
 import { useTimerAudio } from '../lib/useTimerAudio';
-import { useTimerResult, MIN_RECORD_MS } from '../lib/useTimerResult';
+import { MIN_RECORD_MS, useTimerResult } from '../lib/useTimerResult';
 import { useTimerSettings } from '../lib/useTimerSettings';
 import { useVideoCapture } from '../lib/useVideoCapture';
 import { buttonShadowShape, fontSize, radius, spacing } from '../theme';
@@ -38,7 +40,9 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
   const t = useTranslation();
   const language = useLanguage();
 
-  const { settings, updateSettings, voiceGuideEnabled, onVoiceGuideToggle } = useTimerSettings(exercise.id);
+  const { settings, updateSettings, voiceGuideEnabled, onVoiceGuideToggle } = useTimerSettings(
+    exercise.id,
+  );
   const video = useVideoCapture({
     captureFailedTitle: t.timer.captureFailedTitle,
     captureFailedBody: t.timer.captureFailedBody,
@@ -69,11 +73,13 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
   const quote = useMotivationalQuote(timer.phase === 'running', t.quotes);
 
   const handleCancel = () => {
+    tapLight();
     timer.cancel();
     timerAudio.stopAllSound();
   };
 
   const handleStop = () => {
+    tapHeavy();
     const durationMs = timer.stop();
     timerAudio.stopAllSound();
     if (durationMs == null) return;
@@ -81,6 +87,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
   };
 
   const handleRestart = () => {
+    tapMedium();
     video.resetCapturedVideo();
     result.reset();
     timer.start(settings.countdownSeconds);
@@ -100,133 +107,188 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.phaseContent}>
-      {timer.phase === 'idle' && (
-        <>
-          <Text style={[styles.title, { color: accent.text }]}>{t.timer.title(getExerciseDisplayName(exercise, t))}</Text>
-          <View style={styles.videoButtons}>
-            <GuideVideoPanel
-              exerciseId={exercise.id}
-              exerciseName={getExerciseDisplayName(exercise, t)}
-              videoId={exercise.guideVideoId}
-              onGuideVideoChange={onGuideVideoChange}
-            />
-            <CaptureVideoRow
-              capturedAssetId={video.capturedVideo?.assetId}
-              busy={video.busy}
-              onCapture={video.handleCapturePress}
-              onViewCaptured={() => video.setViewingVideo(true)}
-            />
-          </View>
-          <View style={[styles.settings, { backgroundColor: accent.card }]}>
-            <NumberStepper
-              label={t.timer.countdownLabel}
-              value={settings.countdownSeconds}
-              min={COUNTDOWN_MIN_SECONDS}
-              max={COUNTDOWN_MAX_SECONDS}
-              unit={t.units.seconds}
-              editable
-              onChange={(v) => updateSettings({ countdownSeconds: v })}
-            />
-            <NumberStepper
-              label={t.timer.bellIntervalLabel}
-              value={settings.bellIntervalSeconds}
-              min={BELL_INTERVAL_MIN_SECONDS}
-              max={BELL_INTERVAL_MAX_SECONDS}
-              step={BELL_INTERVAL_STEP_SECONDS}
-              unit={t.units.seconds}
-              onChange={(v) => updateSettings({ bellIntervalSeconds: v })}
-            />
-            <View style={styles.voiceGuideRow}>
-              <Text style={[styles.voiceGuideLabel, { color: accent.textMuted }]}>{t.timer.voiceGuideLabel}</Text>
-              <Switch
-                value={voiceGuideEnabled}
-                onValueChange={onVoiceGuideToggle}
-                trackColor={{ true: accent.primary, false: accent.border }}
+        {timer.phase === 'idle' && (
+          <>
+            <Text style={[styles.title, { color: accent.text }]}>
+              {t.timer.title(getExerciseDisplayName(exercise, t))}
+            </Text>
+            <View style={styles.videoButtons}>
+              <GuideVideoPanel
+                exerciseId={exercise.id}
+                exerciseName={getExerciseDisplayName(exercise, t)}
+                videoId={exercise.guideVideoId}
+                onGuideVideoChange={onGuideVideoChange}
+              />
+              <CaptureVideoRow
+                capturedAssetId={video.capturedVideo?.assetId}
+                busy={video.busy}
+                onCapture={video.handleCapturePress}
+                onViewCaptured={() => video.setViewingVideo(true)}
               />
             </View>
-          </View>
-          <Pressable
-            style={[styles.button, { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary }]}
-            onPress={() => timer.start(settings.countdownSeconds)}
-          >
-            <Text style={[styles.buttonText, { color: accent.onPrimary }]}>{t.timer.startButton}</Text>
-          </Pressable>
-        </>
-      )}
-
-      {timer.phase === 'countdown' && (
-        <>
-          <Text style={[styles.label, { color: accent.textMuted }]}>{t.timer.preparingLabel}</Text>
-          <Text style={[styles.countdown, { color: accent.primaryText }]}>{timer.countdownRemainingSec}</Text>
-          <Pressable style={[styles.button, { backgroundColor: accent.card }]} onPress={handleCancel}>
-            <Text style={[styles.buttonText, { color: accent.text }]}>{t.timer.cancelButton}</Text>
-          </Pressable>
-        </>
-      )}
-
-      {timer.phase === 'running' && (
-        <>
-          <Text style={[styles.quote, { color: accent.accent, backgroundColor: accent.accentSoft }]}>{quote}</Text>
-          <Text style={[styles.label, { color: accent.textMuted }]}>{t.timer.measuringLabel}</Text>
-          <TimeDisplay ms={timer.elapsedMs} />
-          <Pressable
-            style={[styles.button, { backgroundColor: accent.danger, ...buttonShadowShape, shadowColor: accent.danger }]}
-            onPress={handleStop}
-          >
-            <Text style={styles.buttonText}>{t.timer.stopButton}</Text>
-          </Pressable>
-        </>
-      )}
-
-      {timer.phase === 'finished' && pending && (
-        <>
-          <Text style={[styles.label, { color: accent.textMuted }]}>{t.timer.resultLabel}</Text>
-          <TimeDisplay ms={pending.durationMs} />
-          <View style={styles.adjustRow}>
-            <Pressable
-              style={[
-                styles.adjustButton,
-                { borderColor: accent.accent },
-                pending.durationMs < MIN_RECORD_MS && styles.adjustButtonDisabled,
-              ]}
-              onPress={() => result.adjust(-1000, video.capturedVideo ?? undefined)}
-              disabled={pending.durationMs < MIN_RECORD_MS}
-            >
-              <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.minusOneSecond}</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.adjustButton, { borderColor: accent.accent }]}
-              onPress={() => result.adjust(1000, video.capturedVideo ?? undefined)}
-            >
-              <Text style={[styles.adjustButtonText, { color: accent.accent }]}>{t.timer.plusOneSecond}</Text>
-            </Pressable>
-          </View>
-          {video.capturedVideo && (
-            <CaptureVideoRow capturedAssetId={video.capturedVideo.assetId} onViewCaptured={() => video.setViewingVideo(true)} />
-          )}
-          {pending.durationMs < MIN_RECORD_MS && (
-            <Text style={[styles.notSaved, { color: accent.textFaint }]}>{t.timer.notSavedNotice}</Text>
-          )}
-          <View style={styles.buttonRow}>
+            <View style={[styles.settings, { backgroundColor: accent.card }]}>
+              <NumberStepper
+                label={t.timer.countdownLabel}
+                value={settings.countdownSeconds}
+                min={COUNTDOWN_MIN_SECONDS}
+                max={COUNTDOWN_MAX_SECONDS}
+                unit={t.units.seconds}
+                editable
+                onChange={(v) => updateSettings({ countdownSeconds: v })}
+              />
+              <NumberStepper
+                label={t.timer.bellIntervalLabel}
+                value={settings.bellIntervalSeconds}
+                min={BELL_INTERVAL_MIN_SECONDS}
+                max={BELL_INTERVAL_MAX_SECONDS}
+                step={BELL_INTERVAL_STEP_SECONDS}
+                unit={t.units.seconds}
+                onChange={(v) => updateSettings({ bellIntervalSeconds: v })}
+              />
+              <View style={styles.voiceGuideRow}>
+                <Text style={[styles.voiceGuideLabel, { color: accent.textMuted }]}>
+                  {t.timer.voiceGuideLabel}
+                </Text>
+                <Switch
+                  value={voiceGuideEnabled}
+                  onValueChange={onVoiceGuideToggle}
+                  trackColor={{ true: accent.primary, false: accent.border }}
+                />
+              </View>
+            </View>
             <Pressable
               style={[
                 styles.button,
-                styles.buttonRowItem,
-                { backgroundColor: accent.primary, ...buttonShadowShape, shadowColor: accent.primary },
+                {
+                  backgroundColor: accent.primary,
+                  ...buttonShadowShape,
+                  shadowColor: accent.primary,
+                },
               ]}
-              onPress={handleRestart}
+              onPress={() => {
+                tapMedium();
+                timer.start(settings.countdownSeconds);
+              }}
             >
-              <Text style={[styles.buttonText, { color: accent.onPrimary }]}>{t.timer.restartButton}</Text>
+              <Text style={[styles.buttonText, { color: accent.onPrimary }]}>
+                {t.timer.startButton}
+              </Text>
             </Pressable>
+          </>
+        )}
+
+        {timer.phase === 'countdown' && (
+          <>
+            <Text style={[styles.label, { color: accent.textMuted }]}>
+              {t.timer.preparingLabel}
+            </Text>
+            <Text style={[styles.countdown, { color: accent.primaryText }]}>
+              {timer.countdownRemainingSec}
+            </Text>
             <Pressable
-              style={[styles.button, styles.buttonRowItem, { backgroundColor: accent.card }]}
-              onPress={handleGoMain}
+              style={[styles.button, { backgroundColor: accent.card }]}
+              onPress={handleCancel}
             >
-              <Text style={[styles.buttonText, { color: accent.text }]}>{t.timer.goMainButton}</Text>
+              <Text style={[styles.buttonText, { color: accent.text }]}>
+                {t.timer.cancelButton}
+              </Text>
             </Pressable>
-          </View>
-        </>
-      )}
+          </>
+        )}
+
+        {timer.phase === 'running' && (
+          <>
+            <Text
+              style={[styles.quote, { color: accent.accent, backgroundColor: accent.accentSoft }]}
+            >
+              {quote}
+            </Text>
+            <Text style={[styles.label, { color: accent.textMuted }]}>
+              {t.timer.measuringLabel}
+            </Text>
+            <TimeDisplay ms={timer.elapsedMs} />
+            <Pressable
+              style={[
+                styles.button,
+                {
+                  backgroundColor: accent.danger,
+                  ...buttonShadowShape,
+                  shadowColor: accent.danger,
+                },
+              ]}
+              onPress={handleStop}
+            >
+              <Text style={styles.buttonText}>{t.timer.stopButton}</Text>
+            </Pressable>
+          </>
+        )}
+
+        {timer.phase === 'finished' && pending && (
+          <>
+            <Text style={[styles.label, { color: accent.textMuted }]}>{t.timer.resultLabel}</Text>
+            <TimeDisplay ms={pending.durationMs} />
+            <View style={styles.adjustRow}>
+              <Pressable
+                style={[
+                  styles.adjustButton,
+                  { borderColor: accent.accent },
+                  pending.durationMs < MIN_RECORD_MS && styles.adjustButtonDisabled,
+                ]}
+                onPress={() => result.adjust(-1000, video.capturedVideo ?? undefined)}
+                disabled={pending.durationMs < MIN_RECORD_MS}
+              >
+                <Text style={[styles.adjustButtonText, { color: accent.accent }]}>
+                  {t.timer.minusOneSecond}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[styles.adjustButton, { borderColor: accent.accent }]}
+                onPress={() => result.adjust(1000, video.capturedVideo ?? undefined)}
+              >
+                <Text style={[styles.adjustButtonText, { color: accent.accent }]}>
+                  {t.timer.plusOneSecond}
+                </Text>
+              </Pressable>
+            </View>
+            {video.capturedVideo && (
+              <CaptureVideoRow
+                capturedAssetId={video.capturedVideo.assetId}
+                onViewCaptured={() => video.setViewingVideo(true)}
+              />
+            )}
+            {pending.durationMs < MIN_RECORD_MS && (
+              <Text style={[styles.notSaved, { color: accent.textFaint }]}>
+                {t.timer.notSavedNotice}
+              </Text>
+            )}
+            <View style={styles.buttonRow}>
+              <Pressable
+                style={[
+                  styles.button,
+                  styles.buttonRowItem,
+                  {
+                    backgroundColor: accent.primary,
+                    ...buttonShadowShape,
+                    shadowColor: accent.primary,
+                  },
+                ]}
+                onPress={handleRestart}
+              >
+                <Text style={[styles.buttonText, { color: accent.onPrimary }]}>
+                  {t.timer.restartButton}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[styles.button, styles.buttonRowItem, { backgroundColor: accent.card }]}
+                onPress={handleGoMain}
+              >
+                <Text style={[styles.buttonText, { color: accent.text }]}>
+                  {t.timer.goMainButton}
+                </Text>
+              </Pressable>
+            </View>
+          </>
+        )}
       </View>
 
       <CameraPermissionModal
@@ -236,7 +298,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
         onClose={video.closePermissionModal}
       />
       <VideoPlayerModal
-        assetId={video.viewingVideo ? video.capturedVideo?.assetId ?? null : null}
+        assetId={video.viewingVideo ? (video.capturedVideo?.assetId ?? null) : null}
         onClose={() => video.setViewingVideo(false)}
       />
     </KeyboardAvoidingView>

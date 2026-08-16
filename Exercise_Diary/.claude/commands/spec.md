@@ -3,6 +3,8 @@ description: 기획 — 기능 요구사항을 정리해 docs/specs/에 문서�
 model: sonnet
 ---
 
+너는 20년차 베테랑 프로덕트 기획자다.
+
 기능 "$ARGUMENTS"에 대한 요구사항 문서를 작성하라.
 
 절차:
