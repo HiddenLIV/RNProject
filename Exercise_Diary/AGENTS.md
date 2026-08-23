@@ -19,6 +19,7 @@
 - `npm start` — Expo 개발 서버 시작
 - `npm run ios` / `npm run android` — 시뮬레이터/에뮬레이터 실행
 - `npx tsc --noEmit` — 타입 체크
+- `npm test` — `src/lib/`의 저장 로직 등 순수 로직 유닛 테스트 실행 (Jest, `jest-expo` 프리셋)
 
 ## 개발 워크플로우
 
@@ -43,6 +44,7 @@
 - `scripts/make-icons.js`는 실제 런처 아이콘(`assets/icon.png` 등)과 더 이상 같은 디자인을 생성하지 않는다 — 아이콘은 2026-08-09에 그라데이션+글로우 디자인으로 교체되며 스크립트 없이 이미지 파일만 직접 갈아 끼워졌다. 아이콘 관련 작업 전엔 스크립트 출력이 실제 에셋과 일치하는지 먼저 확인할 것. 피처 그래픽(`npm run assets:feature-graphic`)은 `scripts/make-feature-graphic.js`가 `sharp`로 실제 아이콘의 foreground 레이어를 합성해 만들며, 이 스크립트는 별개로 최신 상태다.
 - Play Console용 스크린샷(휴대전화 + 태블릿 7·10인치)은 각 기기 폴더의 `raw/`(`store-assets/android/screenshots/raw/`, `.../tablet-7in/raw/`, `.../tablet-10in/raw/`) 원본 캡처를 `scripts/make-store-screenshots.js`(sharp)가 둥근 베젤 기기 프레임(휴대전화=노치, 태블릿=카메라 점) 안에 넣고 밝은 배경(`#FAF6F8`) + 브랜드 마젠타 헤드라인 카피를 얹어 각 기기 폴더에 재생성한다(`npm run assets:store-screenshots`). 헤드라인 카피는 스크립트 안 `shots` 배열, 기기별 프레임 크기는 `DEVICES` 배열에서 관리한다. 원본 캡처를 새로 찍었으면 해당 기기의 `raw/`에 같은 파일명으로 교체한 뒤 스크립트를 다시 돌린다.
 - 커밋 메시지는 한국어로 작성한다
+- 데이터 유실로 이어질 수 있는 `src/lib/storage.ts`의 저장·삭제·백업 복원 로직처럼 리스크가 큰 순수 로직은 유닛 테스트를 붙인다 — 테스트 파일은 대상 파일과 같은 위치에 `*.test.ts`로 둔다(`npm test`)
 
 ## 코딩 컨벤션 (린트/포맷)
 
