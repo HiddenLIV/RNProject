@@ -4,7 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   addExercise,
   addRecord,
+  addRepsRecord,
   getExercises,
+  getMostRecentRecordAt,
   getRecords,
   getSettings,
   removeExercise,
@@ -148,5 +150,35 @@ describe('restoreFromBackup', () => {
     await restoreFromBackup(makeBackup());
 
     expect((await getRecords('ex-1')).map((r) => r.id)).toEqual(['r-1']);
+  });
+});
+
+describe('getMostRecentRecordAt', () => {
+  test('기록이 하나도 없으면 null을 반환한다', async () => {
+    await addExercise(makeExercise());
+    expect(await getMostRecentRecordAt()).toBeNull();
+  });
+
+  test('여러 운동·시간형/횟수형을 통틀어 가장 최근 시각을 찾는다', async () => {
+    await addExercise(makeExercise({ id: 'time-ex' }));
+    await addExercise(makeExercise({ id: 'reps-ex', measureType: 'reps' }));
+
+    await addRecord('time-ex', {
+      id: 'r-old',
+      measuredAt: '2026-01-01T00:00:00.000Z',
+      durationMs: 1,
+    });
+    await addRepsRecord('reps-ex', {
+      id: 'rr-newest',
+      measuredAt: '2026-06-01T00:00:00.000Z',
+      sets: [{ reps: 5 }],
+    });
+    await addRecord('time-ex', {
+      id: 'r-mid',
+      measuredAt: '2026-03-01T00:00:00.000Z',
+      durationMs: 1,
+    });
+
+    expect(await getMostRecentRecordAt()).toBe('2026-06-01T00:00:00.000Z');
   });
 });

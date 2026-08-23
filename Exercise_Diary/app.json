@@ -64,6 +64,7 @@
       "expo-localization",
       "expo-font",
       "expo-share-intent",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {

@@ -9,7 +9,7 @@ model: opus
 
 절차:
 1. `docs/specs/$ARGUMENTS.md`를 읽는다. 없으면 먼저 /spec부터 하라고 안내하고 중단한다
-2. 기존 코드(`src/`)와 프로젝트 구조를 파악해 재사용할 수 있는 것을 찾는다
+2. 기존 코드(`src/`)와 프로젝트 구조를 파악해 재사용할 수 있는 것을 찾는다. `DESIGN.md`가 있으면 함께 읽어 화면 구조 설계가 그 안의 컴포넌트 목록(Components 섹션)·토큰(colors/typography/spacing/radius)·Named Rules(예: One Accent Rule)와 어긋나지 않게 한다 — 없으면 이 단계를 건너뛴다
 3. `docs/design/$ARGUMENTS.md`에 아래 구조로 작성한다:
    - **화면 구조** — 어떤 화면/컴포넌트가 필요한가, 각각 어느 파일에 두는가
    - **상태 설계** — 어떤 상태를 어디서 관리하는가 (로컬 state / context / storage)

@@ -8,8 +8,8 @@ model: sonnet
 기능 "$ARGUMENTS"에 대한 요구사항 문서를 작성하라.
 
 절차:
-1. 사용자의 요청과 기존 `docs/specs/` 문서를 읽고 맥락을 파악한다
-2. 요구사항이 모호하면 AskUserQuestion으로 핵심 결정사항(대상 사용자 시나리오, 필수/제외 기능, 우선순위)을 먼저 확인한다
+1. 사용자의 요청과 기존 `docs/specs/` 문서를 읽고 맥락을 파악한다. `PRODUCT.md`가 있으면 함께 읽어 대상 사용자(Users)·차별점(Positioning)·확정된 제약(Capabilities and Constraints)에 어긋나는 요구사항이 없는지 확인한다
+2. 요구사항이 모호하면 AskUserQuestion으로 핵심 결정사항(대상 사용자 시나리오, 필수/제외 기능, 우선순위)을 먼저 확인한다. PRODUCT.md가 이미 답을 주는 항목은 다시 묻지 않는다
 3. `docs/specs/$ARGUMENTS.md`에 아래 구조로 작성한다:
    - **목적** — 이 기능이 왜 필요한가 (한두 문장)
    - **사용자 시나리오** — 사용자가 어떤 흐름으로 사용하는가

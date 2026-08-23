@@ -24,6 +24,7 @@ import { showAlert } from '../lib/alert';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { notifySuccess, tapLight, tapMedium } from '../lib/haptics';
 import { useTranslation } from '../lib/i18n';
+import { notifyReminderRecordSaved } from '../lib/notifications';
 import { addRepsRecord, createId } from '../lib/storage';
 import { useAccentColors } from '../lib/ThemeContext';
 import {
@@ -184,6 +185,12 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
     setJustSaved(true);
     setSaving(false);
     notifySuccess();
+    notifyReminderRecordSaved({
+      dailyTitle: t.reminder.dailyNotificationTitle,
+      dailyBody: t.reminder.dailyNotificationBody,
+      daysSinceTitle: t.reminder.daysSinceNotificationTitle,
+      daysSinceBody: t.reminder.daysSinceNotificationBody,
+    }).catch(() => {});
   };
 
   return (

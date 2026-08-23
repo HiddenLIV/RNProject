@@ -18,6 +18,7 @@ const zh: Translations = {
     reps: '次',
     kg: 'kg',
     lb: '磅',
+    days: '天',
   },
   weekdays: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
   exercisePresets: {
@@ -206,6 +207,24 @@ const zh: Translations = {
     modeSystem: '跟随系统',
     modeLight: '浅色',
     modeDark: '深色',
+  },
+  reminder: {
+    enabledLabel: '提醒通知',
+    modeDailyTimeLabel: '每天固定时间',
+    modeDaysSinceLabel: 'N天未记录时',
+    timeLabel: '提醒时间',
+    daysLabel: '天数',
+    dailyNotificationTitle: '该运动了',
+    dailyNotificationBody: '哪怕只是一小会儿 — 打开HiddenReps动起来吧。',
+    daysSinceNotificationTitle: (days) => `已经${days}天没运动了`,
+    daysSinceNotificationBody: '今天要不要动一动?',
+  },
+  reminderPermission: {
+    title: '需要通知权限',
+    body: '要发送提醒,需要通知权限。',
+    cancel: '取消',
+    grant: '允许',
+    openSettings: '前往设置',
   },
   backup: {
     title: '备份与恢复',

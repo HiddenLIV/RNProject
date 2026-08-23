@@ -18,6 +18,7 @@ const ko: Translations = {
     reps: '회',
     kg: 'kg',
     lb: '파운드',
+    days: '일',
   },
   weekdays: ['일', '월', '화', '수', '목', '금', '토'],
   exercisePresets: {
@@ -206,6 +207,24 @@ const ko: Translations = {
     modeSystem: '시스템 설정 따름',
     modeLight: '라이트',
     modeDark: '다크',
+  },
+  reminder: {
+    enabledLabel: '리마인더 알림',
+    modeDailyTimeLabel: '매일 정해진 시각',
+    modeDaysSinceLabel: 'N일간 기록 없을 때',
+    timeLabel: '알림 시각',
+    daysLabel: '며칠 후',
+    dailyNotificationTitle: '운동할 시간이에요',
+    dailyNotificationBody: '잠깐이라도 좋아요 — HiddenReps를 열어보세요.',
+    daysSinceNotificationTitle: (days) => `${days}일째 쉬고 있어요`,
+    daysSinceNotificationBody: '오늘 잠깐 운동해보는 건 어때요?',
+  },
+  reminderPermission: {
+    title: '알림 권한이 필요해요',
+    body: '리마인더를 보내려면 알림 권한이 필요합니다.',
+    cancel: '취소',
+    grant: '권한 허용',
+    openSettings: '설정으로 이동',
   },
   backup: {
     title: '백업/복원',

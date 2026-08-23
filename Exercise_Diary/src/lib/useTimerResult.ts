@@ -1,4 +1,7 @@
 import { useState } from 'react';
+
+import { useTranslation } from './i18n';
+import { notifyReminderRecordSaved, ReminderNotificationContent } from './notifications';
 import { addRecord, createId, removeRecord, updateRecord } from './storage';
 import { VideoRef } from './types';
 
@@ -18,12 +21,24 @@ export type PendingResult = {
 // 이미 기기에 남아있게 한다.
 export function useTimerResult(exerciseId: string) {
   const [pending, setPending] = useState<PendingResult | null>(null);
+  const t = useTranslation();
+
+  // N일간 미기록 리마인더가 켜져 있으면, 저장이 실제로 일어날 때마다 카운트를 리셋한다
+  // (꺼져 있거나 매일 모드면 notifyReminderRecordSaved 내부에서 조용히 무시된다).
+  const reminderContent: ReminderNotificationContent = {
+    dailyTitle: t.reminder.dailyNotificationTitle,
+    dailyBody: t.reminder.dailyNotificationBody,
+    daysSinceTitle: t.reminder.daysSinceNotificationTitle,
+    daysSinceBody: t.reminder.daysSinceNotificationBody,
+  };
+  const notifyRecordSaved = () => notifyReminderRecordSaved(reminderContent).catch(() => {});
 
   const save = (durationMs: number, videoRef?: VideoRef) => {
     const measuredAt = new Date().toISOString();
     if (durationMs >= MIN_RECORD_MS) {
       const id = createId();
       addRecord(exerciseId, { id, measuredAt, durationMs, videoRef });
+      notifyRecordSaved();
       setPending({ id, durationMs, measuredAt });
     } else {
       setPending({ id: null, durationMs, measuredAt });
@@ -37,10 +52,12 @@ export function useTimerResult(exerciseId: string) {
       if (durationMs >= MIN_RECORD_MS) {
         if (prev.id) {
           updateRecord(exerciseId, prev.id, { durationMs });
+          notifyRecordSaved();
           return { ...prev, durationMs };
         }
         const id = createId();
         addRecord(exerciseId, { id, measuredAt: prev.measuredAt, durationMs, videoRef });
+        notifyRecordSaved();
         return { ...prev, id, durationMs };
       }
       if (prev.id) removeRecord(exerciseId, prev.id);

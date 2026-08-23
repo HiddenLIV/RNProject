@@ -18,6 +18,7 @@ const ja: Translations = {
     reps: '回',
     kg: 'kg',
     lb: 'ポンド',
+    days: '日',
   },
   weekdays: ['日', '月', '火', '水', '木', '金', '土'],
   exercisePresets: {
@@ -206,6 +207,24 @@ const ja: Translations = {
     modeSystem: 'システム設定に従う',
     modeLight: 'ライト',
     modeDark: 'ダーク',
+  },
+  reminder: {
+    enabledLabel: 'リマインダー通知',
+    modeDailyTimeLabel: '毎日決まった時刻',
+    modeDaysSinceLabel: '記録がない日数が経過したら',
+    timeLabel: '通知時刻',
+    daysLabel: '日数',
+    dailyNotificationTitle: '運動の時間です',
+    dailyNotificationBody: '少しの時間でも大丈夫 — HiddenRepsを開いてみましょう。',
+    daysSinceNotificationTitle: (days) => `${days}日間お休み中です`,
+    daysSinceNotificationBody: '今日は少し体を動かしてみませんか?',
+  },
+  reminderPermission: {
+    title: '通知の許可が必要です',
+    body: 'リマインダーを送るには通知の許可が必要です。',
+    cancel: 'キャンセル',
+    grant: '許可する',
+    openSettings: '設定を開く',
   },
   backup: {
     title: 'バックアップと復元',

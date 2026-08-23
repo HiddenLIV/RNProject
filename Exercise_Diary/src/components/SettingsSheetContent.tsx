@@ -6,6 +6,7 @@ import { fontSize, spacing } from '../theme';
 import Text from './AppText';
 import BackupSheetContent from './BackupSheetContent';
 import ColorSchemeSelector from './ColorSchemeSelector';
+import ReminderSettingsSection from './ReminderSettingsSection';
 import ThemeSwatchRow from './ThemeSwatchRow';
 
 type Props = {
@@ -33,6 +34,9 @@ export default function SettingsSheetContent({ onRestored, onRestoreFailed }: Pr
           {t.settings.modeSectionLabel}
         </Text>
         <ColorSchemeSelector />
+      </View>
+      <View style={styles.section}>
+        <ReminderSettingsSection />
       </View>
       <View style={styles.section}>
         <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.backup.title}</Text>

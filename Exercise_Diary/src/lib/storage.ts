@@ -4,8 +4,10 @@ import {
   BackupPayload,
   COLOR_SCHEME_OVERRIDE_VALUES,
   ColorSchemeOverride,
+  DEFAULT_REMINDER_SETTINGS,
   DEFAULT_SETTINGS,
   Exercise,
+  ReminderSettings,
   RepsRecord,
   Settings,
   THEME_PRESET_IDS,
@@ -17,6 +19,7 @@ const EXERCISES_KEY = 'timecheck:exercises:v1';
 const THEME_KEY = 'timecheck:theme:v1';
 const VOICE_GUIDE_KEY = 'timecheck:voiceGuide:v1';
 const COLOR_SCHEME_OVERRIDE_KEY = 'timecheck:colorSchemeOverride:v1';
+const REMINDER_SETTINGS_KEY = 'timecheck:reminderSettings:v1';
 
 // id: 'hang'인 운동은 앱의 기존(최초) 데이터가 쓰던 고정 키를 그대로 쓴다 —
 // 그 덕분에 이번 기능을 위한 별도 마이그레이션이 필요 없다.
@@ -205,4 +208,35 @@ export async function getColorSchemeOverride(): Promise<ColorSchemeOverride> {
 // 다른 값과 합쳐 쓰는 read-modify-write가 아니라 단순 덮어쓰기라 enqueueWrite 큐가 필요 없다.
 export function setColorSchemeOverride(value: ColorSchemeOverride): Promise<void> {
   return AsyncStorage.setItem(COLOR_SCHEME_OVERRIDE_KEY, JSON.stringify(value));
+}
+
+// 운동별이 아니라 앱 전체에 공통으로 적용되는 값 — voiceGuideEnabled와 같은 패턴.
+export async function getReminderSettings(): Promise<ReminderSettings> {
+  const raw = await readJson<Partial<ReminderSettings>>(REMINDER_SETTINGS_KEY, {});
+  return { ...DEFAULT_REMINDER_SETTINGS, ...raw };
+}
+
+// 단일 값 통짜 덮어쓰기라 enqueueWrite 큐가 필요 없다(다른 필드와 합쳐 쓰지 않음).
+export function saveReminderSettings(settings: ReminderSettings): Promise<void> {
+  return AsyncStorage.setItem(REMINDER_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+// N일간 미기록 리마인더의 기준 시각 — 시간형·횟수형을 가리지 않고 모든 운동을 통틀어
+// 가장 최근 기록의 measuredAt을 찾는다. 기록이 하나도 없으면 null.
+// ISO 8601 문자열은 사전순 비교가 시간순 비교와 같으므로 Date 파싱 없이 문자열 비교만 쓴다.
+export async function getMostRecentRecordAt(): Promise<string | null> {
+  const exercises = await getExercises();
+  const allDates = (
+    await Promise.all(
+      exercises.map(async (exercise) => {
+        const [records, repsRecords] = await Promise.all([
+          getRecords(exercise.id),
+          getRepsRecords(exercise.id),
+        ]);
+        return [...records, ...repsRecords].map((record) => record.measuredAt);
+      }),
+    )
+  ).flat();
+  if (allDates.length === 0) return null;
+  return allDates.reduce((latest, date) => (date > latest ? date : latest));
 }

@@ -17,3 +17,4 @@ description: 마무리 — reviewer 리뷰 후 변경분을 한국어 메시지�
 - push는 사용자가 명시적으로 요청할 때만 한다
 - 스테이징 후 `git status`로 의도치 않은 파일(다른 프로젝트, .DS_Store 등)이 포함되지 않았는지 확인한다
 - docs/specs·docs/design 문서가 코드와 어긋난 상태면 커밋 전에 문서부터 갱신한다
+- 이번 변경으로 시각적 규칙(색상 프리셋, 타이포그래피 스케일, Named Rules 등)이 새로 생기거나 바뀌었다면, `DESIGN.md`(있는 경우)를 직접 손으로 고치지 말고 커밋 전에 `/impeccable document`를 다시 실행해 정식 형식(YAML frontmatter + 8개 섹션)에 맞게 재생성하라고 사용자에게 안내한다 — 다음 `/dev`·`/qa`가 갱신 전 문서를 참고하지 않도록

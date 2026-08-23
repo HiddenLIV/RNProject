@@ -11,7 +11,12 @@ import ForceUpdateModal from './src/components/ForceUpdateModal';
 import { initializeAds } from './src/lib/ads';
 import { fontAssets } from './src/lib/fonts';
 import { checkForceUpdate } from './src/lib/forceUpdate';
-import { LanguageProvider } from './src/lib/i18n';
+import { LanguageProvider, useTranslation } from './src/lib/i18n';
+import {
+  ensureAndroidChannelAsync,
+  registerNotificationHandler,
+  resyncReminderSchedule,
+} from './src/lib/notifications';
 import { ThemeProvider, useAccentColors } from './src/lib/ThemeContext';
 import { Exercise } from './src/lib/types';
 import AddExerciseScreen from './src/screens/AddExerciseScreen';
@@ -46,6 +51,7 @@ type AppContentProps = {
 
 function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentProps) {
   const accent = useAccentColors();
+  const t = useTranslation();
   const [screen, setScreen] = useState<Screen>({ name: 'home' });
   const [forceUpdateStoreUrl, setForceUpdateStoreUrl] = useState<string | null>(null);
 
@@ -54,12 +60,27 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
     // doNotMix: 측정 중 우리 오디오가 재생되면 다른 앱의 음악·영상을 일시정지
     setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'doNotMix' });
     initializeAds();
+    // 안드로이드 8+ 알림 채널 생성 — 리마인더를 아직 켜지 않은 사용자도 있으니 매번 멱등하게 호출
+    ensureAndroidChannelAsync().catch(() => {});
+    // 앱이 포그라운드에 있을 때도 리마인더 알림이 배너로 보이게 등록 — 리마인더를 아직 켜지
+    // 않은 사용자에게는 아무 영향도 없다(예약된 알림이 없으니 핸들러가 호출될 일이 없다)
+    registerNotificationHandler();
+    // N일간 미기록 모드는 1회성 알림이라 발송 후 사용자가 계속 기록을 안 남기면 재예약할
+    // 계기가 없다(notifications.ts 참고) — 최소한 앱을 다시 열 때마다 저장된 설정 기준으로
+    // 다시 계산해 밀어준다. 리마인더를 아직 켜지 않은 사용자에게는 아무 영향도 없다.
+    resyncReminderSchedule({
+      dailyTitle: t.reminder.dailyNotificationTitle,
+      dailyBody: t.reminder.dailyNotificationBody,
+      daysSinceTitle: t.reminder.daysSinceNotificationTitle,
+      daysSinceBody: t.reminder.daysSinceNotificationBody,
+    }).catch(() => {});
     // 콜드 스타트 1회만 체크 — 실패해도 forceUpdate.ts 내부에서 이미 흡수하지만 이중 안전망으로 catch
     checkForceUpdate()
       .then((result) => {
         if (result.blocked) setForceUpdateStoreUrl(result.storeUrl);
       })
       .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 콜드 스타트 1회 실행 의도, t는 첫 렌더 시점 값으로 충분
   }, []);
 
   const dismissForceUpdate = () => setForceUpdateStoreUrl(null);

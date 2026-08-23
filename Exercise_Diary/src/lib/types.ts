@@ -128,3 +128,25 @@ export type BaseColors = {
   white: string;
   shadow: string;
 };
+
+// 로컬 알림 리마인더 — 앱 전체에 공통으로 적용되는 단일 설정(운동별 아님)
+export type ReminderMode = 'dailyTime' | 'daysSinceLastRecord';
+
+export type ReminderSettings = {
+  enabled: boolean;
+  mode: ReminderMode;
+  hour: number; // 0~23
+  minute: number; // 0~59
+  daysSinceLastRecord: number; // 1~14 — mode가 'daysSinceLastRecord'일 때만 의미 있음
+};
+
+export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = {
+  enabled: false,
+  mode: 'dailyTime',
+  hour: 20,
+  minute: 0,
+  daysSinceLastRecord: 3,
+};
+
+export const REMINDER_DAYS_MIN = 1;
+export const REMINDER_DAYS_MAX = 14;

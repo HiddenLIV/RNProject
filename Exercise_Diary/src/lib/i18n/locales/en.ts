@@ -18,6 +18,7 @@ const en = {
     reps: ' reps',
     kg: 'kg',
     lb: 'lb',
+    days: ' days',
   },
   weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
   exercisePresets: {
@@ -206,6 +207,24 @@ const en = {
     modeSystem: 'Follow System',
     modeLight: 'Light',
     modeDark: 'Dark',
+  },
+  reminder: {
+    enabledLabel: 'Reminder Notifications',
+    modeDailyTimeLabel: 'Daily at a set time',
+    modeDaysSinceLabel: 'After days of no activity',
+    timeLabel: 'Reminder time',
+    daysLabel: 'Days',
+    dailyNotificationTitle: 'Time to train',
+    dailyNotificationBody: 'Even a few minutes counts — open HiddenReps and get moving.',
+    daysSinceNotificationTitle: (days: number) => `${days} days without a workout`,
+    daysSinceNotificationBody: 'Your streak is waiting — how about a quick session today?',
+  },
+  reminderPermission: {
+    title: 'Notification Permission Needed',
+    body: 'To send reminders, HiddenReps needs permission to show notifications.',
+    cancel: 'Cancel',
+    grant: 'Allow',
+    openSettings: 'Open Settings',
   },
   backup: {
     title: 'Backup & Restore',
