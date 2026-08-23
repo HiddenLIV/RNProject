@@ -1,0 +1,46 @@
+name: Exercise Diary CI
+
+# RNProject는 여러 프로젝트가 함께 있는 저장소라, Exercise_Diary 하위 변경일 때만 돈다.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Exercise_Diary/**'
+      - '.github/workflows/exercise-diary-ci.yml'
+  pull_request:
+    paths:
+      - 'Exercise_Diary/**'
+      - '.github/workflows/exercise-diary-ci.yml'
+
+defaults:
+  run:
+    working-directory: Exercise_Diary
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Exercise_Diary/package-lock.json
+
+      # jest-expo가 요구하는 @react-native/jest-preset 패치 버전과 react-native 0.86.0의
+      # 정확 고정 버전 사이에 npm의 엄격한 peer 검사가 충돌한다(실제로는 호환됨) — 로컬 설치
+      # 때와 동일하게 --legacy-peer-deps로 우회한다.
+      - run: npm ci --legacy-peer-deps
+
+      - name: 타입 체크
+        run: npx tsc --noEmit
+
+      - name: 유닛 테스트
+        run: npm test
+
+      # 기존 코드에 React Compiler 대비 규칙 위반 20건이 우선순위 낮게 남아있어(별도 작업으로
+      # 다루기로 함) lint는 아직 필수 게이트로 걸지 않는다 — 결과만 로그에 남긴다.
+      - name: 린트 (참고용, 실패해도 워크플로는 통과)
+        run: npm run lint
+        continue-on-error: true
