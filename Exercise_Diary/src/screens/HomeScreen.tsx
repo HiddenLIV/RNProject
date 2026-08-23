@@ -122,7 +122,11 @@ export default function HomeScreen({
                     hitSlop={8}
                     accessibilityLabel={t.home.help}
                   >
-                    <Ionicons name="help-circle-outline" size={26} color={accent.primaryText} />
+                    {/* Ionicons의 help-circle-outline 글리프는 같은 size 값에서도
+                        settings-outline보다 눈에 띄게 작게 그려진다(측정 결과 실제 픽셀
+                        기준 약 53px vs 63px) — 두 아이콘이 나란히 있을 때 시각적으로
+                        맞춰 보이도록 살짝 키운다. */}
+                    <Ionicons name="help-circle-outline" size={30} color={accent.primaryText} />
                   </Pressable>
                   <Pressable
                     style={styles.helpButton}
@@ -276,6 +280,7 @@ export default function HomeScreen({
         }}
       />
       <BottomSheet
+        key={sheetKind}
         visible={sheetOpen}
         onClose={closeSheet}
         title={sheetKind === 'settings' ? t.settings.title : t.help.title}

@@ -19,6 +19,8 @@ export const DARK_COLORS: BaseColors = {
   dangerSoft: '#3A1614',
   white: '#FFFFFF',
   shadow: '#000000',
+  weekendSaturday: '#2F80ED',
+  weekendSunday: '#FF453A', // danger와 같은 값 — 어두운 배경에선 대비 문제가 없어 그대로 재사용
 };
 
 export const LIGHT_COLORS: BaseColors = {
@@ -33,6 +35,10 @@ export const LIGHT_COLORS: BaseColors = {
   dangerSoft: '#FFE1DE',
   white: '#FFFFFF',
   shadow: '#000000',
+  // danger(#FF453A)를 밝은 배경(#F7F4F5)에 그대로 쓰면 대비가 약 3:1로 WCAG AA(4.5:1) 미달이라
+  // 요일 표시 전용으로 더 진한 톤을 쓴다(Material Blue/Red 800 계열, 대비 5:1 이상).
+  weekendSaturday: '#1565C0',
+  weekendSunday: '#C62828',
 };
 
 export const spacing = {

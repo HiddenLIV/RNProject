@@ -127,6 +127,10 @@ export type BaseColors = {
   dangerSoft: string;
   white: string;
   shadow: string;
+  // 캘린더 요일 표시 전용(일=빨강, 토=파랑) — 강조색 프리셋과 무관하게 항상 같은 톤을 쓰되,
+  // 라이트 모드에서는 밝은 배경 대비 WCAG AA(4.5:1)를 맞추려 danger보다 더 진한 톤을 쓴다.
+  weekendSaturday: string;
+  weekendSunday: string;
 };
 
 // 로컬 알림 리마인더 — 앱 전체에 공통으로 적용되는 단일 설정(운동별 아님)

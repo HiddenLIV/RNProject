@@ -2,7 +2,7 @@ import { setAudioModeAsync } from 'expo-audio';
 import { useFonts } from 'expo-font';
 import { useShareIntent } from 'expo-share-intent';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,7 +26,7 @@ import HomeScreen from './src/screens/HomeScreen';
 
 type Screen =
   | { name: 'home' }
-  | { name: 'exercise'; exercise: Exercise; initialTab?: 'records' }
+  | { name: 'exercise'; exercise: Exercise; initialTab?: 'records'; returnTo?: 'home' | 'activity' }
   | { name: 'addExercise' }
   | { name: 'activity' };
 
@@ -90,8 +90,19 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
 
   const dismissForceUpdate = () => setForceUpdateStoreUrl(null);
 
+  // 활동 기록 화면에서 연 운동 화면은 뒤로가기(화면 버튼·하드웨어 모두)로 홈이 아니라 활동
+  // 기록 화면으로 돌아가야 한다 — 화면 전환에 별도 히스토리 스택이 없는 구조라, 그 한 단계를
+  // exercise 화면 자신의 상태(returnTo)에 담아 왔던 곳으로만 되돌아간다.
+  const goBack = useCallback(() => {
+    setScreen((current) =>
+      current.name === 'exercise' && current.returnTo === 'activity'
+        ? { name: 'activity' }
+        : { name: 'home' },
+    );
+  }, []);
+
   // 안드로이드 하드웨어/제스처 뒤로 가기: 업데이트 바텀시트가 떠 있으면 "나중에"와 동일하게 닫기만 하고,
-  // 그 외엔 홈이 아니면 홈으로, 홈에서는 기본 동작(앱 종료)
+  // 그 외엔 홈이 아니면 goBack으로, 홈에서는 기본 동작(앱 종료)
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (forceUpdateStoreUrl) {
@@ -99,13 +110,13 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
         return true;
       }
       if (screen.name !== 'home') {
-        setScreen({ name: 'home' });
+        goBack();
         return true;
       }
       return false;
     });
     return () => sub.remove();
-  }, [screen, forceUpdateStoreUrl]);
+  }, [screen, forceUpdateStoreUrl, goBack]);
 
   return (
     <SafeAreaProvider>
@@ -123,11 +134,7 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
           />
         )}
         {screen.name === 'exercise' && (
-          <ExerciseScreen
-            exercise={screen.exercise}
-            initialTab={screen.initialTab}
-            onBack={() => setScreen({ name: 'home' })}
-          />
+          <ExerciseScreen exercise={screen.exercise} initialTab={screen.initialTab} onBack={goBack} />
         )}
         {screen.name === 'addExercise' && (
           <AddExerciseScreen
@@ -140,7 +147,9 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
         {screen.name === 'activity' && (
           <ActivityScreen
             onBack={() => setScreen({ name: 'home' })}
-            onOpenExerciseRecords={(exercise) => setScreen({ name: 'exercise', exercise, initialTab: 'records' })}
+            onOpenExerciseRecords={(exercise) =>
+              setScreen({ name: 'exercise', exercise, initialTab: 'records', returnTo: 'activity' })
+            }
           />
         )}
         {/* expo-status-bar의 "auto"는 기기 시스템 설정만 보고 밝기를 정해서, 화면 모드를

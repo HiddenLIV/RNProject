@@ -6,6 +6,7 @@ export const HELP_SECTION_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
   'add-circle-outline',
   'timer-outline',
   'list-outline',
+  'calendar-outline',
   'videocam-outline',
   'play-circle-outline',
   'create-outline',

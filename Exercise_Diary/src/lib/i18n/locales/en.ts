@@ -197,6 +197,11 @@ const en = {
           'The "Records" tab at the bottom of the exercise screen shows your history by date along with your best record. Tap the trash icon next to a record to remove it.',
       },
       {
+        title: 'Check This Week\'s Activity',
+        description:
+          'The "Activity" card at the top of the home screen shows how many days you\'ve worked out this week and how many new personal records (PRs) you\'ve set. Tap it to open the monthly calendar and see your records by date, and look for the "🔥" streak badge on exercise cards to see your current streak.',
+      },
+      {
         title: 'Record Yourself',
         description:
           'Use the "Record Form" button on the measure screen to film yourself exercising. The video is saved to your device gallery, and linking it to a record lets you watch it again later.',
