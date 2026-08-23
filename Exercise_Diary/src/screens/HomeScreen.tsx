@@ -10,6 +10,7 @@ import ExerciseIcon from '../components/ExerciseIcon';
 import HelpSheetContent from '../components/HelpSheetContent';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import SettingsSheetContent from '../components/SettingsSheetContent';
+import Skeleton from '../components/Skeleton';
 import Toast from '../components/Toast';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { tapLight } from '../lib/haptics';
@@ -135,58 +136,80 @@ export default function HomeScreen({
             </View>
           )}
         </View>
-        <FlatList
-          style={styles.flatList}
-          data={filteredExercises}
-          keyExtractor={(exercise) => exercise.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.list, filteredExercises.length === 0 && styles.listEmpty]}
-          ListEmptyComponent={
-            exercisesLoaded ? (
+        {!exercisesLoaded ? (
+          // 처음 열었을 때 AsyncStorage 읽기가 끝나기 전까지 빈 화면 대신 보여주는 자리표시자 —
+          // 실제 카드 개수를 미리 알 수 없으니 흔한 목록 길이를 가정해 3장만 깜빡인다.
+          <View style={styles.list}>
+            {[0, 1, 2].map((i) => (
+              <View key={i} style={[styles.card, { backgroundColor: accent.card }]}>
+                <Skeleton
+                  width={48}
+                  height={48}
+                  borderRadius={radius.pill}
+                  style={styles.iconBadge}
+                />
+                <View style={styles.cardInfo}>
+                  <Skeleton width="60%" height={18} />
+                  <Skeleton width={72} height={20} borderRadius={radius.pill} />
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <FlatList
+            style={styles.flatList}
+            data={filteredExercises}
+            keyExtractor={(exercise) => exercise.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.list,
+              filteredExercises.length === 0 && styles.listEmpty,
+            ]}
+            ListEmptyComponent={
               <View style={styles.empty}>
                 <Ionicons name="body-outline" size={40} color={accent.textFaint} />
                 <Text style={[styles.emptyText, { color: accent.textMuted }]}>
                   {trimmedQuery ? t.home.noSearchResults : t.home.emptyExercises}
                 </Text>
               </View>
-            ) : null
-          }
-          renderItem={({ item }) => {
-            const displayName = getExerciseDisplayName(item, t);
-            return (
-              <Pressable
-                style={({ pressed }) => [
-                  styles.card,
-                  { backgroundColor: accent.card },
-                  pressed && styles.cardPressed,
-                ]}
-                onPress={() => onSelectExercise(item)}
-              >
-                <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
-                  <ExerciseIcon icon={item.icon} size={26} color={accent.onPrimary} />
-                </View>
-                <View style={styles.cardInfo}>
-                  <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
-                  <MeasureTypeTag measureType={item.measureType} />
-                </View>
+            }
+            renderItem={({ item }) => {
+              const displayName = getExerciseDisplayName(item, t);
+              return (
                 <Pressable
-                  style={styles.editButton}
-                  onPress={() => setEditingExercise(item)}
-                  hitSlop={12}
-                  accessibilityLabel={t.home.editAccessibility(displayName)}
+                  style={({ pressed }) => [
+                    styles.card,
+                    { backgroundColor: accent.card },
+                    pressed && styles.cardPressed,
+                  ]}
+                  onPress={() => onSelectExercise(item)}
                 >
-                  <Ionicons name="create-outline" size={20} color={accent.primary} />
+                  <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
+                    <ExerciseIcon icon={item.icon} size={26} color={accent.onPrimary} />
+                  </View>
+                  <View style={styles.cardInfo}>
+                    <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
+                    <MeasureTypeTag measureType={item.measureType} />
+                  </View>
+                  <Pressable
+                    style={styles.editButton}
+                    onPress={() => setEditingExercise(item)}
+                    hitSlop={12}
+                    accessibilityLabel={t.home.editAccessibility(displayName)}
+                  >
+                    <Ionicons name="create-outline" size={20} color={accent.primary} />
+                  </Pressable>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={22}
+                    color={accent.primary}
+                    style={styles.chevron}
+                  />
                 </Pressable>
-                <Ionicons
-                  name="chevron-forward"
-                  size={22}
-                  color={accent.primary}
-                  style={styles.chevron}
-                />
-              </Pressable>
-            );
-          }}
-        />
+              );
+            }}
+          />
+        )}
         {/* M3 Extended FAB — 목록 스크롤과 무관하게 항상 같은 자리에 떠 있어서, 운동이 많아져도
             "운동 추가"를 찾으러 스크롤하거나 헤더 공간을 차지할 필요가 없다. */}
         <Pressable
