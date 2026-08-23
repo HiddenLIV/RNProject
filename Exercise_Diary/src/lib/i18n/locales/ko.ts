@@ -66,7 +66,8 @@ const ko: Translations = {
     errorNameRequired: '운동 이름을 입력해 주세요',
     errorNameTooLong: (max) => `이름은 ${max}자 이내로 입력해 주세요`,
     errorDuplicateName: '이미 같은 이름의 운동이 있습니다',
-    errorInvalidVideoLink: 'YouTube 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)',
+    errorInvalidVideoLink:
+      'YouTube 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)',
   },
   editExercise: {
     title: '운동 수정',
@@ -81,7 +82,8 @@ const ko: Translations = {
     errorNameRequired: '운동 이름을 입력해 주세요',
     errorNameTooLong: (max) => `이름은 ${max}자 이내로 입력해 주세요`,
     errorDuplicateName: '이미 같은 이름의 운동이 있습니다',
-    errorInvalidVideoLink: 'YouTube 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)',
+    errorInvalidVideoLink:
+      'YouTube 영상 링크 형식이 아닙니다 (watch, youtu.be, shorts 링크만 지원)',
   },
   timer: {
     title: (name) => `${name} 타이머`,
@@ -209,7 +211,7 @@ const ko: Translations = {
     modeDark: '다크',
   },
   reminder: {
-    enabledLabel: '리마인더 알림',
+    enabledLabel: '챙김 알림',
     modeDailyTimeLabel: '매일 정해진 시각',
     modeDaysSinceLabel: 'N일간 기록 없을 때',
     timeLabel: '알림 시각',
@@ -221,7 +223,7 @@ const ko: Translations = {
   },
   reminderPermission: {
     title: '알림 권한이 필요해요',
-    body: '리마인더를 보내려면 알림 권한이 필요합니다.',
+    body: '챙김 알림을 보내려면 알림 권한이 필요합니다.',
     cancel: '취소',
     grant: '권한 허용',
     openSettings: '설정으로 이동',
@@ -231,14 +233,16 @@ const ko: Translations = {
     closeAccessibility: '닫기',
     cancel: '취소',
     exportLabel: '내보내기',
-    exportDescription: '운동 목록과 모든 기록을 파일로 저장해 보관하거나 다른 곳으로 보낼 수 있어요.',
+    exportDescription:
+      '운동 목록과 모든 기록을 파일로 저장해 보관하거나 다른 곳으로 보낼 수 있어요.',
     exportSuccessToast: '백업 파일을 만들었어요',
     exportErrorTitle: '내보내기 실패',
     exportErrorMessage: '백업 파일을 만들지 못했어요. 다시 시도해 주세요.',
     importLabel: '가져오기',
     importDescription: '백업 파일로 데이터를 복원해요.',
     importConfirmTitle: '모든 데이터를 대체할까요?',
-    importConfirmMessage: '이 기기의 모든 운동과 기록이 백업 파일 내용으로 대체돼요. 되돌릴 수 없어요.',
+    importConfirmMessage:
+      '이 기기의 모든 운동과 기록이 백업 파일 내용으로 대체돼요. 되돌릴 수 없어요.',
     importConfirmButton: '대체하기',
     importSuccessToast: '데이터를 복원했어요',
     importErrorTitle: '가져오기 실패',
