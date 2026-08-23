@@ -11,10 +11,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.hiddenlab.hiddenreps",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "youtube",
-          "youtube"
-        ],
+        "LSApplicationQueriesSchemes": ["youtube", "youtube"],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -56,15 +53,19 @@
         {
           "photosPermission": "촬영한 영상을 갤러리에서 불러와 다시 재생하려면 사진 접근 권한이 필요합니다.",
           "savePhotosPermission": "촬영한 영상을 갤러리에 저장하려면 사진 접근 권한이 필요합니다.",
-          "granularPermissions": [
-            "video"
-          ]
+          "granularPermissions": ["video"]
         }
       ],
       "expo-localization",
       "expo-font",
       "expo-share-intent",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#9B2791"
+        }
+      ],
       [
         "expo-splash-screen",
         {

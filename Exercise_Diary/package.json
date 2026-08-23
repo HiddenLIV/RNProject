@@ -58,6 +58,7 @@
     "web": "expo start --web",
     "assets:icons": "node scripts/make-icons.js",
     "assets:feature-graphic": "node scripts/make-feature-graphic.js",
+    "assets:notification-icon": "node scripts/make-notification-icon.js",
     "assets:store-screenshots": "node scripts/make-store-screenshots.js",
     "assets:bell": "node scripts/make-bell-sound.js",
     "assets:silence": "node scripts/make-silence-sound.js",

@@ -211,7 +211,7 @@ const ko: Translations = {
     modeDark: '다크',
   },
   reminder: {
-    enabledLabel: '챙김 알림',
+    enabledLabel: '운동 알림',
     modeDailyTimeLabel: '매일 정해진 시각',
     modeDaysSinceLabel: 'N일간 기록 없을 때',
     timeLabel: '알림 시각',
@@ -223,7 +223,7 @@ const ko: Translations = {
   },
   reminderPermission: {
     title: '알림 권한이 필요해요',
-    body: '챙김 알림을 보내려면 알림 권한이 필요합니다.',
+    body: '운동 알림을 보내려면 알림 권한이 필요합니다.',
     cancel: '취소',
     grant: '권한 허용',
     openSettings: '설정으로 이동',
