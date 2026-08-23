@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Text from './AppText';
+
 import { Translations, useTranslation } from '../lib/i18n';
+import { totalReps } from '../lib/records';
 import { useAccentColors } from '../lib/ThemeContext';
 import { RepsRecord } from '../lib/types';
 import { fontSize, radius, spacing } from '../theme';
+import Text from './AppText';
 
 type Props = {
   record: RepsRecord;
@@ -17,10 +19,6 @@ function formatMeasuredAt(iso: string): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-export function totalReps(record: RepsRecord): number {
-  return record.sets.reduce((sum, s) => sum + s.reps, 0);
 }
 
 function formatSet(set: RepsRecord['sets'][number], t: Translations, weightUnit?: 'kg' | 'lb'): string {

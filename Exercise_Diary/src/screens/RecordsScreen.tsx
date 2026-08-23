@@ -4,11 +4,12 @@ import { SectionList, StyleSheet, View } from 'react-native';
 
 import Text from '../components/AppText';
 import RecordItem from '../components/RecordItem';
-import RepsRecordItem, { totalReps } from '../components/RepsRecordItem';
+import RepsRecordItem from '../components/RepsRecordItem';
 import { formatDuration } from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import { showAlert } from '../lib/alert';
 import { Translations, useTranslation } from '../lib/i18n';
+import { totalReps } from '../lib/records';
 import { getRecords, getRepsRecords, removeRecord, removeRepsRecord } from '../lib/storage';
 import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise, RepsRecord, TimeRecord } from '../lib/types';

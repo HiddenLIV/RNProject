@@ -11,10 +11,13 @@ import HelpSheetContent from '../components/HelpSheetContent';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import SettingsSheetContent from '../components/SettingsSheetContent';
 import Skeleton from '../components/Skeleton';
+import StreakBadge from '../components/StreakBadge';
 import Toast from '../components/Toast';
+import WeeklySummaryCard from '../components/WeeklySummaryCard';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { tapLight } from '../lib/haptics';
 import { useTranslation } from '../lib/i18n';
+import { getHomeStats, HomeStats } from '../lib/stats';
 import { getExercises } from '../lib/storage';
 import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise } from '../lib/types';
@@ -23,6 +26,7 @@ import { buttonShadowShape, cardShadow, fontSize, radius, spacing } from '../the
 type Props = {
   onSelectExercise: (exercise: Exercise) => void;
   onAddExercise: () => void;
+  onOpenActivity: () => void;
   sharedVideoLink?: string;
   onConsumeSharedVideoLink?: () => void;
 };
@@ -30,6 +34,7 @@ type Props = {
 export default function HomeScreen({
   onSelectExercise,
   onAddExercise,
+  onOpenActivity,
   sharedVideoLink,
   onConsumeSharedVideoLink,
 }: Props) {
@@ -37,6 +42,7 @@ export default function HomeScreen({
   const t = useTranslation();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [exercisesLoaded, setExercisesLoaded] = useState(false);
+  const [homeStats, setHomeStats] = useState<HomeStats | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   // 도움말·백업/복원은 한 개의 바텀시트(BottomSheet)를 공유하고 내용만 바꿔 끼운다 — 그래서
@@ -52,6 +58,7 @@ export default function HomeScreen({
     getExercises().then((next) => {
       setExercises(next);
       setExercisesLoaded(true);
+      getHomeStats(next).then(setHomeStats);
     });
   };
 
@@ -81,135 +88,161 @@ export default function HomeScreen({
   return (
     <View style={[styles.screen, { backgroundColor: accent.background }]}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            <View style={styles.headerText}>
-              <Text style={[styles.title, { color: accent.text }]}>{t.home.title}</Text>
-              <Text style={[styles.subtitle, { color: accent.textMuted }]}>{t.home.subtitle}</Text>
-            </View>
-            <View style={styles.headerActions}>
-              <Pressable
-                style={styles.helpButton}
-                onPress={openHelp}
-                hitSlop={8}
-                accessibilityLabel={t.home.help}
-              >
-                <Ionicons name="help-circle-outline" size={26} color={accent.primaryText} />
-              </Pressable>
-              <Pressable
-                style={styles.helpButton}
-                onPress={openSettings}
-                hitSlop={8}
-                accessibilityLabel={t.settings.title}
-              >
-                <Ionicons name="settings-outline" size={26} color={accent.primaryText} />
-              </Pressable>
-            </View>
-          </View>
-          {showSearch && (
-            <View
-              style={[
-                styles.searchBox,
-                { borderColor: accent.border, backgroundColor: accent.card },
-              ]}
-            >
-              <Ionicons name="search" size={18} color={accent.textFaint} />
-              <TextInput
-                style={[styles.searchInput, { color: accent.text }]}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder={t.home.searchPlaceholder}
-                placeholderTextColor={accent.textFaint}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="search"
-              />
-              {searchQuery.length > 0 && (
-                <Pressable
-                  onPress={() => setSearchQuery('')}
-                  hitSlop={15}
-                  accessibilityLabel={t.home.searchClearAccessibility}
-                >
-                  <Ionicons name="close-circle" size={18} color={accent.textFaint} />
-                </Pressable>
-              )}
-            </View>
-          )}
-        </View>
-        {!exercisesLoaded ? (
-          // 처음 열었을 때 AsyncStorage 읽기가 끝나기 전까지 빈 화면 대신 보여주는 자리표시자 —
-          // 실제 카드 개수를 미리 알 수 없으니 흔한 목록 길이를 가정해 3장만 깜빡인다.
-          <View style={styles.list}>
-            {[0, 1, 2].map((i) => (
-              <View key={i} style={[styles.card, { backgroundColor: accent.card }]}>
-                <Skeleton
-                  width={48}
-                  height={48}
-                  borderRadius={radius.pill}
-                  style={styles.iconBadge}
-                />
-                <View style={styles.cardInfo}>
-                  <Skeleton width="60%" height={18} />
-                  <Skeleton width={72} height={20} borderRadius={radius.pill} />
+        <FlatList
+          style={styles.flatList}
+          data={exercisesLoaded ? filteredExercises : []}
+          keyExtractor={(exercise) => exercise.id}
+          showsVerticalScrollIndicator={false}
+          // 검색창(TextInput)이 목록 안(ListHeaderComponent)에 있어서, 기본값(never)이면 키보드가
+          // 떠 있을 때 첫 탭이 키보드를 닫기만 하고 하위 요소(검색 지우기 ✕, 요약 카드)에 전달되지
+          // 않는다 — 이 저장소의 다른 스크롤+입력 화면(AddExerciseScreen 등)과 동일하게 맞춘다.
+          keyboardShouldPersistTaps="handled"
+          // 안드로이드 기본값(true)은 화면 밖으로 나간 서브뷰를 측정된 레이아웃 기준으로 잘라내는데,
+          // 이번 주 요약 카드가 로딩 후(homeStats null → 값) 훨씬 커지면서 그 커진 영역이 옛 측정값
+          // 기준으로 잘려나가 히트맵이 안 보이는 문제가 있었다 — 운동 목록이 길지 않아 클리핑
+          // 최적화 이득도 크지 않으므로 아예 끈다.
+          removeClippedSubviews={false}
+          contentContainerStyle={[
+            styles.list,
+            exercisesLoaded && filteredExercises.length === 0 && styles.listEmpty,
+          ]}
+          ListHeaderComponent={
+            <>
+              <View style={styles.headerRow}>
+                <View style={styles.headerText}>
+                  <Text style={[styles.title, { color: accent.text }]}>{t.home.title}</Text>
+                  <Text style={[styles.subtitle, { color: accent.textMuted }]}>
+                    {t.home.subtitle}
+                  </Text>
+                </View>
+                <View style={styles.headerActions}>
+                  <Pressable
+                    style={styles.helpButton}
+                    onPress={openHelp}
+                    hitSlop={8}
+                    accessibilityLabel={t.home.help}
+                  >
+                    <Ionicons name="help-circle-outline" size={26} color={accent.primaryText} />
+                  </Pressable>
+                  <Pressable
+                    style={styles.helpButton}
+                    onPress={openSettings}
+                    hitSlop={8}
+                    accessibilityLabel={t.settings.title}
+                  >
+                    <Ionicons name="settings-outline" size={26} color={accent.primaryText} />
+                  </Pressable>
                 </View>
               </View>
-            ))}
-          </View>
-        ) : (
-          <FlatList
-            style={styles.flatList}
-            data={filteredExercises}
-            keyExtractor={(exercise) => exercise.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={[
-              styles.list,
-              filteredExercises.length === 0 && styles.listEmpty,
-            ]}
-            ListEmptyComponent={
+              {homeStats ? (
+                <WeeklySummaryCard stats={homeStats} onPress={onOpenActivity} />
+              ) : (
+                <View style={[styles.summarySkeleton, { backgroundColor: accent.card }]}>
+                  <Skeleton width="40%" height={18} />
+                  <Skeleton width="70%" height={14} />
+                </View>
+              )}
+              {showSearch && (
+                <View
+                  style={[
+                    styles.searchBox,
+                    { borderColor: accent.border, backgroundColor: accent.card },
+                  ]}
+                >
+                  <Ionicons name="search" size={18} color={accent.textFaint} />
+                  <TextInput
+                    style={[styles.searchInput, { color: accent.text }]}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder={t.home.searchPlaceholder}
+                    placeholderTextColor={accent.textFaint}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="search"
+                  />
+                  {searchQuery.length > 0 && (
+                    <Pressable
+                      onPress={() => setSearchQuery('')}
+                      hitSlop={15}
+                      accessibilityLabel={t.home.searchClearAccessibility}
+                    >
+                      <Ionicons name="close-circle" size={18} color={accent.textFaint} />
+                    </Pressable>
+                  )}
+                </View>
+              )}
+              {!exercisesLoaded && (
+                // 처음 열었을 때 AsyncStorage 읽기가 끝나기 전까지 빈 화면 대신 보여주는 자리표시자 —
+                // 실제 카드 개수를 미리 알 수 없으니 흔한 목록 길이를 가정해 3장만 깜빡인다.
+                <View style={styles.skeletonExerciseList}>
+                  {[0, 1, 2].map((i) => (
+                    <View key={i} style={[styles.card, { backgroundColor: accent.card }]}>
+                      <Skeleton
+                        width={48}
+                        height={48}
+                        borderRadius={radius.pill}
+                        style={styles.iconBadge}
+                      />
+                      <View style={styles.cardInfo}>
+                        <Skeleton width="60%" height={18} />
+                        <Skeleton width={72} height={20} borderRadius={radius.pill} />
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </>
+          }
+          ListEmptyComponent={
+            exercisesLoaded ? (
               <View style={styles.empty}>
                 <Ionicons name="body-outline" size={40} color={accent.textFaint} />
                 <Text style={[styles.emptyText, { color: accent.textMuted }]}>
                   {trimmedQuery ? t.home.noSearchResults : t.home.emptyExercises}
                 </Text>
               </View>
-            }
-            renderItem={({ item }) => {
-              const displayName = getExerciseDisplayName(item, t);
-              return (
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.card,
-                    { backgroundColor: accent.card },
-                    pressed && styles.cardPressed,
-                  ]}
-                  onPress={() => onSelectExercise(item)}
-                >
-                  <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
-                    <ExerciseIcon icon={item.icon} size={26} color={accent.onPrimary} />
-                  </View>
-                  <View style={styles.cardInfo}>
-                    <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
+            ) : null
+          }
+          renderItem={({ item }) => {
+            const displayName = getExerciseDisplayName(item, t);
+            const streak = homeStats?.streaksByExerciseId[item.id] ?? 0;
+            return (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.card,
+                  { backgroundColor: accent.card },
+                  pressed && styles.cardPressed,
+                ]}
+                onPress={() => onSelectExercise(item)}
+              >
+                <View style={[styles.iconBadge, { backgroundColor: accent.primary }]}>
+                  <ExerciseIcon icon={item.icon} size={26} color={accent.onPrimary} />
+                </View>
+                <View style={styles.cardInfo}>
+                  <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
+                  <View style={styles.cardTagRow}>
                     <MeasureTypeTag measureType={item.measureType} />
+                    {streak >= 2 && <StreakBadge days={streak} />}
                   </View>
-                  <Pressable
-                    style={styles.editButton}
-                    onPress={() => setEditingExercise(item)}
-                    hitSlop={12}
-                    accessibilityLabel={t.home.editAccessibility(displayName)}
-                  >
-                    <Ionicons name="create-outline" size={20} color={accent.primary} />
-                  </Pressable>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={22}
-                    color={accent.primary}
-                    style={styles.chevron}
-                  />
+                </View>
+                <Pressable
+                  style={styles.editButton}
+                  onPress={() => setEditingExercise(item)}
+                  hitSlop={12}
+                  accessibilityLabel={t.home.editAccessibility(displayName)}
+                >
+                  <Ionicons name="create-outline" size={20} color={accent.primary} />
                 </Pressable>
-              );
-            }}
-          />
-        )}
+                <Ionicons
+                  name="chevron-forward"
+                  size={22}
+                  color={accent.primary}
+                  style={styles.chevron}
+                />
+              </Pressable>
+            );
+          }}
+        />
         {/* M3 Extended FAB — 목록 스크롤과 무관하게 항상 같은 자리에 떠 있어서, 운동이 많아져도
             "운동 추가"를 찾으러 스크롤하거나 헤더 공간을 차지할 필요가 없다. */}
         <Pressable
@@ -282,14 +315,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.md,
   },
-  header: {
-    marginTop: spacing.lg,
-    marginBottom: spacing.lg,
-  },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    marginTop: spacing.lg,
     marginBottom: spacing.md,
   },
   headerText: {
@@ -332,13 +362,23 @@ const styles = StyleSheet.create({
     gap: spacing.smd,
     paddingBottom: spacing.xl + 56, // 떠 있는 FAB에 마지막 카드가 가리지 않도록 여유를 둔다
   },
-  // 목록이 비었을 때 empty 컴포넌트가 화면 세로 중앙에 오도록 content container 자체를 채운다.
+  // 운동 목록 로딩 중에는 ListHeaderComponent 안에서 렌더링되므로(실제 FlatList data는 아직 빈
+  // 배열) styles.list의 gap이 적용되지 않는다 — 자리표시자 카드 사이 간격을 직접 준다.
+  skeletonExerciseList: {
+    gap: spacing.smd,
+    marginTop: spacing.md,
+  },
+  // 헤더(타이틀+요약카드+검색창)가 ListHeaderComponent로 목록과 같은 contentContainer 안에
+  // 있으므로, 여기서 justifyContent:'center'를 주면 헤더까지 통째로 화면 중앙으로 쏠린다 —
+  // flexGrow만 줘서 컨테이너가 화면을 채우게 하고, 실제 중앙 정렬은 empty 쪽에서 flex:1로
+  // 스스로 담당하게 한다(헤더는 그대로 위쪽에 고정).
   listEmpty: {
     flexGrow: 1,
-    justifyContent: 'center',
   },
   empty: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.smd,
     paddingVertical: spacing.lg,
   },
@@ -389,6 +429,18 @@ const styles = StyleSheet.create({
     gap: 4,
     flexShrink: 1,
     flexGrow: 1,
+  },
+  cardTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  summarySkeleton: {
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.smd,
+    gap: spacing.sm,
+    ...cardShadow,
   },
   chevron: {
     marginLeft: spacing.smd,

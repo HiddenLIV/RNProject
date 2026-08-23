@@ -1,27 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+
 import Text from '../components/AppText';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise } from '../lib/types';
+import { fontSize, spacing } from '../theme';
 import RecordsScreen from './RecordsScreen';
 import RepsScreen from './RepsScreen';
 import TimerScreen from './TimerScreen';
-import { fontSize, spacing } from '../theme';
 
 type Tab = 'measure' | 'records';
 
 type Props = {
   exercise: Exercise;
   onBack: () => void;
+  initialTab?: Tab;
 };
 
-export default function ExerciseScreen({ exercise, onBack }: Props) {
+export default function ExerciseScreen({ exercise, onBack, initialTab }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
-  const [tab, setTab] = useState<Tab>('measure');
+  const [tab, setTab] = useState<Tab>(initialTab ?? 'measure');
   // 측정 탭(TimerScreen/RepsScreen)은 타이머 단계 전환·탭 전환마다 마운트가 풀렸다 다시 붙는다 —
   // 이 화면(ExerciseScreen)은 그 두 경우 모두에서 계속 떠 있으므로, 측정 화면에서 방금 등록한
   // 자세 안내 영상 링크가 화면 재진입 없이 계속 보이게 하려면 이 값을 여기서 들고 있어야 한다.

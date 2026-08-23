@@ -19,11 +19,16 @@ import {
 } from './src/lib/notifications';
 import { ThemeProvider, useAccentColors } from './src/lib/ThemeContext';
 import { Exercise } from './src/lib/types';
+import ActivityScreen from './src/screens/ActivityScreen';
 import AddExerciseScreen from './src/screens/AddExerciseScreen';
 import ExerciseScreen from './src/screens/ExerciseScreen';
 import HomeScreen from './src/screens/HomeScreen';
 
-type Screen = { name: 'home' } | { name: 'exercise'; exercise: Exercise } | { name: 'addExercise' };
+type Screen =
+  | { name: 'home' }
+  | { name: 'exercise'; exercise: Exercise; initialTab?: 'records' }
+  | { name: 'addExercise' }
+  | { name: 'activity' };
 
 export default function App() {
   const [fontsLoaded] = useFonts(fontAssets);
@@ -112,12 +117,17 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
           <HomeScreen
             onSelectExercise={(exercise) => setScreen({ name: 'exercise', exercise })}
             onAddExercise={() => setScreen({ name: 'addExercise' })}
+            onOpenActivity={() => setScreen({ name: 'activity' })}
             sharedVideoLink={sharedVideoLink}
             onConsumeSharedVideoLink={onConsumeSharedVideoLink}
           />
         )}
         {screen.name === 'exercise' && (
-          <ExerciseScreen exercise={screen.exercise} onBack={() => setScreen({ name: 'home' })} />
+          <ExerciseScreen
+            exercise={screen.exercise}
+            initialTab={screen.initialTab}
+            onBack={() => setScreen({ name: 'home' })}
+          />
         )}
         {screen.name === 'addExercise' && (
           <AddExerciseScreen
@@ -125,6 +135,12 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
             onCreated={() => setScreen({ name: 'home' })}
             sharedVideoLink={sharedVideoLink}
             onConsumeSharedVideoLink={onConsumeSharedVideoLink}
+          />
+        )}
+        {screen.name === 'activity' && (
+          <ActivityScreen
+            onBack={() => setScreen({ name: 'home' })}
+            onOpenExerciseRecords={(exercise) => setScreen({ name: 'exercise', exercise, initialTab: 'records' })}
           />
         )}
         {/* expo-status-bar의 "auto"는 기기 시스템 설정만 보고 밝기를 정해서, 화면 모드를
