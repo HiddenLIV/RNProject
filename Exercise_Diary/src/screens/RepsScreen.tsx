@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   TextInput,
   View,
 } from 'react-native';
@@ -16,6 +17,7 @@ import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
 import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
+import RestTimerBanner from '../components/RestTimerBanner';
 import Toast from '../components/Toast';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import { showAlert } from '../lib/alert';
@@ -24,7 +26,18 @@ import { notifySuccess, tapLight, tapMedium } from '../lib/haptics';
 import { useTranslation } from '../lib/i18n';
 import { addRepsRecord, createId } from '../lib/storage';
 import { useAccentColors } from '../lib/ThemeContext';
-import { Exercise, RepsSet, VideoRef } from '../lib/types';
+import {
+  Exercise,
+  RepsSet,
+  REST_SECONDS_MAX,
+  REST_SECONDS_MIN,
+  REST_SECONDS_STEP,
+  VideoRef,
+} from '../lib/types';
+import { useKeepAwakeWhileActive } from '../lib/useKeepAwakeWhileActive';
+import { useRestTimer } from '../lib/useRestTimer';
+import { useTimerAudio } from '../lib/useTimerAudio';
+import { useTimerSettings } from '../lib/useTimerSettings';
 import {
   captureExerciseVideo,
   getVideoPermissionState,
@@ -59,6 +72,21 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
   const [viewingVideo, setViewingVideo] = useState(false);
   const [permissionModal, setPermissionModal] = useState<PermissionState | null>(null);
   const [videoBusy, setVideoBusy] = useState(false);
+
+  // 세트 간 휴식 타이머 — 다른 운동(TimerScreen)이 쓰는 것과 같은 운동별 설정 저장소를
+  // 그대로 재사용한다 (countdownSeconds/bellIntervalSeconds는 이 화면에서 쓰지 않는다).
+  const { settings, updateSettings } = useTimerSettings(exercise.id);
+  const timerAudio = useTimerAudio();
+  const rest = useRestTimer(() => {
+    timerAudio.playBellSoundWithoutFocus().catch(() => {});
+    notifySuccess();
+  });
+  useKeepAwakeWhileActive(rest.phase === 'resting');
+
+  const handleSkipRest = () => {
+    tapLight();
+    rest.skip();
+  };
 
   const runCapture = async () => {
     try {
@@ -125,6 +153,7 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
         weight: exercise.usesWeight ? parseFloat(currentWeightText) || 0 : undefined,
       },
     ]);
+    if (settings.restEnabled) rest.start(settings.restSeconds);
   };
 
   const removeLoggedSet = (index: number) => {
@@ -188,6 +217,37 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.sheet, { backgroundColor: accent.card }]}>
+          <View style={[styles.restSection, { borderBottomColor: accent.border }]}>
+            {rest.phase === 'resting' ? (
+              <RestTimerBanner
+                remainingSec={rest.remainingSec}
+                totalSec={settings.restSeconds}
+                onSkip={handleSkipRest}
+              />
+            ) : (
+              <>
+                <NumberStepper
+                  label={t.reps.restLabel}
+                  value={settings.restSeconds}
+                  min={REST_SECONDS_MIN}
+                  max={REST_SECONDS_MAX}
+                  step={REST_SECONDS_STEP}
+                  unit={t.units.seconds}
+                  onChange={(v) => updateSettings({ restSeconds: v })}
+                />
+                <View style={styles.restEnabledRow}>
+                  <Text style={[styles.restEnabledLabel, { color: accent.textMuted }]}>
+                    {t.reps.restEnabledLabel}
+                  </Text>
+                  <Switch
+                    value={settings.restEnabled}
+                    onValueChange={(v) => updateSettings({ restEnabled: v })}
+                    trackColor={{ true: accent.primary, false: accent.border }}
+                  />
+                </View>
+              </>
+            )}
+          </View>
           <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
             {t.reps.currentSetLabel}
           </Text>
@@ -331,6 +391,20 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.smd,
     gap: spacing.sm,
+  },
+  restSection: {
+    gap: spacing.sm,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: 1,
+  },
+  restEnabledRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  restEnabledLabel: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
   },
   sectionLabel: {
     fontSize: fontSize.xs,

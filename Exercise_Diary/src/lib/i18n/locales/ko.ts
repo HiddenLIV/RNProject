@@ -113,6 +113,10 @@ const ko: Translations = {
     errorNoSets: '세트를 먼저 추가해 주세요',
     removeSetAccessibility: '세트 삭제',
     setNumberLabel: (n) => `No.${n}`,
+    restLabel: '휴식 시간',
+    restEnabledLabel: '휴식 타이머',
+    restingLabel: '휴식 중',
+    skipRestButton: '건너뛰기',
   },
   captureVideoRow: {
     capture: '자세 촬영',

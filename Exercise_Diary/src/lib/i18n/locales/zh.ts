@@ -113,6 +113,10 @@ const zh: Translations = {
     errorNoSets: '请先添加一组',
     removeSetAccessibility: '删除该组',
     setNumberLabel: (n) => `No.${n}`,
+    restLabel: '休息时间',
+    restEnabledLabel: '休息计时器',
+    restingLabel: '休息中',
+    skipRestButton: '跳过',
   },
   captureVideoRow: {
     capture: '动作拍摄',

@@ -113,6 +113,10 @@ const en = {
     errorNoSets: 'Add a set first',
     removeSetAccessibility: 'Remove set',
     setNumberLabel: (n: number) => `No.${n}`,
+    restLabel: 'Rest time',
+    restEnabledLabel: 'Rest timer',
+    restingLabel: 'Resting',
+    skipRestButton: 'Skip',
   },
   captureVideoRow: {
     capture: 'Record Form',

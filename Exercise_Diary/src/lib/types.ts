@@ -47,11 +47,15 @@ export type RepsRecord = {
 export type Settings = {
   countdownSeconds: number;
   bellIntervalSeconds: number;
+  restSeconds: number; // 세트 간 휴식 타이머 — 횟수·세트형 운동에서만 쓰인다
+  restEnabled: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
   countdownSeconds: 5,
   bellIntervalSeconds: 10,
+  restSeconds: 60,
+  restEnabled: true,
 };
 
 export const COUNTDOWN_MIN_SECONDS = 3;
@@ -60,6 +64,10 @@ export const COUNTDOWN_MAX_SECONDS = 30;
 export const BELL_INTERVAL_STEP_SECONDS = 10;
 export const BELL_INTERVAL_MIN_SECONDS = 10;
 export const BELL_INTERVAL_MAX_SECONDS = 120;
+
+export const REST_SECONDS_STEP = 10;
+export const REST_SECONDS_MIN = 10;
+export const REST_SECONDS_MAX = 300;
 
 // 테마 컬러 커스터마이징 — 포인트 컬러 프리셋
 export type ThemePresetId = 'default' | 'orange' | 'mint' | 'red' | 'blue';

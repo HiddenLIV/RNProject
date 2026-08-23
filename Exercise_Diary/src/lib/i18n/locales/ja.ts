@@ -113,6 +113,10 @@ const ja: Translations = {
     errorNoSets: '先にセットを追加してください',
     removeSetAccessibility: 'セットを削除',
     setNumberLabel: (n) => `No.${n}`,
+    restLabel: '休憩時間',
+    restEnabledLabel: '休憩タイマー',
+    restingLabel: '休憩中',
+    skipRestButton: 'スキップ',
   },
   captureVideoRow: {
     capture: 'フォーム撮影',
