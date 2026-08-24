@@ -8,10 +8,10 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   View,
 } from 'react-native';
 import Text from '../components/AppText';
+import ColorSwitch from '../components/ColorSwitch';
 import ExerciseIcon from '../components/ExerciseIcon';
 import MeasureTypeTag from '../components/MeasureTypeTag';
 import OutlinedTextField from '../components/OutlinedTextField';
@@ -39,7 +39,12 @@ type Props = {
   onConsumeSharedVideoLink?: () => void;
 };
 
-export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, onConsumeSharedVideoLink }: Props) {
+export default function AddExerciseScreen({
+  onBack,
+  onCreated,
+  sharedVideoLink,
+  onConsumeSharedVideoLink,
+}: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -87,7 +92,9 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
     }
   }, [sharedVideoLink, videoLinkText, onConsumeSharedVideoLink]);
 
-  const normalizedExistingNames = existingExercises.map((e) => getExerciseDisplayName(e, t).toLocaleLowerCase());
+  const normalizedExistingNames = existingExercises.map((e) =>
+    getExerciseDisplayName(e, t).toLocaleLowerCase(),
+  );
   // 목록을 아직 못 읽어온 동안은 아무 프리셋도 보여주지 않는다 — 이미 있는 운동(매달리기 등)이
   // 잠깐 노출됐다가 사라지는 깜빡임과, 그 틈에 중복 생성되는 것을 함께 막는다.
   const availablePresets = namesLoaded
@@ -142,7 +149,9 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
       measureType,
       guideVideoId,
       presetKey: selectedPresetKey ?? undefined,
-      ...(measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : {}),
+      ...(measureType === 'reps'
+        ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined }
+        : {}),
     };
     await addExercise(exercise);
     const totalCount = existingExercises.length + 1;
@@ -158,10 +167,17 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
   return (
     <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={onBack} hitSlop={8} accessibilityLabel={t.common.back}>
+        <Pressable
+          style={styles.backButton}
+          onPress={onBack}
+          hitSlop={8}
+          accessibilityLabel={t.common.back}
+        >
           <Ionicons name="chevron-back" size={26} color={accent.primaryText} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: accent.text }]}>{t.addExercise.headerTitle}</Text>
+        <Text style={[styles.headerTitle, { color: accent.text }]}>
+          {t.addExercise.headerTitle}
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -185,7 +201,9 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
                   setPresetsExpanded((v) => !v);
                 }}
               >
-                <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.presetSectionLabel}</Text>
+                <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
+                  {t.addExercise.presetSectionLabel}
+                </Text>
                 <Ionicons
                   name={presetsExpanded ? 'chevron-up' : 'chevron-down'}
                   size={18}
@@ -193,7 +211,12 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
                 />
               </Pressable>
               {presetsExpanded && (
-                <View style={[styles.presetSheet, { backgroundColor: accent.card, borderColor: accent.border }]}>
+                <View
+                  style={[
+                    styles.presetSheet,
+                    { backgroundColor: accent.card, borderColor: accent.border },
+                  ]}
+                >
                   {availablePresets.map((preset, index) => {
                     const selected = selectedPresetKey === preset.key;
                     const presetName = t.exercisePresets[preset.key];
@@ -207,7 +230,13 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
                         ]}
                         onPress={() => selectPreset(preset)}
                       >
-                        <Text style={[styles.presetIndex, { color: accent.textFaint }, selected && { color: accent.accent }]}>
+                        <Text
+                          style={[
+                            styles.presetIndex,
+                            { color: accent.textFaint },
+                            selected && { color: accent.accent },
+                          ]}
+                        >
                           {String(index + 1).padStart(2, '0')}
                         </Text>
                         <View
@@ -218,12 +247,25 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
                               : { backgroundColor: 'transparent', borderColor: accent.primary },
                           ]}
                         >
-                          <Ionicons name={preset.icon} size={17} color={selected ? accent.onPrimary : accent.primary} />
+                          <Ionicons
+                            name={preset.icon}
+                            size={17}
+                            color={selected ? accent.onPrimary : accent.primary}
+                          />
                         </View>
-                        <Text style={[styles.presetName, { color: accent.text }, selected && { color: accent.accent }]}>
+                        <Text
+                          style={[
+                            styles.presetName,
+                            { color: accent.text },
+                            selected && { color: accent.accent },
+                          ]}
+                        >
                           {presetName}
                         </Text>
-                        <MeasureTypeTag measureType={preset.measureType} tone={selected ? 'onChip' : undefined} />
+                        <MeasureTypeTag
+                          measureType={preset.measureType}
+                          tone={selected ? 'onChip' : undefined}
+                        />
                       </Pressable>
                     );
                   })}
@@ -233,7 +275,9 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
           )}
 
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.customSectionLabel}</Text>
+            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
+              {t.addExercise.customSectionLabel}
+            </Text>
             <OutlinedTextField
               label={t.addExercise.namePlaceholder}
               backgroundColor={accent.background}
@@ -256,7 +300,11 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
                     onPress={() => setIcon(choice)}
                     accessibilityLabel={t.addExercise.iconChoiceAccessibility}
                   >
-                    <ExerciseIcon icon={choice} size={20} color={selected ? accent.onPrimary : accent.primary} />
+                    <ExerciseIcon
+                      icon={choice}
+                      size={20}
+                      color={selected ? accent.onPrimary : accent.primary}
+                    />
                   </Pressable>
                 );
               })}
@@ -264,7 +312,9 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.measureTypeSectionLabel}</Text>
+            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
+              {t.addExercise.measureTypeSectionLabel}
+            </Text>
             <View style={styles.segmentRow}>
               <Pressable
                 style={[
@@ -311,11 +361,13 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
           {measureType === 'reps' && (
             <View style={styles.section}>
               <View style={styles.weightRow}>
-                <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.weightSectionLabel}</Text>
-                <Switch
+                <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
+                  {t.addExercise.weightSectionLabel}
+                </Text>
+                <ColorSwitch
                   value={usesWeight}
                   onValueChange={setUsesWeight}
-                  trackColor={{ true: accent.primary, false: accent.border }}
+                  color={accent.primary}
                 />
               </View>
               {usesWeight && (
@@ -362,7 +414,9 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
           )}
 
           <View style={styles.section}>
-            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>{t.addExercise.videoLinkSectionLabel}</Text>
+            <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
+              {t.addExercise.videoLinkSectionLabel}
+            </Text>
             <YoutubeSearchButton exerciseName={name} />
             <OutlinedTextField
               label={t.addExercise.videoLinkPlaceholder}
@@ -393,11 +447,17 @@ export default function AddExerciseScreen({ onBack, onCreated, sharedVideoLink, 
           {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
 
           <Pressable
-            style={[styles.addButton, { backgroundColor: accent.primary }, saving && styles.addButtonDisabled]}
+            style={[
+              styles.addButton,
+              { backgroundColor: accent.primary },
+              saving && styles.addButtonDisabled,
+            ]}
             onPress={handleAdd}
             disabled={saving}
           >
-            <Text style={[styles.addButtonText, { color: accent.onPrimary }]}>{t.addExercise.addButton}</Text>
+            <Text style={[styles.addButtonText, { color: accent.onPrimary }]}>
+              {t.addExercise.addButton}
+            </Text>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>

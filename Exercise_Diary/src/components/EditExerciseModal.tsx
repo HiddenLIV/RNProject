@@ -9,7 +9,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   View,
 } from 'react-native';
 
@@ -29,6 +28,7 @@ import { parseYoutubeLink } from '../lib/youtube';
 import { cardShadow, fontSize, radius, spacing } from '../theme';
 import AlertHost from './AlertHost';
 import Text from './AppText';
+import ColorSwitch from './ColorSwitch';
 import ExerciseIcon from './ExerciseIcon';
 import OutlinedTextField from './OutlinedTextField';
 import YoutubeSearchButton from './YoutubeSearchButton';
@@ -117,7 +117,8 @@ export default function EditExerciseModal({
     const normalizedTrimmed = trimmed.toLocaleLowerCase();
     const originalDisplayName = getExerciseDisplayName(exercise, t);
     const nameChanged = normalizedTrimmed !== originalDisplayName.toLocaleLowerCase();
-    const isDuplicate = nameChanged && existingNames.some((n) => n.toLocaleLowerCase() === normalizedTrimmed);
+    const isDuplicate =
+      nameChanged && existingNames.some((n) => n.toLocaleLowerCase() === normalizedTrimmed);
     if (isDuplicate) {
       setError(t.editExercise.errorDuplicateName);
       return;
@@ -143,28 +144,37 @@ export default function EditExerciseModal({
       // (레거시 데이터처럼 원래 presetKey가 없던 경우) 다음부터 언어를 바꿔도 이름이
       // 이번에 저장한 언어로 고정되고 프리셋 목록에도 중복 후보로 다시 나타난다.
       presetKey: nameChanged ? undefined : (exercise.presetKey ?? inferPresetKey(exercise.name)),
-      ...(measureType === 'reps' ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined } : { usesWeight: undefined, weightUnit: undefined }),
+      ...(measureType === 'reps'
+        ? { usesWeight, weightUnit: usesWeight ? weightUnit : undefined }
+        : { usesWeight: undefined, weightUnit: undefined }),
     });
     onSaved();
   };
 
   const handleDelete = () => {
-    showAlert(t.editExercise.deleteTitle, t.editExercise.deleteBody(getExerciseDisplayName(exercise, t)), [
-      { text: t.common.cancel, style: 'cancel' },
-      {
-        text: t.common.delete,
-        style: 'destructive',
-        onPress: async () => {
-          await removeExercise(exercise.id);
-          onSaved();
+    showAlert(
+      t.editExercise.deleteTitle,
+      t.editExercise.deleteBody(getExerciseDisplayName(exercise, t)),
+      [
+        { text: t.common.cancel, style: 'cancel' },
+        {
+          text: t.common.delete,
+          style: 'destructive',
+          onPress: async () => {
+            await removeExercise(exercise.id);
+            onSaved();
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.backdrop} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={[styles.card, { backgroundColor: accent.card, ...cardShadow }]}>
           <ScrollView
@@ -194,12 +204,23 @@ export default function EditExerciseModal({
               }}
             >
               <View style={styles.iconToggleLeft}>
-                <View style={[styles.iconPreviewBadge, { backgroundColor: accent.primary, borderColor: accent.primary }]}>
+                <View
+                  style={[
+                    styles.iconPreviewBadge,
+                    { backgroundColor: accent.primary, borderColor: accent.primary },
+                  ]}
+                >
                   <ExerciseIcon icon={icon} size={18} color={accent.onPrimary} />
                 </View>
-                <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.addExercise.iconChoiceAccessibility}</Text>
+                <Text style={[styles.weightLabel, { color: accent.textMuted }]}>
+                  {t.addExercise.iconChoiceAccessibility}
+                </Text>
               </View>
-              <Ionicons name={iconPickerExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={accent.textMuted} />
+              <Ionicons
+                name={iconPickerExpanded ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color={accent.textMuted}
+              />
             </Pressable>
             {iconPickerExpanded && (
               <View style={styles.iconGrid}>
@@ -221,14 +242,20 @@ export default function EditExerciseModal({
                       }}
                       accessibilityLabel={t.addExercise.iconChoiceAccessibility}
                     >
-                      <ExerciseIcon icon={choice} size={20} color={selected ? accent.onPrimary : accent.primary} />
+                      <ExerciseIcon
+                        icon={choice}
+                        size={20}
+                        color={selected ? accent.onPrimary : accent.primary}
+                      />
                     </Pressable>
                   );
                 })}
               </View>
             )}
 
-            <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.addExercise.measureTypeSectionLabel}</Text>
+            <Text style={[styles.weightLabel, { color: accent.textMuted }]}>
+              {t.addExercise.measureTypeSectionLabel}
+            </Text>
             <View style={styles.segmentRow}>
               <Pressable
                 style={[
@@ -268,7 +295,9 @@ export default function EditExerciseModal({
               </Pressable>
             </View>
 
-            <Text style={[styles.videoLabel, { color: accent.textMuted }]}>{t.editExercise.videoLinkLabel}</Text>
+            <Text style={[styles.videoLabel, { color: accent.textMuted }]}>
+              {t.editExercise.videoLinkLabel}
+            </Text>
             <YoutubeSearchButton exerciseName={name} />
             <OutlinedTextField
               label={t.editExercise.videoLinkPlaceholder}
@@ -298,11 +327,13 @@ export default function EditExerciseModal({
             {measureType === 'reps' && (
               <>
                 <View style={styles.weightRow}>
-                  <Text style={[styles.weightLabel, { color: accent.textMuted }]}>{t.editExercise.weightLabel}</Text>
-                  <Switch
+                  <Text style={[styles.weightLabel, { color: accent.textMuted }]}>
+                    {t.editExercise.weightLabel}
+                  </Text>
+                  <ColorSwitch
                     value={usesWeight}
                     onValueChange={setUsesWeight}
-                    trackColor={{ true: accent.primary, false: accent.border }}
+                    color={accent.primary}
                   />
                 </View>
                 {usesWeight && (
@@ -351,15 +382,27 @@ export default function EditExerciseModal({
             {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
 
             <View style={styles.buttonRow}>
-              <Pressable style={[styles.button, { backgroundColor: accent.card }]} onPress={onClose}>
-                <Text style={[styles.secondaryButtonText, { color: accent.text }]}>{t.editExercise.cancel}</Text>
+              <Pressable
+                style={[styles.button, { backgroundColor: accent.card }]}
+                onPress={onClose}
+              >
+                <Text style={[styles.secondaryButtonText, { color: accent.text }]}>
+                  {t.editExercise.cancel}
+                </Text>
               </Pressable>
-              <Pressable style={[styles.button, { backgroundColor: accent.primary }]} onPress={handleSave}>
-                <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>{t.editExercise.save}</Text>
+              <Pressable
+                style={[styles.button, { backgroundColor: accent.primary }]}
+                onPress={handleSave}
+              >
+                <Text style={[styles.primaryButtonText, { color: accent.onPrimary }]}>
+                  {t.editExercise.save}
+                </Text>
               </Pressable>
             </View>
             <Pressable style={styles.deleteButton} onPress={handleDelete}>
-              <Text style={[styles.deleteButtonText, { color: accent.danger }]}>{t.editExercise.deleteButton}</Text>
+              <Text style={[styles.deleteButtonText, { color: accent.danger }]}>
+                {t.editExercise.deleteButton}
+              </Text>
             </Pressable>
           </ScrollView>
         </View>

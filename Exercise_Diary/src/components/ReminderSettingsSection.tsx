@@ -1,6 +1,6 @@
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { showAlert } from '../lib/alert';
 import { useTranslation } from '../lib/i18n';
@@ -22,6 +22,7 @@ import {
 } from '../lib/types';
 import { fontSize, radius, spacing } from '../theme';
 import Text from './AppText';
+import ColorSwitch from './ColorSwitch';
 import NumberStepper from './NumberStepper';
 
 const MODES: ReminderMode[] = ['dailyTime', 'daysSinceLastRecord'];
@@ -144,11 +145,11 @@ export default function ReminderSettingsSection() {
     <View style={styles.container}>
       <View style={styles.row}>
         <Text style={[styles.rowLabel, { color: accent.text }]}>{t.reminder.enabledLabel}</Text>
-        <Switch
+        <ColorSwitch
           value={settings.enabled}
           onValueChange={handleToggle}
           disabled={busy}
-          trackColor={{ true: accent.primary, false: accent.border }}
+          color={accent.primary}
         />
       </View>
 
