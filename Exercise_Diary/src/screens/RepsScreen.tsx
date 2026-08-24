@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Linking,
@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   TextInput,
   View,
 } from 'react-native';
@@ -15,6 +14,7 @@ import {
 import Text from '../components/AppText';
 import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
+import ColorSwitch from '../components/ColorSwitch';
 import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import RestTimerBanner from '../components/RestTimerBanner';
@@ -36,6 +36,7 @@ import {
   VideoRef,
 } from '../lib/types';
 import { useKeepAwakeWhileActive } from '../lib/useKeepAwakeWhileActive';
+import { useMotivationalQuote } from '../lib/useMotivationalQuote';
 import { useRestTimer } from '../lib/useRestTimer';
 import { useTimerAudio } from '../lib/useTimerAudio';
 import { useTimerSettings } from '../lib/useTimerSettings';
@@ -50,11 +51,21 @@ import { buttonShadowShape, fontSize, radius, spacing } from '../theme';
 type Props = {
   exercise: Exercise;
   onGuideVideoChange: (guideVideoId: string | undefined) => void;
+  /** 미저장 세트 수가 바뀔 때마다 상위(ExerciseScreen)에 알린다 — 뒤로가기 확인 alert 판단용 */
+  onUnsavedCountChange?: (count: number) => void;
+};
+
+export type RepsScreenHandle = {
+  /** 뒤로가기 확인 alert에서 "저장"을 선택했을 때 기존 저장 버튼과 같은 로직으로 저장한다 */
+  save: () => Promise<void>;
 };
 
 const MAX_REPS = 200;
 
-export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
+const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
+  { exercise, onGuideVideoChange, onUnsavedCountChange },
+  ref,
+) {
   const accent = useAccentColors();
   const t = useTranslation();
   // 입력은 "이번 세트" 한 칸에서만 하고, 추가할 때마다 기록 목록에 쌓는다 — 세트가
@@ -63,6 +74,9 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
   const [currentReps, setCurrentReps] = useState(1);
   const [currentWeightText, setCurrentWeightText] = useState('');
   const [loggedSets, setLoggedSets] = useState<RepsSet[]>([]);
+  // null이면 "새 세트 추가" 모드, 인덱스가 있으면 그 세트를 수정 중 — 추가(+)/확정(체크) 버튼이
+  // 같은 버튼 하나에서 상태만 바뀐다(요구사항 5).
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [justSaved, setJustSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -76,13 +90,26 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
 
   // 세트 간 휴식 타이머 — 다른 운동(TimerScreen)이 쓰는 것과 같은 운동별 설정 저장소를
   // 그대로 재사용한다 (countdownSeconds/bellIntervalSeconds는 이 화면에서 쓰지 않는다).
-  const { settings, updateSettings } = useTimerSettings(exercise.id);
+  const { settings, updateSettings, alarmVolumeMode } = useTimerSettings(exercise.id);
   const timerAudio = useTimerAudio();
   const rest = useRestTimer(() => {
-    timerAudio.playBellSoundWithoutFocus().catch(() => {});
+    // 시간형 운동(TimerScreen)의 벨 간격 알림음과 구분되도록 휴식 종료 전용 사운드를 쓴다
+    // (요구사항 8). 1.2초짜리라 기본 800ms보다 넉넉한 복귀 지연을 넘긴다.
+    timerAudio
+      .playBellSoundWithoutFocus(
+        require('../../assets/sounds/boxing-bell.wav'),
+        alarmVolumeMode,
+        1500,
+      )
+      .catch(() => {});
     notifySuccess();
   });
   useKeepAwakeWhileActive(rest.phase === 'resting');
+  const restQuote = useMotivationalQuote(rest.phase === 'resting', t.quotes);
+
+  useEffect(() => {
+    onUnsavedCountChange?.(loggedSets.length);
+  }, [loggedSets.length, onUnsavedCountChange]);
 
   const handleSkipRest = () => {
     tapLight();
@@ -147,20 +174,47 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
     }
     setError('');
     tapMedium();
-    setLoggedSets((prev) => [
-      ...prev,
-      {
-        reps: currentReps,
-        weight: exercise.usesWeight ? parseFloat(currentWeightText) || 0 : undefined,
-      },
-    ]);
-    if (settings.restEnabled) rest.start(settings.restSeconds);
+    const nextSet: RepsSet = {
+      reps: currentReps,
+      weight: exercise.usesWeight ? parseFloat(currentWeightText) || 0 : undefined,
+    };
+    if (editingIndex != null) {
+      // 수정 확정 — 새 세트로 추가하지 않고 같은 인덱스를 갱신한다. 세트 개수가 바뀌지
+      // 않으므로 휴식 타이머를 다시 시작하지 않는다(요구사항 5-2, 5-4).
+      const index = editingIndex;
+      setLoggedSets((prev) => prev.map((s, i) => (i === index ? nextSet : s)));
+      setEditingIndex(null);
+    } else {
+      setLoggedSets((prev) => [...prev, nextSet]);
+      if (settings.restEnabled) rest.start(settings.restSeconds);
+    }
+    setCurrentReps(1);
+    setCurrentWeightText('');
+  };
+
+  const startEditSet = (index: number) => {
+    setJustSaved(false);
+    tapLight();
+    const set = loggedSets[index];
+    setEditingIndex(index);
+    setCurrentReps(set.reps);
+    setCurrentWeightText(set.weight != null ? String(set.weight) : '');
   };
 
   const removeLoggedSet = (index: number) => {
     setJustSaved(false);
     tapLight();
     setLoggedSets((prev) => prev.filter((_, i) => i !== index));
+    if (editingIndex === index) {
+      // 수정 중이던 세트를 삭제했다 — 입력 칸에 남은 초안 값을 함께 비워야, 그대로 "+"를
+      // 눌렀을 때 방금 지운 세트가 새 세트로 다시 추가되는 일이 없다.
+      setEditingIndex(null);
+      setCurrentReps(1);
+      setCurrentWeightText('');
+    } else if (editingIndex != null && editingIndex > index) {
+      // 앞쪽 세트가 삭제돼 수정 중인 세트의 인덱스가 밀렸다 — 대상만 보정한다.
+      setEditingIndex(editingIndex - 1);
+    }
   };
 
   const handleSave = async () => {
@@ -178,6 +232,7 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       videoRef: capturedVideo ?? undefined,
     });
     setLoggedSets([]);
+    setEditingIndex(null);
     setCurrentReps(1);
     setCurrentWeightText('');
     setCapturedVideo(null);
@@ -192,6 +247,8 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       daysSinceBody: t.reminder.daysSinceNotificationBody,
     }).catch(() => {});
   };
+
+  useImperativeHandle(ref, () => ({ save: handleSave }));
 
   return (
     <KeyboardAvoidingView
@@ -229,34 +286,38 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
               <RestTimerBanner
                 remainingSec={rest.remainingSec}
                 totalSec={settings.restSeconds}
+                quote={restQuote}
                 onSkip={handleSkipRest}
               />
             ) : (
               <>
-                <NumberStepper
-                  label={t.reps.restLabel}
-                  value={settings.restSeconds}
-                  min={REST_SECONDS_MIN}
-                  max={REST_SECONDS_MAX}
-                  step={REST_SECONDS_STEP}
-                  unit={t.units.seconds}
-                  onChange={(v) => updateSettings({ restSeconds: v })}
-                />
+                {settings.restEnabled && (
+                  <NumberStepper
+                    label={t.reps.restLabel}
+                    value={settings.restSeconds}
+                    min={REST_SECONDS_MIN}
+                    max={REST_SECONDS_MAX}
+                    step={REST_SECONDS_STEP}
+                    unit={t.units.seconds}
+                    onChange={(v) => updateSettings({ restSeconds: v })}
+                  />
+                )}
                 <View style={styles.restEnabledRow}>
                   <Text style={[styles.restEnabledLabel, { color: accent.textMuted }]}>
                     {t.reps.restEnabledLabel}
                   </Text>
-                  <Switch
+                  <ColorSwitch
                     value={settings.restEnabled}
                     onValueChange={(v) => updateSettings({ restEnabled: v })}
-                    trackColor={{ true: accent.primary, false: accent.border }}
+                    color={accent.primary}
                   />
                 </View>
               </>
             )}
           </View>
           <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
-            {t.reps.currentSetLabel}
+            {t.reps.currentSetLabel} :{' '}
+            {t.reps.setNumberLabel(editingIndex != null ? editingIndex + 1 : loggedSets.length + 1)}
           </Text>
           <View style={styles.currentEntryRow}>
             {exercise.usesWeight && (
@@ -292,12 +353,22 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
               />
             </View>
             <Pressable
-              style={[styles.addButton, { backgroundColor: accent.primary }]}
+              style={({ pressed }) => [
+                styles.addButton,
+                { backgroundColor: accent.primary },
+                pressed && styles.pressedHighlight,
+              ]}
               onPress={addSet}
               hitSlop={8}
-              accessibilityLabel={t.reps.addSetButton}
+              accessibilityLabel={
+                editingIndex != null ? t.reps.confirmEditAccessibility : t.reps.addSetButton
+              }
             >
-              <Ionicons name="add" size={22} color={accent.onPrimary} />
+              <Ionicons
+                name={editingIndex != null ? 'checkmark' : 'add'}
+                size={22}
+                color={accent.onPrimary}
+              />
             </Pressable>
           </View>
 
@@ -316,24 +387,46 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
                 .map((set, index) => ({ set, index }))
                 .reverse()
                 .map(({ set, index }) => (
-                  <View key={index} style={[styles.setRow, { borderTopColor: accent.border }]}>
-                    <Text style={[styles.setIndex, { color: accent.textMuted }]}>
+                  <Pressable
+                    key={index}
+                    style={({ pressed }) => [
+                      styles.setRow,
+                      { borderTopColor: accent.border },
+                      editingIndex === index && { backgroundColor: accent.primarySoft },
+                      pressed && styles.pressedHighlight,
+                    ]}
+                    onPress={() => startEditSet(index)}
+                  >
+                    <Text
+                      style={[
+                        styles.setIndex,
+                        { color: editingIndex === index ? accent.primary : accent.textMuted },
+                      ]}
+                    >
                       {t.reps.setNumberLabel(index + 1)}
                     </Text>
-                    <Text style={[styles.setSummary, { color: accent.text }]}>
+                    <Text
+                      style={[
+                        styles.setSummary,
+                        { color: editingIndex === index ? accent.primary : accent.text },
+                      ]}
+                    >
                       {exercise.usesWeight
                         ? `${set.weight ?? 0}${exercise.weightUnit === 'lb' ? t.units.lb : t.units.kg} × ${set.reps}${t.units.reps}`
                         : `${set.reps}${t.units.reps}`}
                     </Text>
                     <Pressable
-                      style={styles.removeButton}
+                      style={({ pressed }) => [
+                        styles.removeButton,
+                        pressed && styles.pressedHighlight,
+                      ]}
                       onPress={() => removeLoggedSet(index)}
                       hitSlop={16}
                       accessibilityLabel={t.reps.removeSetAccessibility}
                     >
                       <Ionicons name="close" size={16} color={accent.danger} />
                     </Pressable>
-                  </View>
+                  </Pressable>
                 ))}
             </>
           )}
@@ -370,7 +463,9 @@ export default function RepsScreen({ exercise, onGuideVideoChange }: Props) {
       />
     </KeyboardAvoidingView>
   );
-}
+});
+
+export default RepsScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -398,6 +493,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.smd,
     gap: spacing.sm,
+  },
+  // 진동이 꺼져 있어도(또는 진동이 있는 상태에서도) 눌림을 시각적으로 알 수 있게 하는 공용 효과.
+  pressedHighlight: {
+    opacity: 0.7,
   },
   restSection: {
     gap: spacing.sm,

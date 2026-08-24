@@ -11,12 +11,14 @@ import ForceUpdateModal from './src/components/ForceUpdateModal';
 import { initializeAds } from './src/lib/ads';
 import { fontAssets } from './src/lib/fonts';
 import { checkForceUpdate } from './src/lib/forceUpdate';
+import { setHapticsEnabledCache } from './src/lib/haptics';
 import { LanguageProvider, useTranslation } from './src/lib/i18n';
 import {
   ensureAndroidChannelAsync,
   registerNotificationHandler,
   resyncReminderSchedule,
 } from './src/lib/notifications';
+import { getHapticsEnabled } from './src/lib/storage';
 import { ThemeProvider, useAccentColors } from './src/lib/ThemeContext';
 import { Exercise } from './src/lib/types';
 import ActivityScreen from './src/screens/ActivityScreen';
@@ -65,6 +67,8 @@ function AppContent({ sharedVideoLink, onConsumeSharedVideoLink }: AppContentPro
     // doNotMix: 측정 중 우리 오디오가 재생되면 다른 앱의 음악·영상을 일시정지
     setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'doNotMix' });
     initializeAds();
+    // 진동 on/off 캐시(haptics.ts) 초기화 — 콜드 스타트 1회, 이후 설정 화면에서 토글할 때마다 갱신
+    getHapticsEnabled().then(setHapticsEnabledCache);
     // 안드로이드 8+ 알림 채널 생성 — 리마인더를 아직 켜지 않은 사용자도 있으니 매번 멱등하게 호출
     ensureAndroidChannelAsync().catch(() => {});
     // 앱이 포그라운드에 있을 때도 리마인더 알림이 배너로 보이게 등록 — 리마인더를 아직 켜지

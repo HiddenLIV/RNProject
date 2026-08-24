@@ -33,6 +33,7 @@
     "react-native-google-mobile-ads": "16.0.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-svg": "15.15.4",
+    "react-native-volume-manager": "^2.0.8",
     "react-native-web": "^0.21.2",
     "react-native-webview": "13.16.1",
     "react-native-youtube-iframe": "^2.4.1"
@@ -61,6 +62,7 @@
     "assets:notification-icon": "node scripts/make-notification-icon.js",
     "assets:store-screenshots": "node scripts/make-store-screenshots.js",
     "assets:bell": "node scripts/make-bell-sound.js",
+    "assets:boxing-bell": "node scripts/make-boxing-bell-sound.js",
     "assets:silence": "node scripts/make-silence-sound.js",
     "lint": "expo lint",
     "format": "prettier --write .",

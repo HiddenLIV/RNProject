@@ -85,7 +85,12 @@ export default function NumberStepper({
       {label !== '' && <Text style={[styles.label, { color: accent.textMuted }]}>{label}</Text>}
       <View style={[styles.controls, compact && styles.controlsCompact]}>
         <Pressable
-          style={[styles.button, { borderColor: accent.primary }, compact && styles.buttonCompact]}
+          style={({ pressed }) => [
+            styles.button,
+            { borderColor: accent.primary },
+            compact && styles.buttonCompact,
+            pressed && styles.pressed,
+          ]}
           onPress={decrease}
           hitSlop={4}
           accessibilityLabel={t.common.decreaseAccessibility(descriptor)}
@@ -126,7 +131,12 @@ export default function NumberStepper({
           </Pressable>
         )}
         <Pressable
-          style={[styles.button, { borderColor: accent.primary }, compact && styles.buttonCompact]}
+          style={({ pressed }) => [
+            styles.button,
+            { borderColor: accent.primary },
+            compact && styles.buttonCompact,
+            pressed && styles.pressed,
+          ]}
           onPress={increase}
           hitSlop={4}
           accessibilityLabel={t.common.increaseAccessibility(descriptor)}
@@ -173,6 +183,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderWidth: 1,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   value: {
     // 버튼 안 아이콘(20px)과 나란히 놓였을 때 값 텍스트가 상대적으로 작아 보이지 않도록

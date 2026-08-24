@@ -55,8 +55,13 @@ export const DEFAULT_SETTINGS: Settings = {
   countdownSeconds: 5,
   bellIntervalSeconds: 10,
   restSeconds: 60,
-  restEnabled: true,
+  restEnabled: false, // Phase 2-1 사용자 요청 — 기존 true에서 변경(요구사항 7-1)
 };
+
+// 알림음 볼륨 — 앱 전체에 공통으로 적용되는 단일 설정(voiceGuideEnabled와 같은 패턴).
+// 'max'는 Android에서만 의미 있다(iOS는 OS 정책상 시스템 볼륨을 앱이 바꿀 수 없음).
+export type AlarmVolumeMode = 'device' | 'max';
+export const DEFAULT_ALARM_VOLUME_MODE: AlarmVolumeMode = 'device';
 
 export const COUNTDOWN_MIN_SECONDS = 3;
 export const COUNTDOWN_MAX_SECONDS = 30;

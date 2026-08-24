@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
+  AlarmVolumeMode,
   BackupPayload,
   COLOR_SCHEME_OVERRIDE_VALUES,
   ColorSchemeOverride,
@@ -20,6 +21,8 @@ const THEME_KEY = 'timecheck:theme:v1';
 const VOICE_GUIDE_KEY = 'timecheck:voiceGuide:v1';
 const COLOR_SCHEME_OVERRIDE_KEY = 'timecheck:colorSchemeOverride:v1';
 const REMINDER_SETTINGS_KEY = 'timecheck:reminderSettings:v1';
+const ALARM_VOLUME_MODE_KEY = 'timecheck:alarmVolumeMode:v1';
+const HAPTICS_ENABLED_KEY = 'timecheck:hapticsEnabled:v1';
 
 // id: 'hang'인 운동은 앱의 기존(최초) 데이터가 쓰던 고정 키를 그대로 쓴다 —
 // 그 덕분에 이번 기능을 위한 별도 마이그레이션이 필요 없다.
@@ -198,6 +201,24 @@ export async function getVoiceGuideEnabled(): Promise<boolean> {
 
 export function setVoiceGuideEnabled(enabled: boolean): Promise<void> {
   return AsyncStorage.setItem(VOICE_GUIDE_KEY, JSON.stringify(enabled));
+}
+
+export async function getAlarmVolumeMode(): Promise<AlarmVolumeMode> {
+  const raw = await readJson<AlarmVolumeMode | null>(ALARM_VOLUME_MODE_KEY, null);
+  return raw === 'max' ? 'max' : 'device';
+}
+
+// 단일 값 통짜 덮어쓰기라 enqueueWrite 큐가 필요 없다(voiceGuideEnabled와 같은 패턴).
+export function setAlarmVolumeMode(mode: AlarmVolumeMode): Promise<void> {
+  return AsyncStorage.setItem(ALARM_VOLUME_MODE_KEY, JSON.stringify(mode));
+}
+
+export async function getHapticsEnabled(): Promise<boolean> {
+  return readJson<boolean>(HAPTICS_ENABLED_KEY, true);
+}
+
+export function setHapticsEnabled(enabled: boolean): Promise<void> {
+  return AsyncStorage.setItem(HAPTICS_ENABLED_KEY, JSON.stringify(enabled));
 }
 
 export async function getColorSchemeOverride(): Promise<ColorSchemeOverride> {

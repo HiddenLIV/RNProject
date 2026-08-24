@@ -137,6 +137,11 @@ const zh: Translations = {
     restEnabledLabel: '休息计时器',
     restingLabel: '休息中',
     skipRestButton: '跳过',
+    confirmEditAccessibility: '确认修改该组',
+    unsavedTitle: '还有未保存的记录',
+    unsavedBody: '要保存目前记录的组数吗？',
+    saveConfirmButton: '保存',
+    discardButton: '不保存',
   },
   captureVideoRow: {
     capture: '动作拍摄',
@@ -231,6 +236,10 @@ const zh: Translations = {
     modeSystem: '跟随系统',
     modeLight: '浅色',
     modeDark: '深色',
+    hapticsLabel: '振动',
+    alarmVolumeLabel: '提示音音量',
+    alarmVolumeDevice: '跟随设备音量',
+    alarmVolumeMax: '最大',
   },
   reminder: {
     enabledLabel: '提醒通知',

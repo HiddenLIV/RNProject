@@ -1,15 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
 
 import Text from '../components/AppText';
+import { showAlert } from '../lib/alert';
 import { getExerciseDisplayName } from '../lib/exercisePresets';
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise } from '../lib/types';
 import { fontSize, spacing } from '../theme';
 import RecordsScreen from './RecordsScreen';
-import RepsScreen from './RepsScreen';
+import RepsScreen, { RepsScreenHandle } from './RepsScreen';
 import TimerScreen from './TimerScreen';
 
 type Tab = 'measure' | 'records';
@@ -33,13 +34,62 @@ export default function ExerciseScreen({ exercise, onBack, initialTab }: Props) 
     setExerciseState((prev) => ({ ...prev, guideVideoId }));
   };
 
+  // 무게·횟수 측정 화면에서 저장하지 않은 세트가 있는 채로 뒤로가기를 누르면 저장 여부를
+  // 확인한다(요구사항 6). 시간형 운동(TimerScreen)에는 해당하지 않는다.
+  const [unsavedRepsCount, setUnsavedRepsCount] = useState(0);
+  const repsScreenRef = useRef<RepsScreenHandle>(null);
+
+  const requestBack = () => {
+    if (tab === 'measure' && exerciseState.measureType === 'reps' && unsavedRepsCount > 0) {
+      showAlert(t.reps.unsavedTitle, t.reps.unsavedBody, [
+        { text: t.reps.discardButton, style: 'destructive', onPress: onBack },
+        {
+          text: t.reps.saveConfirmButton,
+          onPress: async () => {
+            await repsScreenRef.current?.save();
+            onBack();
+          },
+        },
+      ]);
+      return;
+    }
+    onBack();
+  };
+
+  // 안드로이드 하드웨어/제스처 뒤로가기 — RN BackHandler는 나중에 등록된 리스너부터 부른다.
+  // 이 화면으로 들어오는 시점엔 React가 자식(ExerciseScreen)의 마운트 effect를 부모(App.tsx)의
+  // screen 갱신 effect보다 먼저 실행하므로, 이 시점에 한 번만 등록해 두면 오히려 App.tsx가 항상
+  // 나중에 등록돼 하드웨어 뒤로가기를 먼저 가로채 버린다(실기기에서 실제로 확인된 회귀 — 세트를
+  // 수정하던 중에도 alert 없이 바로 나가졌다). 그래서 마운트 시 한 번이 아니라, 이 리스너가 꼭
+  // 필요해지는 시점(unsavedRepsCount가 0에서 1로 바뀌는 순간)에 맞춰 다시 등록해야 한다 — 그
+  // 순간은 App.tsx의 screen 갱신과 겹치지 않는 별개의 렌더라, 이때 새로 등록되는 리스너가 항상
+  // 더 나중 것이 되어 하드웨어 뒤로가기를 먼저 받는다.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (tab === 'measure' && exerciseState.measureType === 'reps' && unsavedRepsCount > 0) {
+        requestBack();
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- requestBack은 매 렌더 재생성되지만 위 조건과 같은 값들에만 의존
+  }, [tab, exerciseState.measureType, unsavedRepsCount]);
+
   return (
     <View style={[styles.container, { backgroundColor: accent.background }]}>
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={onBack} hitSlop={8} accessibilityLabel={t.common.back}>
+        <Pressable
+          style={styles.backButton}
+          onPress={requestBack}
+          hitSlop={8}
+          accessibilityLabel={t.common.back}
+        >
           <Ionicons name="chevron-back" size={26} color={accent.primaryText} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: accent.text }]}>{getExerciseDisplayName(exerciseState, t)}</Text>
+        <Text style={[styles.headerTitle, { color: accent.text }]}>
+          {getExerciseDisplayName(exerciseState, t)}
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
       <View style={styles.content}>
@@ -47,13 +97,23 @@ export default function ExerciseScreen({ exercise, onBack, initialTab }: Props) 
           exerciseState.measureType === 'time' ? (
             <TimerScreen exercise={exerciseState} onGuideVideoChange={handleGuideVideoChange} />
           ) : (
-            <RepsScreen exercise={exerciseState} onGuideVideoChange={handleGuideVideoChange} />
+            <RepsScreen
+              ref={repsScreenRef}
+              exercise={exerciseState}
+              onGuideVideoChange={handleGuideVideoChange}
+              onUnsavedCountChange={setUnsavedRepsCount}
+            />
           )
         ) : (
           <RecordsScreen exercise={exerciseState} />
         )}
       </View>
-      <View style={[styles.tabBar, { borderTopColor: accent.border, backgroundColor: accent.background }]}>
+      <View
+        style={[
+          styles.tabBar,
+          { borderTopColor: accent.border, backgroundColor: accent.background },
+        ]}
+      >
         <Pressable
           style={styles.tabButton}
           onPress={() => setTab('measure')}
@@ -65,7 +125,13 @@ export default function ExerciseScreen({ exercise, onBack, initialTab }: Props) 
             size={22}
             color={tab === 'measure' ? accent.primaryText : accent.textFaint}
           />
-          <Text style={[styles.tabText, { color: accent.textFaint }, tab === 'measure' && { color: accent.primaryText }]}>
+          <Text
+            style={[
+              styles.tabText,
+              { color: accent.textFaint },
+              tab === 'measure' && { color: accent.primaryText },
+            ]}
+          >
             {t.exerciseScreen.measureTab}
           </Text>
         </Pressable>
@@ -80,7 +146,13 @@ export default function ExerciseScreen({ exercise, onBack, initialTab }: Props) 
             size={22}
             color={tab === 'records' ? accent.primaryText : accent.textFaint}
           />
-          <Text style={[styles.tabText, { color: accent.textFaint }, tab === 'records' && { color: accent.primaryText }]}>
+          <Text
+            style={[
+              styles.tabText,
+              { color: accent.textFaint },
+              tab === 'records' && { color: accent.primaryText },
+            ]}
+          >
             {t.exerciseScreen.recordsTab}
           </Text>
         </Pressable>

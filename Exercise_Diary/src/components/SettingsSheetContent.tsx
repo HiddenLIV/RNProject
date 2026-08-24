@@ -7,6 +7,7 @@ import Text from './AppText';
 import BackupSheetContent from './BackupSheetContent';
 import ColorSchemeSelector from './ColorSchemeSelector';
 import ReminderSettingsSection from './ReminderSettingsSection';
+import SoundHapticsSettingsSection from './SoundHapticsSettingsSection';
 import ThemeSwatchRow from './ThemeSwatchRow';
 
 type Props = {
@@ -34,6 +35,9 @@ export default function SettingsSheetContent({ onRestored, onRestoreFailed }: Pr
           {t.settings.modeSectionLabel}
         </Text>
         <ColorSchemeSelector />
+      </View>
+      <View style={styles.section}>
+        <SoundHapticsSettingsSection />
       </View>
       <View style={styles.section}>
         <ReminderSettingsSection />

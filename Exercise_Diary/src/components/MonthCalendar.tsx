@@ -52,7 +52,12 @@ type Props = {
 // 요일 인덱스(0=일 ... 6=토) 기준 텍스트 색 — 평일은 호출부에서 넘긴 기본색을 그대로 쓴다.
 // 일/토요일 색(weekendSunday/weekendSaturday)은 theme.ts에 라이트/다크 모드별로 대비가 맞게
 // 정의돼 있고, 강조색 프리셋과 무관하게 항상 같은 톤을 유지한다(요일 표시는 프리셋과 별개 의미).
-function weekdayTextColor(dow: number, defaultColor: string, sunday: string, saturday: string): string {
+function weekdayTextColor(
+  dow: number,
+  defaultColor: string,
+  sunday: string,
+  saturday: string,
+): string {
   if (dow === 0) return sunday;
   if (dow === 6) return saturday;
   return defaultColor;
@@ -75,14 +80,16 @@ export default function MonthCalendar({
   const isCurrentMonth = viewedYear === now.getFullYear() && viewedMonth === now.getMonth();
 
   const goPrevMonth = () => {
-    const [nextYear, nextMonth] = viewedMonth === 0 ? [viewedYear - 1, 11] : [viewedYear, viewedMonth - 1];
+    const [nextYear, nextMonth] =
+      viewedMonth === 0 ? [viewedYear - 1, 11] : [viewedYear, viewedMonth - 1];
     setViewedYear(nextYear);
     setViewedMonth(nextMonth);
     onMonthChange?.(nextYear, nextMonth);
   };
   const goNextMonth = () => {
     if (isCurrentMonth) return; // 미래 달은 기록이 있을 수 없어 이동을 막는다
-    const [nextYear, nextMonth] = viewedMonth === 11 ? [viewedYear + 1, 0] : [viewedYear, viewedMonth + 1];
+    const [nextYear, nextMonth] =
+      viewedMonth === 11 ? [viewedYear + 1, 0] : [viewedYear, viewedMonth + 1];
     setViewedYear(nextYear);
     setViewedMonth(nextMonth);
     onMonthChange?.(nextYear, nextMonth);
@@ -104,12 +111,17 @@ export default function MonthCalendar({
   // 화살표로 최근 3년 범위보다 더 과거로 넘어간 뒤 시트를 열면, 보고 있는 연도가 칩 목록에
   // 아예 없어서 아무 연도도 선택된 것처럼 안 보이는 문제가 있었다 — 그 연도를 목록 앞에 끼워
   // 넣어 항상 현재 보고 있는 연도가 칩으로 존재하고 선택 표시되게 한다.
-  const baseYearOptions = Array.from({ length: YEARS_BACK + 1 }, (_, i) => now.getFullYear() - YEARS_BACK + i);
+  const baseYearOptions = Array.from(
+    { length: YEARS_BACK + 1 },
+    (_, i) => now.getFullYear() - YEARS_BACK + i,
+  );
   const yearOptions = baseYearOptions.includes(viewedYear)
     ? baseYearOptions
     : [viewedYear, ...baseYearOptions].sort((a, b) => a - b);
   const monthNames = Array.from({ length: 12 }, (_, m) =>
-    new Intl.DateTimeFormat(SPEECH_LOCALE[language], { month: 'short' }).format(new Date(2000, m, 1)),
+    new Intl.DateTimeFormat(SPEECH_LOCALE[language], { month: 'short' }).format(
+      new Date(2000, m, 1),
+    ),
   );
   const selectMonth = (month: number) => {
     setViewedYear(pickerYear);
@@ -166,7 +178,14 @@ export default function MonthCalendar({
               <Text
                 style={[
                   styles.weekdayLabel,
-                  { color: weekdayTextColor(i, accent.textMuted, accent.weekendSunday, accent.weekendSaturday) },
+                  {
+                    color: weekdayTextColor(
+                      i,
+                      accent.textMuted,
+                      accent.weekendSunday,
+                      accent.weekendSaturday,
+                    ),
+                  },
                 ]}
               >
                 {label}
@@ -177,7 +196,10 @@ export default function MonthCalendar({
 
       {cellSize > 0 &&
         weeks.map((week, weekIndex) => (
-          <View key={weekIndex} style={[styles.weekRow, { marginTop: weekIndex === 0 ? 0 : CELL_GAP }]}>
+          <View
+            key={weekIndex}
+            style={[styles.weekRow, { marginTop: weekIndex === 0 ? 0 : CELL_GAP }]}
+          >
             {week.map((cell, dow) => {
               if (!cell) return <View key={dow} style={{ width: cellSize, height: cellSize }} />;
               const recorded = recordedDates.has(cell.key);
@@ -190,23 +212,39 @@ export default function MonthCalendar({
                 : weekdayTextColor(dow, accent.text, accent.weekendSunday, accent.weekendSaturday);
               const cellContent = (
                 <>
+                  {/* "오늘" 테두리와 "선택됨" 채움을 같은 View의 style 배열에서 조건부로 넣고 뺐더니
+                      (borderWidth/backgroundColor 키가 렌더마다 있다 없다 함) 오늘 날짜를 선택할 때만
+                      숫자가 안 보이는 현상이 있었다 — 안드로이드에서 borderRadius가 걸린 뷰의 스타일
+                      키가 렌더 사이에 사라지면 네이티브 쪽 diff가 완전히 반영되지 않는 사례가 있어,
+                      두 표시를 아예 별개의 겹친 레이어로 분리했다. 테두리 레이어는 borderWidth를
+                      항상 같은 값으로 유지하고 opacity로만 켜고 끄며, 채움 레이어도 backgroundColor
+                      키를 항상 선언해(투명 ↔ 강조색) 값만 바꾼다 — 어느 쪽도 스타일 키 자체가
+                      나타났다 사라지지 않는다. */}
                   <View
-                    style={[
-                      styles.dayCircle,
-                      { width: dayCircleSize, height: dayCircleSize },
-                      // 선택 표시(채움)가 우선이다 — 오늘이면서 선택된 날짜는 테두리 없이 채움만
-                      // 보여준다. isSelected일 때도 굳이 borderWidth:0을 명시하면(같은 스타일
-                      // 객체에 backgroundColor와 함께) 안드로이드에서 borderRadius 클리핑이 깨져
-                      // 모서리가 각진 사각형으로 나오는 버그가 있었다 — 아예 테두리 스타일 자체를
-                      // 안 넣는 방식으로 피한다.
-                      isToday && !isSelected && { borderWidth: 1.5, borderColor: accent.primary },
-                      isSelected && { backgroundColor: accent.primary },
-                    ]}
+                    style={[styles.dayCircleWrap, { width: dayCircleSize, height: dayCircleSize }]}
                   >
-                    <Text style={[styles.dayNumber, { color: dayNumberColor }]}>{cell.day}</Text>
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        StyleSheet.absoluteFill,
+                        styles.todayRing,
+                        { borderColor: accent.primary, opacity: isToday && !isSelected ? 1 : 0 },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.dayCircle,
+                        { backgroundColor: isSelected ? accent.primary : 'transparent' },
+                      ]}
+                    >
+                      <Text style={[styles.dayNumber, { color: dayNumberColor }]}>{cell.day}</Text>
+                    </View>
                   </View>
                   <View
-                    style={[styles.recordDot, { backgroundColor: recorded ? accent.primary : 'transparent' }]}
+                    style={[
+                      styles.recordDot,
+                      { backgroundColor: recorded ? accent.primary : 'transparent' },
+                    ]}
                   />
                 </>
               );
@@ -216,10 +254,17 @@ export default function MonthCalendar({
                 return (
                   <View
                     key={dow}
-                    style={{ width: cellSize, height: cellSize, alignItems: 'center', justifyContent: 'center' }}
+                    style={{
+                      width: cellSize,
+                      height: cellSize,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                     accessible
                     accessibilityLabel={
-                      isToday ? `${dateLabel}, ${status}, ${t.activity.today}` : `${dateLabel}, ${status}`
+                      isToday
+                        ? `${dateLabel}, ${status}, ${t.activity.today}`
+                        : `${dateLabel}, ${status}`
                     }
                   >
                     {cellContent}
@@ -231,11 +276,18 @@ export default function MonthCalendar({
                   key={dow}
                   onPress={() => onSelectDate(cell.key)}
                   style={({ pressed }) => [
-                    { width: cellSize, height: cellSize, alignItems: 'center', justifyContent: 'center' },
+                    {
+                      width: cellSize,
+                      height: cellSize,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    },
                     pressed && styles.cellPressed,
                   ]}
                   accessibilityLabel={
-                    isToday ? `${dateLabel}, ${status}, ${t.activity.today}` : `${dateLabel}, ${status}`
+                    isToday
+                      ? `${dateLabel}, ${status}, ${t.activity.today}`
+                      : `${dateLabel}, ${status}`
                   }
                 >
                   {cellContent}
@@ -247,7 +299,9 @@ export default function MonthCalendar({
 
       <View style={styles.legendRow}>
         <View style={[styles.recordDot, styles.legendDot, { backgroundColor: accent.primary }]} />
-        <Text style={[styles.legendText, { color: accent.textMuted }]}>{t.activity.recordedDayLegend}</Text>
+        <Text style={[styles.legendText, { color: accent.textMuted }]}>
+          {t.activity.recordedDayLegend}
+        </Text>
       </View>
 
       <BottomSheet
@@ -264,7 +318,10 @@ export default function MonthCalendar({
               style={[
                 styles.yearChip,
                 { borderColor: accent.border },
-                pickerYear === year && { backgroundColor: accent.primary, borderColor: accent.primary },
+                pickerYear === year && {
+                  backgroundColor: accent.primary,
+                  borderColor: accent.primary,
+                },
               ]}
             >
               <Text
@@ -296,7 +353,13 @@ export default function MonthCalendar({
                 <Text
                   style={[
                     styles.monthCellText,
-                    { color: selected ? accent.onPrimary : disabled ? accent.textFaint : accent.text },
+                    {
+                      color: selected
+                        ? accent.onPrimary
+                        : disabled
+                          ? accent.textFaint
+                          : accent.text,
+                    },
                   ]}
                 >
                   {name}
@@ -348,12 +411,23 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   // width/height는 컴포넌트 안에서 cellSize 기준 픽셀 값으로 직접 계산해 넘긴다(퍼센트+aspectRatio
-  // 조합 대신 — 히트맵 때와 같은 종류의 함정을 피하려고). overflow:'hidden'은 별도 이유로 필요하다 —
-  // 안드로이드에서 backgroundColor만 있고 테두리가 없는 View는 borderRadius를 무시하고 각진
-  // 사각형으로 그려지는 알려진 문제가 있다(오늘 표시처럼 테두리만 있는 경우엔 문제없이 둥글게
-  // 나오는데, 선택 표시처럼 배경색만 채우면 모서리가 안 잘렸다) — overflow:'hidden'을 주면
+  // 조합 대신 — 히트맵 때와 같은 종류의 함정을 피하려고).
+  dayCircleWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // "오늘" 테두리 전용 레이어 — dayCircle과 같은 자리에 절대 위치로 겹친다(위치는 StyleSheet.absoluteFill로
+  // 별도 지정). borderWidth는 항상 이 값 그대로 유지하고 opacity만 켜고 끈다(자세한 이유는 렌더링 쪽 주석 참고).
+  todayRing: {
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+  },
+  // overflow:'hidden'이 필요한 이유 — 안드로이드에서 backgroundColor만 있고 테두리가 없는 View는
+  // borderRadius를 무시하고 각진 사각형으로 그려지는 알려진 문제가 있다. overflow:'hidden'을 주면
   // 배경도 강제로 borderRadius에 맞춰 잘린다.
   dayCircle: {
+    width: '100%',
+    height: '100%',
     borderRadius: radius.pill,
     overflow: 'hidden',
     alignItems: 'center',

@@ -1,8 +1,9 @@
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import Text from '../components/AppText';
 import CameraPermissionModal from '../components/CameraPermissionModal';
 import CaptureVideoRow from '../components/CaptureVideoRow';
+import ColorSwitch from '../components/ColorSwitch';
 import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import TimeDisplay from '../components/TimeDisplay';
@@ -40,9 +41,8 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
   const t = useTranslation();
   const language = useLanguage();
 
-  const { settings, updateSettings, voiceGuideEnabled, onVoiceGuideToggle } = useTimerSettings(
-    exercise.id,
-  );
+  const { settings, updateSettings, voiceGuideEnabled, onVoiceGuideToggle, alarmVolumeMode } =
+    useTimerSettings(exercise.id);
   const video = useVideoCapture({
     captureFailedTitle: t.timer.captureFailedTitle,
     captureFailedBody: t.timer.captureFailedBody,
@@ -60,7 +60,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
     },
     onMeasureSecond: (second) => {
       if (second % settings.bellIntervalSeconds === 0) {
-        timerAudio.playBellSound(); // 음성 안내 토글과 무관하게 항상 울린다
+        timerAudio.playBellSound(undefined, alarmVolumeMode); // 음성 안내 토글과 무관하게 항상 울린다
       } else if (voiceGuideEnabled) {
         speakSecond(second, language);
       }
@@ -149,21 +149,22 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
                 <Text style={[styles.voiceGuideLabel, { color: accent.textMuted }]}>
                   {t.timer.voiceGuideLabel}
                 </Text>
-                <Switch
+                <ColorSwitch
                   value={voiceGuideEnabled}
                   onValueChange={onVoiceGuideToggle}
-                  trackColor={{ true: accent.primary, false: accent.border }}
+                  color={accent.primary}
                 />
               </View>
             </View>
             <Pressable
-              style={[
+              style={({ pressed }) => [
                 styles.button,
                 {
                   backgroundColor: accent.primary,
                   ...buttonShadowShape,
                   shadowColor: accent.primary,
                 },
+                pressed && styles.pressed,
               ]}
               onPress={() => {
                 tapMedium();
@@ -186,7 +187,11 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
               {timer.countdownRemainingSec}
             </Text>
             <Pressable
-              style={[styles.button, { backgroundColor: accent.card }]}
+              style={({ pressed }) => [
+                styles.button,
+                { backgroundColor: accent.card },
+                pressed && styles.pressed,
+              ]}
               onPress={handleCancel}
             >
               <Text style={[styles.buttonText, { color: accent.text }]}>
@@ -208,13 +213,14 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
             </Text>
             <TimeDisplay ms={timer.elapsedMs} />
             <Pressable
-              style={[
+              style={({ pressed }) => [
                 styles.button,
                 {
                   backgroundColor: accent.danger,
                   ...buttonShadowShape,
                   shadowColor: accent.danger,
                 },
+                pressed && styles.pressed,
               ]}
               onPress={handleStop}
             >
@@ -263,7 +269,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
             )}
             <View style={styles.buttonRow}>
               <Pressable
-                style={[
+                style={({ pressed }) => [
                   styles.button,
                   styles.buttonRowItem,
                   {
@@ -271,6 +277,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
                     ...buttonShadowShape,
                     shadowColor: accent.primary,
                   },
+                  pressed && styles.pressed,
                 ]}
                 onPress={handleRestart}
               >
@@ -306,6 +313,9 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
 }
 
 const styles = StyleSheet.create({
+  pressed: {
+    opacity: 0.7,
+  },
   container: {
     flex: 1,
     // KeyboardAvoidingView(behavior="padding")는 키보드가 없을 때도 paddingBottom을 0으로

@@ -139,6 +139,11 @@ const ko: Translations = {
     restEnabledLabel: '휴식 타이머',
     restingLabel: '휴식 중',
     skipRestButton: '건너뛰기',
+    confirmEditAccessibility: '세트 수정 확정',
+    unsavedTitle: '저장하지 않은 기록이 있어요',
+    unsavedBody: '지금까지 기록한 세트를 저장할까요?',
+    saveConfirmButton: '저장',
+    discardButton: '저장 안 함',
   },
   captureVideoRow: {
     capture: '자세 촬영',
@@ -233,6 +238,10 @@ const ko: Translations = {
     modeSystem: '시스템 설정 따름',
     modeLight: '라이트',
     modeDark: '다크',
+    hapticsLabel: '진동',
+    alarmVolumeLabel: '알림음 볼륨',
+    alarmVolumeDevice: '기기 볼륨 따라가기',
+    alarmVolumeMax: '최대',
   },
   reminder: {
     enabledLabel: '운동 알림',

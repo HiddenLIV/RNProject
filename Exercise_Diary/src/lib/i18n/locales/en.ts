@@ -137,6 +137,11 @@ const en = {
     restEnabledLabel: 'Rest timer',
     restingLabel: 'Resting',
     skipRestButton: 'Skip',
+    confirmEditAccessibility: 'Confirm set edit',
+    unsavedTitle: 'You have unsaved sets',
+    unsavedBody: 'Save the sets you’ve logged so far?',
+    saveConfirmButton: 'Save',
+    discardButton: "Don't save",
   },
   captureVideoRow: {
     capture: 'Record Form',
@@ -231,6 +236,10 @@ const en = {
     modeSystem: 'Follow System',
     modeLight: 'Light',
     modeDark: 'Dark',
+    hapticsLabel: 'Vibration',
+    alarmVolumeLabel: 'Alarm volume',
+    alarmVolumeDevice: 'Follow device volume',
+    alarmVolumeMax: 'Max',
   },
   reminder: {
     enabledLabel: 'Reminder Notifications',

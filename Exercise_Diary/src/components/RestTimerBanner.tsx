@@ -8,13 +8,15 @@ import Text from './AppText';
 type Props = {
   remainingSec: number;
   totalSec: number;
+  /** 3초마다 바뀌는 동기부여 문구 — useMotivationalQuote(RepsScreen)가 계산해 내려준다 */
+  quote: string;
   /** 햅틱 등 부수 효과는 호출부(RepsScreen)의 책임 — 이 컴포넌트는 표시와 탭 전달만 한다 */
   onSkip: () => void;
 };
 
 // 세트 추가 직후 자동으로 뜨는 휴식 카운트다운 — "이번 세트" 입력 위에 얹히는 카드일 뿐,
 // 아래 입력·저장 버튼을 가리거나 비활성화하지 않는다(RepsScreen이 조건부로 이 자리에만 렌더링).
-export default function RestTimerBanner({ remainingSec, totalSec, onSkip }: Props) {
+export default function RestTimerBanner({ remainingSec, totalSec, quote, onSkip }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const progress = totalSec > 0 ? Math.min(1, Math.max(0, remainingSec / totalSec)) : 0;
@@ -30,7 +32,11 @@ export default function RestTimerBanner({ remainingSec, totalSec, onSkip }: Prop
           </Text>
         </View>
         <Pressable
-          style={[styles.skipButton, { borderColor: accent.primary }]}
+          style={({ pressed }) => [
+            styles.skipButton,
+            { borderColor: accent.primary },
+            pressed && styles.pressed,
+          ]}
           onPress={onSkip}
           hitSlop={8}
         >
@@ -39,6 +45,11 @@ export default function RestTimerBanner({ remainingSec, totalSec, onSkip }: Prop
           </Text>
         </Pressable>
       </View>
+      {quote !== '' && (
+        <Text style={[styles.quote, { color: accent.primary }]} numberOfLines={2}>
+          {quote}
+        </Text>
+      )}
       {/* primarySoft 카드는 라이트/다크 모드와 무관하게 항상 어둡다 — 트랙도 그 전제로,
           accent.card처럼 모드별로 바뀌는 색 대신 고정된 반투명 흰색을 써서 다크 모드에서도
           채워지지 않은 부분이 카드 배경에 묻히지 않게 한다. */}
@@ -90,6 +101,14 @@ const styles = StyleSheet.create({
   skipButtonText: {
     fontSize: fontSize.sm,
     fontWeight: '700',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  quote: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   track: {
     height: 4,

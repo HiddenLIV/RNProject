@@ -137,6 +137,11 @@ const ja: Translations = {
     restEnabledLabel: '休憩タイマー',
     restingLabel: '休憩中',
     skipRestButton: 'スキップ',
+    confirmEditAccessibility: 'セット修正を確定',
+    unsavedTitle: '保存していない記録があります',
+    unsavedBody: 'これまで記録したセットを保存しますか?',
+    saveConfirmButton: '保存',
+    discardButton: '保存しない',
   },
   captureVideoRow: {
     capture: 'フォーム撮影',
@@ -231,6 +236,10 @@ const ja: Translations = {
     modeSystem: 'システム設定に従う',
     modeLight: 'ライト',
     modeDark: 'ダーク',
+    hapticsLabel: '振動',
+    alarmVolumeLabel: 'アラーム音量',
+    alarmVolumeDevice: '端末の音量に従う',
+    alarmVolumeMax: '最大',
   },
   reminder: {
     enabledLabel: 'リマインダー通知',
