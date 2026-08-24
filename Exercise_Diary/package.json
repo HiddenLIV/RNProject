@@ -62,7 +62,6 @@
     "assets:notification-icon": "node scripts/make-notification-icon.js",
     "assets:store-screenshots": "node scripts/make-store-screenshots.js",
     "assets:bell": "node scripts/make-bell-sound.js",
-    "assets:boxing-bell": "node scripts/make-boxing-bell-sound.js",
     "assets:silence": "node scripts/make-silence-sound.js",
     "lint": "expo lint",
     "format": "prettier --write .",

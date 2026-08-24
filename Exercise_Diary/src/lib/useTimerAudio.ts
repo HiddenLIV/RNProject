@@ -79,7 +79,7 @@ export function useTimerAudio() {
   // interruptionMode를 벨이 나는 동안만 'mixWithOthers'로 바꿨다가 되돌린다. 두 설정 모두 네이티브
   // 쪽에 실제로 반영된 뒤에 재생해야 하므로 await로 순서를 보장한다.
   // (bell.wav 길이는 0.45초 — 기본 800ms면 재생이 끝나고도 여유 있게 원래 모드로 복귀한다.
-  // 더 긴 사운드(복싱 벨 1.2초 등)를 넘길 땐 호출부가 restoreDelayMs도 함께 늘려야 재생 중간에
+  // 더 긴 사운드(오프닝 벨 1.18초 등)를 넘길 땐 호출부가 restoreDelayMs도 함께 늘려야 재생 중간에
   // 모드가 바뀌어 소리가 잘리는 일이 없다.)
   const playBellSoundWithoutFocus = async (
     asset?: AudioSource,

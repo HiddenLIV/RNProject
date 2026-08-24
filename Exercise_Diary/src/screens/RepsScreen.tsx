@@ -94,10 +94,10 @@ const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
   const timerAudio = useTimerAudio();
   const rest = useRestTimer(() => {
     // 시간형 운동(TimerScreen)의 벨 간격 알림음과 구분되도록 휴식 종료 전용 사운드를 쓴다
-    // (요구사항 8). 1.2초짜리라 기본 800ms보다 넉넉한 복귀 지연을 넘긴다.
+    // (요구사항 8). 1.18초짜리라 기본 800ms보다 넉넉한 복귀 지연을 넘긴다.
     timerAudio
       .playBellSoundWithoutFocus(
-        require('../../assets/sounds/boxing-bell.wav'),
+        require('../../assets/sounds/opening-bell.mp3'),
         alarmVolumeMode,
         1500,
       )
