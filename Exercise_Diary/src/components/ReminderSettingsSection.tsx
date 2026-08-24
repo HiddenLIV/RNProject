@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   rowLabel: {
-    fontSize: fontSize.base,
+    fontSize: fontSize.sm,
     fontWeight: '600',
   },
   modeRow: {
