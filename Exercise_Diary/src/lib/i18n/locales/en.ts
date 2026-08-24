@@ -236,6 +236,8 @@ const en = {
     modeSystem: 'Follow System',
     modeLight: 'Light',
     modeDark: 'Dark',
+    soundHapticsSectionLabel: 'Sound & Haptics',
+    reminderSectionLabel: 'Reminders',
     hapticsLabel: 'Vibration',
     alarmVolumeLabel: 'Alarm volume',
     alarmVolumeDevice: 'Follow device volume',

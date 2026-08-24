@@ -236,6 +236,8 @@ const ja: Translations = {
     modeSystem: 'システム設定に従う',
     modeLight: 'ライト',
     modeDark: 'ダーク',
+    soundHapticsSectionLabel: 'サウンドと振動',
+    reminderSectionLabel: 'リマインダー',
     hapticsLabel: '振動',
     alarmVolumeLabel: 'アラーム音量',
     alarmVolumeDevice: '端末の音量に従う',

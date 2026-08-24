@@ -236,6 +236,8 @@ const zh: Translations = {
     modeSystem: '跟随系统',
     modeLight: '浅色',
     modeDark: '深色',
+    soundHapticsSectionLabel: '声音与振动',
+    reminderSectionLabel: '提醒',
     hapticsLabel: '振动',
     alarmVolumeLabel: '提示音音量',
     alarmVolumeDevice: '跟随设备音量',

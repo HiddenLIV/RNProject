@@ -54,8 +54,10 @@ export default function SoundHapticsSettingsSection() {
       </View>
 
       {/* iOS는 OS 정책상 앱이 시스템 볼륨 자체를 바꿀 수 없어, 이미 최대 상대음량으로 재생 중인
-          지금과 이 설정이 체감상 구분되지 않는다 — Android에서만 노출한다(요구사항 1-3). */}
-      {Platform.OS === 'android' && (
+          지금과 이 설정이 체감상 구분되지 않는다 — Android에서만 노출한다(요구사항 1-3).
+          진동이 꺼져 있으면 알림 자체에 관심이 없는 상태로 보고, 그 아래 알림음 볼륨 설정도 함께
+          숨긴다. */}
+      {Platform.OS === 'android' && hapticsEnabled && (
         <View style={styles.volumeSection}>
           <Text style={[styles.fieldLabel, { color: accent.textMuted }]}>
             {t.settings.alarmVolumeLabel}

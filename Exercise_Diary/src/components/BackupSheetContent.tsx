@@ -98,7 +98,7 @@ export default function BackupSheetContent({ onRestored, onRestoreFailed }: Prop
   return (
     <>
       <Pressable
-        style={[styles.row, { backgroundColor: accent.card }]}
+        style={[styles.row, { backgroundColor: accent.background, borderColor: accent.border }]}
         onPress={handleExport}
         disabled={busy !== 'idle'}
       >
@@ -117,7 +117,7 @@ export default function BackupSheetContent({ onRestored, onRestoreFailed }: Prop
         </View>
       </Pressable>
       <Pressable
-        style={[styles.row, { backgroundColor: accent.card }]}
+        style={[styles.row, { backgroundColor: accent.background, borderColor: accent.border }]}
         onPress={handleImport}
         disabled={busy !== 'idle'}
       >
@@ -151,6 +151,7 @@ const styles = StyleSheet.create({
     gap: spacing.smd,
     borderRadius: radius.md,
     padding: spacing.md,
+    borderWidth: 1.5,
   },
   iconBadge: {
     width: 48,
