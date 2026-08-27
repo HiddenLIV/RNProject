@@ -77,9 +77,14 @@ async function fetchRemoteVersionConfig(): Promise<RemoteVersionConfig | null> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    // gh-pages 응답에 cache-control: max-age=600이 붙어 있어, no-store 없이는 minVersion을
-    // 올려 재배포해도 최근에 조회한 기기가 최대 10분(+ 플랫폼 디스크 캐시)간 이전 값을 본다.
-    const res = await fetch(VERSION_CONFIG_URL, { signal: controller.signal, cache: 'no-store' });
+    // gh-pages 응답에 cache-control: max-age=600이 붙어 있는데, RN Android는 fetch의
+    // cache: 'no-store'를 지키지 않고 OkHttp 디스크 캐시를 그대로 쓰는 알려진 버그가 있다
+    // (facebook/react-native#23905) — 헤더 옵션만으로는 minVersion을 올려 재배포해도 기기가
+    // 계속 이전 값을 볼 수 있어, 매 호출마다 URL 자체를 다르게 만들어 캐시를 무조건 우회한다.
+    const res = await fetch(`${VERSION_CONFIG_URL}?t=${Date.now()}`, {
+      signal: controller.signal,
+      cache: 'no-store',
+    });
     const json = await res.json();
     return isValidConfig(json) ? json : null;
   } catch {

@@ -188,8 +188,8 @@ const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
       setLoggedSets((prev) => [...prev, nextSet]);
       if (settings.restEnabled) rest.start(settings.restSeconds);
     }
-    setCurrentReps(1);
-    setCurrentWeightText('');
+    // 입력칸은 일부러 초기화하지 않는다 — 방금 추가/수정한 무게·횟수가 다음 세트의 기본값으로
+    // 그대로 남아 있어야 같은 무게로 이어지는 세트를 반복 입력하기 편하다.
   };
 
   const startEditSet = (index: number) => {
