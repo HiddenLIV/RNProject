@@ -1,7 +1,14 @@
 /// <reference types="jest" />
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { addDaysToKey, computeStreak, daysBetweenKeys, getHomeStats, localDateKey } from './stats';
+import {
+  addDaysToKey,
+  countThisWeek,
+  daysBetweenKeys,
+  getHomeStats,
+  getWeekStartKey,
+  localDateKey,
+} from './stats';
 import { addRecord, addRepsRecord } from './storage';
 import { Exercise } from './types';
 
@@ -39,29 +46,38 @@ describe('daysBetweenKeys / addDaysToKey', () => {
   });
 });
 
-describe('computeStreak', () => {
+describe('getWeekStartKey', () => {
+  test('일요일이면 그 주의 월요일을 반환한다', () => {
+    expect(getWeekStartKey('2026-08-23')).toBe('2026-08-17'); // 2026-08-23은 일요일
+  });
+
+  test('월요일이면 자기 자신을 반환한다', () => {
+    expect(getWeekStartKey('2026-08-17')).toBe('2026-08-17');
+  });
+
+  test('주 중간 날짜도 같은 주의 월요일로 정규화된다', () => {
+    expect(getWeekStartKey('2026-08-20')).toBe('2026-08-17'); // 목요일
+  });
+});
+
+describe('countThisWeek', () => {
   test('기록이 없으면 0', () => {
-    expect(computeStreak(new Set(), '2026-08-23')).toBe(0);
+    expect(countThisWeek(new Set(), '2026-08-23')).toBe(0);
   });
 
-  test('오늘까지 연속 3일 기록이면 3', () => {
+  test('이번 주(월~일) 안의 날짜만 센다', () => {
     const dates = new Set(['2026-08-21', '2026-08-22', '2026-08-23']);
-    expect(computeStreak(dates, '2026-08-23')).toBe(3);
+    expect(countThisWeek(dates, '2026-08-23')).toBe(3);
   });
 
-  test('어제까지만 기록해도(오늘 아직 미기록) 스트릭이 유지된다', () => {
-    const dates = new Set(['2026-08-20', '2026-08-21', '2026-08-22']);
-    expect(computeStreak(dates, '2026-08-23')).toBe(3);
-  });
-
-  test('그저께 이전이 마지막 기록이면 0으로 리셋된다', () => {
-    const dates = new Set(['2026-08-19', '2026-08-20', '2026-08-21']);
-    expect(computeStreak(dates, '2026-08-23')).toBe(0);
-  });
-
-  test('중간에 공백이 있으면 마지막 연속 구간만 센다', () => {
+  test('지난 주 기록은 이번 주 횟수에 포함되지 않는다', () => {
     const dates = new Set(['2026-08-10', '2026-08-22', '2026-08-23']);
-    expect(computeStreak(dates, '2026-08-23')).toBe(2);
+    expect(countThisWeek(dates, '2026-08-23')).toBe(2);
+  });
+
+  test('이번 주 기록이 전혀 없으면 0', () => {
+    const dates = new Set(['2026-08-10', '2026-08-16']);
+    expect(countThisWeek(dates, '2026-08-23')).toBe(0);
   });
 });
 
@@ -82,14 +98,14 @@ describe('getHomeStats', () => {
     expect(stats.hasAnyRecordEver).toBe(false);
     expect(stats.weeklyActiveDays).toBe(0);
     expect(stats.weeklyPrCount).toBe(0);
-    expect(stats.streaksByExerciseId.a).toBe(0);
+    expect(stats.weeklyCountsByExerciseId.a).toBe(0);
   });
 
-  test('운동별 스트릭은 서로 영향을 주지 않는다', async () => {
+  test('운동별 이번 주 횟수는 서로 영향을 주지 않는다', async () => {
     const hangExercise = makeTimeExercise('hang');
     const squatExercise = makeRepsExercise('squat');
 
-    // hang: 최근 3일 연속 기록
+    // hang: 이번 주 3일 기록
     for (const offset of [0, 1, 2]) {
       const date = new Date(today);
       date.setDate(date.getDate() - offset);
@@ -109,8 +125,8 @@ describe('getHomeStats', () => {
     const stats = await getHomeStats([hangExercise, squatExercise]);
 
     expect(stats.hasAnyRecordEver).toBe(true);
-    expect(stats.streaksByExerciseId.hang).toBe(3);
-    expect(stats.streaksByExerciseId.squat).toBe(1);
+    expect(stats.weeklyCountsByExerciseId.hang).toBe(3);
+    expect(stats.weeklyCountsByExerciseId.squat).toBe(1);
     expect(stats.weeklyActiveDays).toBe(3); // 두 운동을 합쳐도 활동일수는 겹치는 날짜를 중복 세지 않음
   });
 

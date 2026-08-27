@@ -54,7 +54,7 @@ const en = {
       empty: 'No records yet — start your first exercise below.',
       openAccessibility: 'View activity history',
     },
-    streakBadge: (days: number) => `${days}d`,
+    streakBadge: (count: number) => `${count}x/wk`,
   },
   activity: {
     title: 'Activity',
@@ -204,7 +204,7 @@ const en = {
       {
         title: 'Check This Week\'s Activity',
         description:
-          'The "Activity" card at the top of the home screen shows how many days you\'ve worked out this week and how many new personal records (PRs) you\'ve set. Tap it to open the monthly calendar and see your records by date, and look for the "🔥" streak badge on exercise cards to see your current streak.',
+          'The "Activity" card at the top of the home screen shows how many days you\'ve worked out this week and how many new personal records (PRs) you\'ve set. Tap it to open the monthly calendar and see your records by date, and exercises you\'ve done 2+ times this week get a "🔥" badge on their card.',
       },
       {
         title: 'Record Yourself',

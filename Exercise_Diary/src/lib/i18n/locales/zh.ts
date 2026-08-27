@@ -54,7 +54,7 @@ const zh: Translations = {
       empty: '还没有记录，快去完成第一次运动吧。',
       openAccessibility: '查看活动记录',
     },
-    streakBadge: (days) => `${days}天`,
+    streakBadge: (count) => `每周${count}次`,
   },
   activity: {
     title: '活动记录',
@@ -204,7 +204,7 @@ const zh: Translations = {
       {
         title: '查看本周活动',
         description:
-          '主页顶部的"活动记录"卡片会显示本周运动的天数和新刷新的PR(个人最佳)次数。点击卡片可打开月历查看每天的记录，运动卡片上的"🔥"徽章还会显示连续记录天数（连续打卡）。',
+          '主页顶部的"活动记录"卡片会显示本周运动的天数和新刷新的PR(个人最佳)次数。点击卡片可打开月历查看每天的记录，本周进行2次以上的运动会在卡片上显示"🔥"徽章。',
       },
       {
         title: '拍摄运动视频',

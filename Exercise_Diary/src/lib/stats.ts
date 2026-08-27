@@ -7,7 +7,9 @@ export type HomeStats = {
   weeklyActiveDays: number;
   weeklyPrCount: number;
   recordedDates: Set<string>; // 운동 종류 무관, 기록이 하나라도 있었던 모든 로컬 날짜 키 — 활동 기록 화면의 캘린더가 월 이동과 무관하게 항상 정확히 표시하도록 기간 제한 없이 전체를 담는다
-  streaksByExerciseId: Record<string, number>;
+  // 운동 id -> 이번 주(달력 기준 월~일)에 그 운동을 기록한 날수. 매일 하지 않아도 유지되는
+  // 동기부여용 지표로, 연속일 스트릭 대신 주간 빈도를 쓴다.
+  weeklyCountsByExerciseId: Record<string, number>;
   // 운동 id -> 그 운동에 기록이 있는 모든 로컬 날짜 키. 캘린더에서 날짜를 눌렀을 때 "그날 한 운동"을
   // 가리는 데 쓴다 — AsyncStorage를 다시 읽지 않고 이미 계산해 둔 값을 동기적으로 필터링만 하면
   // 되므로, 탭할 때마다 재조회하며 생기던 레이스 컨디션(먼저 누른 날짜의 응답이 나중에 도착)이
@@ -16,7 +18,6 @@ export type HomeStats = {
 };
 
 const WEEK_DAYS = 7;
-const STREAK_RESET_GAP_DAYS = 2;
 
 // new Date(iso)는 로컬 타임존으로 파싱되므로 getFullYear/getMonth/getDate만으로
 // 로컬 달력 날짜를 얻을 수 있다(요구사항: 로컬 시간대 기준 날짜 판정).
@@ -80,19 +81,18 @@ function findPrEventDateKeys(datedValues: DatedValue[]): string[] {
   return events;
 }
 
-// 가장 최근 기록일부터 거꾸로 하루도 빠짐없이 이어진 날 수. 마지막 기록일이 그저께
-// 이전(오늘 기준 이틀 이상 공백)이면 스트릭이 끊긴 것으로 보고 0을 반환한다.
-export function computeStreak(dateKeys: Set<string>, today: string): number {
-  if (dateKeys.size === 0) return 0;
-  const lastKey = [...dateKeys].sort().at(-1) as string;
-  if (daysBetweenKeys(lastKey, today) >= STREAK_RESET_GAP_DAYS) return 0;
-  let streak = 0;
-  let cursor = lastKey;
-  while (dateKeys.has(cursor)) {
-    streak += 1;
-    cursor = addDaysToKey(cursor, -1);
-  }
-  return streak;
+// dateKey가 속한 달력 주(월요일 시작)의 월요일 날짜 키를 반환한다.
+export function getWeekStartKey(dateKey: string): string {
+  const { y, m, d } = parseKey(dateKey);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0=일 .. 6=토
+  const daysSinceMonday = (dow + 6) % 7;
+  return addDaysToKey(dateKey, -daysSinceMonday);
+}
+
+// 이번 주(달력 기준 월~일) 안에 속하는 날짜 키 수를 센다.
+export function countThisWeek(dateKeys: Set<string>, today: string): number {
+  const weekStartKey = getWeekStartKey(today);
+  return [...dateKeys].filter((key) => key >= weekStartKey).length;
 }
 
 export async function getHomeStats(exercises: Exercise[]): Promise<HomeStats> {
@@ -106,7 +106,7 @@ export async function getHomeStats(exercises: Exercise[]): Promise<HomeStats> {
 
   const recordedDates = new Set<string>();
   const activeDaysThisWeek = new Set<string>();
-  const streaksByExerciseId: Record<string, number> = {};
+  const weeklyCountsByExerciseId: Record<string, number> = {};
   const dateKeysByExerciseId: Record<string, Set<string>> = {};
   let weeklyPrCount = 0;
   let hasAnyRecordEver = false;
@@ -121,7 +121,7 @@ export async function getHomeStats(exercises: Exercise[]): Promise<HomeStats> {
       if (daysBetweenKeys(key, today) < WEEK_DAYS) activeDaysThisWeek.add(key);
     }
 
-    streaksByExerciseId[exercise.id] = computeStreak(dateKeys, today);
+    weeklyCountsByExerciseId[exercise.id] = countThisWeek(dateKeys, today);
     weeklyPrCount += findPrEventDateKeys(datedValues).filter(
       (key) => daysBetweenKeys(key, today) < WEEK_DAYS,
     ).length;
@@ -132,7 +132,7 @@ export async function getHomeStats(exercises: Exercise[]): Promise<HomeStats> {
     weeklyActiveDays: activeDaysThisWeek.size,
     weeklyPrCount,
     recordedDates,
-    streaksByExerciseId,
+    weeklyCountsByExerciseId,
     dateKeysByExerciseId,
   };
 }

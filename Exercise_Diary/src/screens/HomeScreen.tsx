@@ -209,7 +209,7 @@ export default function HomeScreen({
           }
           renderItem={({ item }) => {
             const displayName = getExerciseDisplayName(item, t);
-            const streak = homeStats?.streaksByExerciseId[item.id] ?? 0;
+            const weeklyCount = homeStats?.weeklyCountsByExerciseId[item.id] ?? 0;
             return (
               <Pressable
                 style={({ pressed }) => [
@@ -226,7 +226,7 @@ export default function HomeScreen({
                   <Text style={[styles.cardTitle, { color: accent.text }]}>{displayName}</Text>
                   <View style={styles.cardTagRow}>
                     <MeasureTypeTag measureType={item.measureType} />
-                    {streak >= 2 && <StreakBadge days={streak} />}
+                    {weeklyCount >= 2 && <StreakBadge count={weeklyCount} />}
                   </View>
                 </View>
                 <Pressable
