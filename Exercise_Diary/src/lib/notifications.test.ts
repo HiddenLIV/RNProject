@@ -2,12 +2,18 @@ import { computeDaysSinceTarget } from './notifications';
 
 describe('computeDaysSinceTarget', () => {
   test('기준일 + N일 뒤, 그날의 hour:minute을 반환한다', () => {
+    // computeDaysSinceTarget은 결과가 현재 시각보다 과거면 미래로 앞당기므로, 실제 시계가
+    // 기준일을 지나가면(연도가 바뀌는 등) 이 테스트가 깨진다 — 시스템 시간을 기준일로 고정한다.
     const base = '2026-08-23T09:00:00.000Z';
+    jest.useFakeTimers().setSystemTime(new Date(base));
+
     const target = computeDaysSinceTarget(base, 3, 20, 0);
 
     expect(target.getDate()).toBe(26);
     expect(target.getHours()).toBe(20);
     expect(target.getMinutes()).toBe(0);
+
+    jest.useRealTimers();
   });
 
   test('계산된 시각이 이미 과거라면(예: N=0이고 자정 시각) 미래로 앞당긴다', () => {
