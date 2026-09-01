@@ -291,6 +291,15 @@ const ja: Translations = {
     deleteConfirmTitle: '記録を削除',
     deleteConfirmBody: 'この記録を削除しますか？元に戻せません。',
     deleteAccessibility: '記録を削除',
+    editAccessibility: '記録を編集',
+    editSheetTitle: '記録を編集',
+    closeAccessibility: '閉じる',
+    resetBestAccessibility: 'ベスト記録をリセット',
+    resetBestConfirmTitle: 'ベスト記録をリセットしますか？',
+    resetBestConfirmBody:
+      'これまでの記録はそのまま残りますが、今後はこの時点以降の記録だけがベスト記録として集計されます。元に戻せません。',
+    resetBestButton: 'リセット',
+    emptySinceReset: 'リセット後の記録なし',
     videoAccessibility: '撮影した動画を見る',
     setsAndReps: (sets, reps) => `${sets}セット・${reps}回`,
     setSummary: (reps, weight, weightUnitLabel) =>

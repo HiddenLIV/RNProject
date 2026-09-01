@@ -93,20 +93,22 @@ export default function ExerciseScreen({ exercise, onBack, initialTab }: Props) 
         <View style={styles.headerSpacer} />
       </View>
       <View style={styles.content}>
-        {tab === 'measure' ? (
-          exerciseState.measureType === 'time' ? (
-            <TimerScreen exercise={exerciseState} onGuideVideoChange={handleGuideVideoChange} />
-          ) : (
-            <RepsScreen
-              ref={repsScreenRef}
-              exercise={exerciseState}
-              onGuideVideoChange={handleGuideVideoChange}
-              onUnsavedCountChange={setUnsavedRepsCount}
-            />
-          )
-        ) : (
-          <RecordsScreen exercise={exerciseState} />
+        {/* 횟수·세트형 운동은 탭과 무관하게 항상 마운트해 둔다 — 기록 탭으로 전환했다 돌아와도
+            세트 목록·입력값·촬영 영상·휴식 타이머가 유지되게 하려면 언마운트되면 안 된다.
+            visible로 화면 표시 여부만 넘기고, 실제 표시는 RepsScreen 내부에서 결정한다. */}
+        {exerciseState.measureType === 'reps' && (
+          <RepsScreen
+            ref={repsScreenRef}
+            exercise={exerciseState}
+            onGuideVideoChange={handleGuideVideoChange}
+            onUnsavedCountChange={setUnsavedRepsCount}
+            visible={tab === 'measure'}
+          />
         )}
+        {tab === 'measure' && exerciseState.measureType === 'time' && (
+          <TimerScreen exercise={exerciseState} onGuideVideoChange={handleGuideVideoChange} />
+        )}
+        {tab === 'records' && <RecordsScreen exercise={exerciseState} />}
       </View>
       <View
         style={[

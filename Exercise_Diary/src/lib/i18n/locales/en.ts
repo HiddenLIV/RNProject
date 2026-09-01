@@ -296,6 +296,15 @@ const en = {
     setsAndReps: (sets: number, reps: number) => `${sets} sets · ${reps} reps`,
     setSummary: (reps: number, weight?: number, weightUnitLabel?: string) =>
       weight != null && weightUnitLabel ? `${weight}${weightUnitLabel} × ${reps} reps` : `${reps} reps`,
+    editAccessibility: 'Edit record',
+    editSheetTitle: 'Edit Record',
+    closeAccessibility: 'Close',
+    resetBestAccessibility: 'Reset best record',
+    resetBestConfirmTitle: 'Reset best record?',
+    resetBestConfirmBody:
+      'Past records stay in your history, but from now on only records after this point count toward your best. This can’t be undone.',
+    resetBestButton: 'Reset',
+    emptySinceReset: 'No records since reset',
   },
   quotes: [
     'The moment you quit, you start looking for excuses.',

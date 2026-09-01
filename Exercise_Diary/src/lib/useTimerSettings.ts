@@ -4,8 +4,8 @@ import {
   getAlarmVolumeMode,
   getSettings,
   getVoiceGuideEnabled,
-  saveSettings,
   setVoiceGuideEnabled,
+  updateSettings as updateSettingsInStorage,
 } from './storage';
 import { AlarmVolumeMode, DEFAULT_ALARM_VOLUME_MODE, DEFAULT_SETTINGS, Settings } from './types';
 
@@ -17,11 +17,11 @@ export function useTimerSettings(exerciseId: string) {
   }, [exerciseId]);
 
   const updateSettings = (patch: Partial<Settings>) => {
-    setSettingsState((prev) => {
-      const next = { ...prev, ...patch };
-      saveSettings(exerciseId, next);
-      return next;
-    });
+    // 화면엔 즉시 반영(낙관적 갱신)하고, 실제 저장은 그 시점 저장소의 최신값과 병합한다 — 같은
+    // 운동을 동시에 들고 있는 다른 인스턴스가 이미 저장해 둔 다른 필드를 stale한 값으로 덮어쓰지
+    // 않기 위함(useTimerSettings 인스턴스가 여러 화면에서 동시에 살아있을 수 있다).
+    setSettingsState((prev) => ({ ...prev, ...patch }));
+    updateSettingsInStorage(exerciseId, patch).then(setSettingsState);
   };
 
   // 운동별 설정과 달리 앱 전체에 공통으로 적용되는 값이라 exerciseId와 무관하게 한 번만 읽는다.

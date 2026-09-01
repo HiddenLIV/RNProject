@@ -8,11 +8,14 @@ import {
   getExercises,
   getMostRecentRecordAt,
   getRecords,
+  getRepsRecords,
   getSettings,
   removeExercise,
   removeRecord,
   restoreFromBackup,
   saveSettings,
+  updateRepsRecord,
+  updateSettings,
 } from './storage';
 import { BACKUP_SCHEMA_VERSION, BackupPayload, DEFAULT_SETTINGS, Exercise } from './types';
 
@@ -84,6 +87,26 @@ describe('records 쓰기 큐(직렬화)', () => {
     expect(remaining.map((r) => r.id)).toEqual(['b']);
     expect(await getRecords('ex-1')).toHaveLength(1);
   });
+
+  test('updateRepsRecord는 지정한 기록의 세트만 갱신하고 나머지는 그대로 둔다', async () => {
+    await addExercise(makeExercise({ id: 'ex-1', measureType: 'reps' }));
+    await addRepsRecord('ex-1', {
+      id: 'a',
+      measuredAt: new Date().toISOString(),
+      sets: [{ reps: 10 }],
+    });
+    await addRepsRecord('ex-1', {
+      id: 'b',
+      measuredAt: new Date().toISOString(),
+      sets: [{ reps: 5 }],
+    });
+
+    const updated = await updateRepsRecord('ex-1', 'a', { sets: [{ reps: 12 }, { reps: 8 }] });
+
+    expect(updated.find((r) => r.id === 'a')?.sets).toEqual([{ reps: 12 }, { reps: 8 }]);
+    expect(updated.find((r) => r.id === 'b')?.sets).toEqual([{ reps: 5 }]);
+    expect(await getRepsRecords('ex-1')).toEqual(updated);
+  });
 });
 
 describe('getSettings', () => {
@@ -99,6 +122,20 @@ describe('getSettings', () => {
     expect(settings.countdownSeconds).toBe(7);
     expect(settings.restSeconds).toBe(DEFAULT_SETTINGS.restSeconds);
     expect(settings.restEnabled).toBe(DEFAULT_SETTINGS.restEnabled);
+  });
+});
+
+describe('updateSettings', () => {
+  // 같은 운동을 동시에 들고 있는 두 화면(예: RepsScreen과 RecordsScreen)이 각각 다른 필드를
+  // patch할 때, 서로의 필드를 stale한 값으로 덮어쓰면 안 된다 — 예: 최고 기록 리셋 시각이
+  // 휴식 시간 변경으로 조용히 사라지는 회귀를 막는 테스트.
+  test('동시에 다른 필드를 patch해도 두 필드 모두 저장된 상태로 남는다', async () => {
+    await updateSettings('ex-1', { bestRecordResetAt: '2026-09-01T00:00:00.000Z' });
+    await updateSettings('ex-1', { restSeconds: 90 });
+
+    const settings = await getSettings('ex-1');
+    expect(settings.bestRecordResetAt).toBe('2026-09-01T00:00:00.000Z');
+    expect(settings.restSeconds).toBe(90);
   });
 });
 

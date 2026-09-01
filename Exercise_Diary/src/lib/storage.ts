@@ -104,7 +104,11 @@ export function removeRecord(exerciseId: string, id: string): Promise<TimeRecord
   });
 }
 
-export function updateRecord(exerciseId: string, id: string, patch: Partial<TimeRecord>): Promise<TimeRecord[]> {
+export function updateRecord(
+  exerciseId: string,
+  id: string,
+  patch: Partial<TimeRecord>,
+): Promise<TimeRecord[]> {
   return enqueueWrite(async () => {
     const records = await getRecords(exerciseId);
     const next = records.map((r) => (r.id === id ? { ...r, ...patch } : r));
@@ -134,6 +138,19 @@ export function removeRepsRecord(exerciseId: string, id: string): Promise<RepsRe
   });
 }
 
+export function updateRepsRecord(
+  exerciseId: string,
+  id: string,
+  patch: Partial<RepsRecord>,
+): Promise<RepsRecord[]> {
+  return enqueueWrite(async () => {
+    const records = await getRepsRecords(exerciseId);
+    const next = records.map((r) => (r.id === id ? { ...r, ...patch } : r));
+    await AsyncStorage.setItem(repsKey(exerciseId), JSON.stringify(next));
+    return next;
+  });
+}
+
 export async function getSettings(exerciseId: string): Promise<Settings> {
   const raw = await readJson<Partial<Settings>>(settingsKey(exerciseId), {});
   return { ...DEFAULT_SETTINGS, ...raw };
@@ -141,6 +158,20 @@ export async function getSettings(exerciseId: string): Promise<Settings> {
 
 export async function saveSettings(exerciseId: string, settings: Settings): Promise<void> {
   await AsyncStorage.setItem(settingsKey(exerciseId), JSON.stringify(settings));
+}
+
+// useTimerSettings는 같은 운동에 대해 여러 화면(RepsScreen·RecordsScreen 등)이 동시에 마운트될
+// 수 있다 — 각 인스턴스가 자기 마운트 시점의 settings를 들고 있다가 그중 하나만 바뀐 필드로
+// saveSettings(전체 덮어쓰기)를 호출하면, 다른 인스턴스가 그사이 먼저 저장해 둔 필드(예:
+// bestRecordResetAt)를 stale한 값으로 지워버린다. read-modify-write를 항상 저장소의 "지금 막
+// 커밋된" 값 기준으로 하도록 큐에 태워, 어느 인스턴스가 나중에 쓰든 서로의 필드를 덮어쓰지 않게 한다.
+export function updateSettings(exerciseId: string, patch: Partial<Settings>): Promise<Settings> {
+  return enqueueWrite(async () => {
+    const current = await getSettings(exerciseId);
+    const next = { ...current, ...patch };
+    await AsyncStorage.setItem(settingsKey(exerciseId), JSON.stringify(next));
+    return next;
+  });
 }
 
 // 백업 파일로 전체 교체(복원) — 새 내용을 먼저 쓰고, 그 다음에 더 이상 쓰이지 않는 옛 운동의
@@ -160,7 +191,8 @@ export function restoreFromBackup(payload: BackupPayload): Promise<void> {
     const theme = THEME_PRESET_IDS.includes(payload.theme) ? payload.theme : 'default';
     // 이번 기능 이전 형식의 백업 파일엔 이 필드가 아예 없을 수 있다 — 그런 경우 'system'으로 처리한다.
     const colorSchemeOverride =
-      payload.colorSchemeOverride && COLOR_SCHEME_OVERRIDE_VALUES.includes(payload.colorSchemeOverride)
+      payload.colorSchemeOverride &&
+      COLOR_SCHEME_OVERRIDE_VALUES.includes(payload.colorSchemeOverride)
         ? payload.colorSchemeOverride
         : 'system';
     const entries: [string, string][] = [

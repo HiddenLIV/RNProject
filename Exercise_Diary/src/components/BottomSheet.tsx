@@ -196,6 +196,7 @@ function BottomSheetContent({ visible, onClose, title, closeAccessibilityLabel, 
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={onContentSizeChange}
+            keyboardShouldPersistTaps="handled"
           >
             {children}
           </ScrollView>

@@ -291,6 +291,15 @@ const zh: Translations = {
     deleteConfirmTitle: '删除记录',
     deleteConfirmBody: '要删除这条记录吗？此操作无法撤销。',
     deleteAccessibility: '删除记录',
+    editAccessibility: '编辑记录',
+    editSheetTitle: '编辑记录',
+    closeAccessibility: '关闭',
+    resetBestAccessibility: '重置最佳记录',
+    resetBestConfirmTitle: '要重置最佳记录吗？',
+    resetBestConfirmBody:
+      '以往的记录仍会保留，但此后只有这个时间点之后的记录才计入最佳记录。此操作无法撤销。',
+    resetBestButton: '重置',
+    emptySinceReset: '重置后暂无记录',
     videoAccessibility: '查看拍摄的视频',
     setsAndReps: (sets, reps) => `${sets}组 · ${reps}次`,
     setSummary: (reps, weight, weightUnitLabel) =>

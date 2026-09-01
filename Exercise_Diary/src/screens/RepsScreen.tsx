@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -7,7 +6,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 
@@ -18,6 +16,7 @@ import ColorSwitch from '../components/ColorSwitch';
 import GuideVideoPanel from '../components/GuideVideoPanel';
 import NumberStepper from '../components/NumberStepper';
 import RestTimerBanner from '../components/RestTimerBanner';
+import SetListEditor from '../components/SetListEditor';
 import Toast from '../components/Toast';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import { showAlert } from '../lib/alert';
@@ -53,6 +52,11 @@ type Props = {
   onGuideVideoChange: (guideVideoId: string | undefined) => void;
   /** 미저장 세트 수가 바뀔 때마다 상위(ExerciseScreen)에 알린다 — 뒤로가기 확인 alert 판단용 */
   onUnsavedCountChange?: (count: number) => void;
+  /**
+   * false면 화면을 렌더링하지 않는다 — 그래도 컴포넌트 자체는 계속 마운트돼 있으므로 세트 목록·
+   * 입력값·촬영 영상·휴식 타이머가 모두 그대로 유지된다(기록 탭으로 전환했다 돌아와도 값 유지).
+   */
+  visible: boolean;
 };
 
 export type RepsScreenHandle = {
@@ -60,10 +64,8 @@ export type RepsScreenHandle = {
   save: () => Promise<void>;
 };
 
-const MAX_REPS = 200;
-
 const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
-  { exercise, onGuideVideoChange, onUnsavedCountChange },
+  { exercise, onGuideVideoChange, onUnsavedCountChange, visible },
   ref,
 ) {
   const accent = useAccentColors();
@@ -192,6 +194,16 @@ const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
     // 그대로 남아 있어야 같은 무게로 이어지는 세트를 반복 입력하기 편하다.
   };
 
+  const handleCurrentRepsChange = (reps: number) => {
+    setJustSaved(false);
+    setCurrentReps(reps);
+  };
+
+  const handleCurrentWeightTextChange = (weightText: string) => {
+    setJustSaved(false);
+    setCurrentWeightText(weightText);
+  };
+
   const startEditSet = (index: number) => {
     setJustSaved(false);
     tapLight();
@@ -249,6 +261,9 @@ const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
   };
 
   useImperativeHandle(ref, () => ({ save: handleSave }));
+
+  // 화면을 렌더링하지 않을 뿐, 컴포넌트는 계속 마운트돼 있다 — 위 상태·훅이 전부 그대로 유지된다.
+  if (!visible) return null;
 
   return (
     <KeyboardAvoidingView
@@ -315,124 +330,20 @@ const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
               </>
             )}
           </View>
-          <Text style={[styles.sectionLabel, { color: accent.textMuted }]}>
-            {t.reps.currentSetLabel} :{' '}
-            {t.reps.setNumberLabel(editingIndex != null ? editingIndex + 1 : loggedSets.length + 1)}
-          </Text>
-          <View style={styles.currentEntryRow}>
-            {exercise.usesWeight && (
-              <View style={[styles.weightField, { borderColor: accent.primary }]}>
-                <TextInput
-                  style={[styles.weightInput, { color: accent.text }]}
-                  value={currentWeightText}
-                  onChangeText={(weightText) => {
-                    setJustSaved(false);
-                    setCurrentWeightText(weightText);
-                  }}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  placeholderTextColor={accent.textFaint}
-                />
-                <Text style={[styles.weightUnit, { color: accent.textMuted }]}>
-                  {exercise.weightUnit === 'lb' ? t.units.lb : t.units.kg}
-                </Text>
-              </View>
-            )}
-            <View style={styles.currentReps}>
-              <NumberStepper
-                label=""
-                value={currentReps}
-                min={0}
-                max={MAX_REPS}
-                unit={t.units.reps}
-                editable
-                onChange={(reps) => {
-                  setJustSaved(false);
-                  setCurrentReps(reps);
-                }}
-              />
-            </View>
-            <Pressable
-              style={({ pressed }) => [
-                styles.addButton,
-                { backgroundColor: accent.primary },
-                pressed && styles.pressedHighlight,
-              ]}
-              onPress={addSet}
-              hitSlop={8}
-              accessibilityLabel={
-                editingIndex != null ? t.reps.confirmEditAccessibility : t.reps.addSetButton
-              }
-            >
-              <Ionicons
-                name={editingIndex != null ? 'checkmark' : 'add'}
-                size={22}
-                color={accent.onPrimary}
-              />
-            </Pressable>
-          </View>
-
-          {loggedSets.length > 0 && (
-            <>
-              <Text
-                style={[
-                  styles.sectionLabel,
-                  styles.recordedLabel,
-                  { color: accent.textMuted, borderTopColor: accent.border },
-                ]}
-              >
-                {t.reps.recordedSetsLabel}
-              </Text>
-              {loggedSets
-                .map((set, index) => ({ set, index }))
-                .reverse()
-                .map(({ set, index }) => (
-                  <Pressable
-                    key={index}
-                    style={({ pressed }) => [
-                      styles.setRow,
-                      { borderTopColor: accent.border },
-                      editingIndex === index && { backgroundColor: accent.primarySoft },
-                      pressed && styles.pressedHighlight,
-                    ]}
-                    onPress={() => startEditSet(index)}
-                  >
-                    <Text
-                      style={[
-                        styles.setIndex,
-                        { color: editingIndex === index ? accent.primary : accent.textMuted },
-                      ]}
-                    >
-                      {t.reps.setNumberLabel(index + 1)}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.setSummary,
-                        { color: editingIndex === index ? accent.primary : accent.text },
-                      ]}
-                    >
-                      {exercise.usesWeight
-                        ? `${set.weight ?? 0}${exercise.weightUnit === 'lb' ? t.units.lb : t.units.kg} × ${set.reps}${t.units.reps}`
-                        : `${set.reps}${t.units.reps}`}
-                    </Text>
-                    <Pressable
-                      style={({ pressed }) => [
-                        styles.removeButton,
-                        pressed && styles.pressedHighlight,
-                      ]}
-                      onPress={() => removeLoggedSet(index)}
-                      hitSlop={16}
-                      accessibilityLabel={t.reps.removeSetAccessibility}
-                    >
-                      <Ionicons name="close" size={16} color={accent.danger} />
-                    </Pressable>
-                  </Pressable>
-                ))}
-            </>
-          )}
+          <SetListEditor
+            exercise={exercise}
+            sets={loggedSets}
+            currentReps={currentReps}
+            currentWeightText={currentWeightText}
+            editingIndex={editingIndex}
+            error={error}
+            onRepsChange={handleCurrentRepsChange}
+            onWeightTextChange={handleCurrentWeightTextChange}
+            onConfirm={addSet}
+            onStartEdit={startEditSet}
+            onRemove={removeLoggedSet}
+          />
         </View>
-
-        {error !== '' && <Text style={[styles.error, { color: accent.danger }]}>{error}</Text>}
       </ScrollView>
 
       <Toast visible={justSaved} message={t.reps.savedNotice} onHide={() => setJustSaved(false)} />
@@ -494,10 +405,6 @@ const styles = StyleSheet.create({
     padding: spacing.smd,
     gap: spacing.sm,
   },
-  // 진동이 꺼져 있어도(또는 진동이 있는 상태에서도) 눌림을 시각적으로 알 수 있게 하는 공용 효과.
-  pressedHighlight: {
-    opacity: 0.7,
-  },
   restSection: {
     gap: spacing.sm,
     paddingBottom: spacing.sm,
@@ -511,82 +418,6 @@ const styles = StyleSheet.create({
   restEnabledLabel: {
     fontSize: fontSize.base,
     fontWeight: '600',
-  },
-  sectionLabel: {
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  recordedLabel: {
-    marginTop: spacing.xs,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-  },
-  currentEntryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  currentReps: {
-    flex: 1,
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  setRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    borderTopWidth: 1,
-  },
-  setIndex: {
-    width: 48,
-    fontSize: fontSize.base,
-    fontWeight: '700',
-    fontVariant: ['tabular-nums'],
-  },
-  setSummary: {
-    flex: 1,
-    fontSize: fontSize.base,
-    fontVariant: ['tabular-nums'],
-  },
-  // 옆에 나란히 오는 횟수 스테퍼(48px 원형 버튼)와 시각적 무게가 비슷하도록, 테두리 없는
-  // 밑줄 텍스트 대신 같은 높이의 알약형 박스로 감싼다.
-  weightField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    height: 48,
-    minWidth: 76,
-    paddingHorizontal: spacing.sm,
-    borderWidth: 1.5,
-    borderRadius: radius.pill,
-  },
-  weightInput: {
-    minWidth: 28,
-    padding: 0,
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-    textAlign: 'center',
-    fontVariant: ['tabular-nums'],
-  },
-  weightUnit: {
-    fontSize: fontSize.sm,
-    fontWeight: '600',
-  },
-  removeButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  error: {
-    fontSize: fontSize.sm,
-    textAlign: 'center',
   },
   saveButton: {
     marginBottom: spacing.lg,

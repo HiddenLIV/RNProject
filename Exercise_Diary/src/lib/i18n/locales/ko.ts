@@ -295,6 +295,15 @@ const ko: Translations = {
     deleteConfirmTitle: '기록 삭제',
     deleteConfirmBody: '이 기록을 삭제할까요? 되돌릴 수 없습니다.',
     deleteAccessibility: '기록 삭제',
+    editAccessibility: '기록 수정',
+    editSheetTitle: '기록 수정',
+    closeAccessibility: '닫기',
+    resetBestAccessibility: '최고 기록 리셋',
+    resetBestConfirmTitle: '최고 기록을 리셋할까요?',
+    resetBestConfirmBody:
+      '지금까지의 기록은 그대로 남지만, 앞으로는 이 시점 이후의 기록만 최고 기록으로 집계됩니다. 되돌릴 수 없습니다.',
+    resetBestButton: '리셋',
+    emptySinceReset: '리셋 이후 기록 없음',
     videoAccessibility: '촬영 영상 보기',
     setsAndReps: (sets, reps) => `${sets}세트 · ${reps}회`,
     setSummary: (reps, weight, weightUnitLabel) =>

@@ -1,16 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Text from './AppText';
+
 import { useTranslation } from '../lib/i18n';
+import { isToday } from '../lib/records';
 import { useAccentColors } from '../lib/ThemeContext';
-import { fontSize, radius, spacing } from '../theme';
 import { TimeRecord } from '../lib/types';
+import { fontSize, radius, spacing } from '../theme';
+import Text from './AppText';
 import { formatDuration } from './TimeDisplay';
 
 type Props = {
   record: TimeRecord;
   isBest: boolean;
   onDelete: (id: string) => void;
+  onEdit: (record: TimeRecord) => void;
   onViewVideo: (assetId: string) => void;
 };
 
@@ -21,45 +24,77 @@ function formatMeasuredAt(iso: string): string {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function RecordItem({ record, isBest, onDelete, onViewVideo }: Props) {
+export default function RecordItem({ record, isBest, onDelete, onEdit, onViewVideo }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   return (
-    <View style={[styles.row, { backgroundColor: accent.card }, isBest && { backgroundColor: accent.accentSoft }]}>
+    <View
+      style={[
+        styles.row,
+        { backgroundColor: accent.card },
+        isBest && { backgroundColor: accent.accentSoft },
+      ]}
+    >
       <View style={styles.info}>
         <View style={styles.durationLine}>
-          <Text style={[styles.duration, { color: accent.text }, isBest && { color: accent.accent }]}>
+          <Text
+            style={[styles.duration, { color: accent.text }, isBest && { color: accent.accent }]}
+          >
             {formatDuration(record.durationMs)}
           </Text>
           {isBest && (
             <View style={[styles.bestBadge, { backgroundColor: accent.primary }]}>
               <Ionicons name="trophy" size={12} color={accent.onPrimary} />
-              <Text style={[styles.bestBadgeText, { color: accent.onPrimary }]}>{t.records.bestBadge}</Text>
+              <Text style={[styles.bestBadgeText, { color: accent.onPrimary }]}>
+                {t.records.bestBadge}
+              </Text>
             </View>
           )}
         </View>
-        <Text style={[styles.date, { color: accent.textMuted }, isBest && { color: accent.accent }]}>
+        <Text
+          style={[styles.date, { color: accent.textMuted }, isBest && { color: accent.accent }]}
+        >
           {formatMeasuredAt(record.measuredAt)}
         </Text>
       </View>
-      {record.videoRef && (
+      <View style={styles.actions}>
+        {record.videoRef && (
+          <Pressable
+            style={styles.videoButton}
+            onPress={() => onViewVideo(record.videoRef!.assetId)}
+            hitSlop={12}
+            accessibilityLabel={t.records.videoAccessibility}
+          >
+            <Ionicons
+              name="videocam-outline"
+              size={18}
+              color={isBest ? accent.accent : accent.accentText}
+            />
+          </Pressable>
+        )}
+        {isToday(record.measuredAt) && (
+          <Pressable
+            style={styles.editButton}
+            onPress={() => onEdit(record)}
+            hitSlop={8}
+            accessibilityLabel={t.records.editAccessibility}
+          >
+            <Ionicons
+              name="create-outline"
+              size={18}
+              color={isBest ? accent.accent : accent.accentText}
+            />
+          </Pressable>
+        )}
         <Pressable
-          style={styles.videoButton}
-          onPress={() => onViewVideo(record.videoRef!.assetId)}
-          hitSlop={12}
-          accessibilityLabel={t.records.videoAccessibility}
+          style={styles.deleteButton}
+          onPress={() => onDelete(record.id)}
+          hitSlop={8}
+          accessibilityLabel={t.records.deleteAccessibility}
         >
-          <Ionicons name="videocam-outline" size={18} color={isBest ? accent.accent : accent.accentText} />
+          <Ionicons name="trash-outline" size={18} color={accent.danger} />
         </Pressable>
-      )}
-      <Pressable
-        style={styles.deleteButton}
-        onPress={() => onDelete(record.id)}
-        hitSlop={8}
-        accessibilityLabel={t.records.deleteAccessibility}
-      >
-        <Ionicons name="trash-outline" size={18} color={accent.danger} />
-      </Pressable>
+      </View>
     </View>
   );
 }
@@ -75,6 +110,10 @@ const styles = StyleSheet.create({
   },
   info: {
     gap: 2,
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   durationLine: {
     flexDirection: 'row',
@@ -105,8 +144,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.sm,
   },
+  editButton: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.sm,
+  },
   deleteButton: {
-    paddingHorizontal: spacing.smd,
+    paddingHorizontal: spacing.xs,
     paddingVertical: spacing.sm,
   },
 });

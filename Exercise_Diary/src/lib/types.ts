@@ -49,6 +49,8 @@ export type Settings = {
   bellIntervalSeconds: number;
   restSeconds: number; // 세트 간 휴식 타이머 — 횟수·세트형 운동에서만 쓰인다
   restEnabled: boolean;
+  // 이 시각(ISO 8601) 이후에 측정된 기록만 "최고 기록" 후보로 삼는다. 없으면 전체 기간 대상.
+  bestRecordResetAt?: string;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
