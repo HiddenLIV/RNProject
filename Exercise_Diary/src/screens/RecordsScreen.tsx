@@ -74,7 +74,7 @@ function TimeRecordsScreen({ exercise }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const [records, setRecords] = useState<TimeRecord[]>([]);
-  const [viewingAssetId, setViewingAssetId] = useState<string | null>(null);
+  const [viewingUri, setViewingUri] = useState<string | null>(null);
   // editingRecord는 시트를 여는 시점의 초기값 + "시트가 열려 있는지"만 나타낸다 — 값이 바뀌어도
   // (아래 handleRecordChanged) 다시 갱신하지 않는다. 1초 미만으로 내려가 기록이 삭제돼도 시트가
   // 즉시 닫혀버리지 않고 열린 채로 남아있어야 "기록 시간 보정"과 동일하게 +1초로 되살릴 수 있다.
@@ -164,14 +164,14 @@ function TimeRecordsScreen({ exercise }: Props) {
               isBest={item.id === bestRecord?.id}
               onDelete={handleDelete}
               onEdit={handleStartEdit}
-              onViewVideo={setViewingAssetId}
+              onViewVideo={setViewingUri}
             />
           )}
         />
       </RecordsScaffold>
       {/* records.length가 0이 되어도(예: 수정 시트 안에서 1초 미만으로 내려가 유일한 기록이
           지워진 경우) 시트가 함께 사라지면 안 되므로 RecordsScaffold의 빈 상태 분기 밖에 둔다. */}
-      <VideoPlayerModal assetId={viewingAssetId} onClose={() => setViewingAssetId(null)} />
+      <VideoPlayerModal uri={viewingUri} onClose={() => setViewingUri(null)} />
       <BottomSheet
         visible={editingRecord != null}
         onClose={handleCloseEdit}
@@ -195,7 +195,7 @@ function RepsRecordsScreen({ exercise }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   const [records, setRecords] = useState<RepsRecord[]>([]);
-  const [viewingAssetId, setViewingAssetId] = useState<string | null>(null);
+  const [viewingUri, setViewingUri] = useState<string | null>(null);
   const [editingRecord, setEditingRecord] = useState<RepsRecord | null>(null);
   const { settings, updateSettings } = useTimerSettings(exercise.id);
 
@@ -258,14 +258,14 @@ function RepsRecordsScreen({ exercise }: Props) {
               isBest={item.id === bestRecord?.id}
               onDelete={handleDelete}
               onEdit={setEditingRecord}
-              onViewVideo={setViewingAssetId}
+              onViewVideo={setViewingUri}
             />
           )}
         />
       </RecordsScaffold>
       {/* BottomSheet/VideoPlayerModal은 RecordsScaffold의 빈 상태 분기 밖에 둔다 — records가
           0이 되어도 열려 있던 시트·모달이 함께 사라지면 안 된다(TimeRecordsScreen과 동일 이유). */}
-      <VideoPlayerModal assetId={viewingAssetId} onClose={() => setViewingAssetId(null)} />
+      <VideoPlayerModal uri={viewingUri} onClose={() => setViewingUri(null)} />
       <BottomSheet
         visible={editingRecord != null}
         onClose={() => setEditingRecord(null)}

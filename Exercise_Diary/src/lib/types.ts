@@ -20,7 +20,9 @@ export type Exercise = {
 };
 
 export type VideoRef = {
-  assetId: string; // expo-media-library Asset id — 기기 갤러리 상의 영상을 가리키는 참조. 영상 파일 자체는 앱이 보관하지 않는다.
+  // 촬영 직후 발급된 기기 갤러리 content URI. 앱이 직접 만든 항목이라 이 URI로는 광범위 저장소
+  // 읽기 권한 없이도 재생할 수 있다 — 영상 파일 자체는 앱이 따로 보관하지 않는다.
+  uri: string;
 };
 
 // 시간형 운동 기록 — 기존 HangRecord와 구조가 완전히 같다 (이름만 일반화, 기존 JSON과 100% 호환)

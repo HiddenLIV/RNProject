@@ -13,7 +13,7 @@ type Props = {
   isBest: boolean;
   onDelete: (id: string) => void;
   onEdit: (record: RepsRecord) => void;
-  onViewVideo: (assetId: string) => void;
+  onViewVideo: (uri: string) => void;
 };
 
 function formatMeasuredAt(iso: string): string {
@@ -70,10 +70,10 @@ export default function RepsRecordItem({ record, isBest, onDelete, onEdit, onVie
         </Text>
       </View>
       <View style={styles.actions}>
-        {record.videoRef && (
+        {record.videoRef?.uri && (
           <Pressable
             style={styles.videoButton}
-            onPress={() => onViewVideo(record.videoRef!.assetId)}
+            onPress={() => onViewVideo(record.videoRef!.uri)}
             hitSlop={12}
             accessibilityLabel={t.records.videoAccessibility}
           >

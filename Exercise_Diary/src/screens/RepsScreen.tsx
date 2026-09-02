@@ -282,7 +282,7 @@ const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
           onGuideVideoChange={onGuideVideoChange}
         />
         <CaptureVideoRow
-          capturedAssetId={capturedVideo?.assetId}
+          capturedUri={capturedVideo?.uri}
           busy={videoBusy}
           onCapture={handleCapturePress}
           onViewCaptured={() => setViewingVideo(true)}
@@ -369,7 +369,7 @@ const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
         onClose={() => setPermissionModal(null)}
       />
       <VideoPlayerModal
-        assetId={viewingVideo ? (capturedVideo?.assetId ?? null) : null}
+        uri={viewingVideo ? (capturedVideo?.uri ?? null) : null}
         onClose={() => setViewingVideo(false)}
       />
     </KeyboardAvoidingView>

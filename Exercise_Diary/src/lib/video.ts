@@ -2,18 +2,18 @@ import * as Device from 'expo-device';
 import { File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { Asset, getPermissionsAsync, requestPermissionsAsync } from 'expo-media-library';
+
 import { VideoRef } from './types';
 
 export type PermissionState = 'granted' | 'undetermined' | 'denied' | 'blocked'; // 'blocked' = 영구 거부(canAskAgain: false)
 
-// 동영상만 다루므로 사진·음악 접근까지 요청하지 않는다 (안드로이드 13+ 세분화 권한).
-const LIBRARY_GRANULAR_PERMISSIONS: ['video'] = ['video'];
-
+// 갤러리에 새 영상을 쓰기만 하면 되고 갤러리를 나열·탐색하지는 않으므로 writeOnly로 요청한다.
+// READ_MEDIA_VIDEO 같은 광범위 읽기 권한을 요청하면 Google Play "대체 시스템 선택 도구 사용" 정책에 걸린다.
 // OS 팝업을 띄우지 않고 현재 권한 상태만 읽는다 — 촬영 버튼을 눌렀을 때
 // 안내 모달을 띄울지 말지 판단하는 데 쓴다.
 export async function getVideoPermissionState(): Promise<PermissionState> {
   const camera = await ImagePicker.getCameraPermissionsAsync();
-  const library = await getPermissionsAsync(false, LIBRARY_GRANULAR_PERMISSIONS);
+  const library = await getPermissionsAsync(true);
   if (camera.granted && library.granted) return 'granted';
   if (camera.canAskAgain === false || library.canAskAgain === false) return 'blocked';
   if (camera.status === 'undetermined' || library.status === 'undetermined') return 'undetermined';
@@ -24,7 +24,7 @@ export async function getVideoPermissionState(): Promise<PermissionState> {
 export async function requestVideoPermissions(): Promise<boolean> {
   const camera = await ImagePicker.requestCameraPermissionsAsync();
   if (!camera.granted) return false; // 카메라를 거부했으면 갤러리 권한까지 이어서 물어볼 필요 없다
-  const library = await requestPermissionsAsync(false, LIBRARY_GRANULAR_PERMISSIONS);
+  const library = await requestPermissionsAsync(true);
   return library.granted;
 }
 
@@ -44,6 +44,9 @@ export async function captureExerciseVideo(): Promise<VideoCaptureResult> {
 
   const tempUri = result.assets[0].uri;
   const asset = await Asset.create(tempUri);
+  // 생성 직후 발급되는 URI를 그대로 저장해둔다 — 자신이 만든 MediaStore 항목이라
+  // 이 URI로는 이후에도 광범위 읽기 권한 없이 재생할 수 있다(재조회 시 별도 권한 게이트 불필요).
+  const uri = await asset.getUri();
   // 앱 캐시에 남은 원본을 지워 앱 쪽엔 아무 사본도 안 남게 한다 — 영상은 갤러리에만 존재한다.
   // 정리 작업일 뿐이라 실패해도 이미 성공한 저장 자체를 실패로 만들지 않는다.
   try {
@@ -52,18 +55,5 @@ export async function captureExerciseVideo(): Promise<VideoCaptureResult> {
   } catch {
     // 캐시 정리 실패는 무시 — 갤러리 저장은 이미 완료됐다.
   }
-  return { status: 'saved', ref: { assetId: asset.id } };
-}
-
-// 재생용 URI 조회 — 권한이 없거나 에셋이 갤러리에서 삭제됐으면 null로 수렴시켜
-// 호출부가 "영상을 찾을 수 없습니다" 한 가지 상태로만 처리하면 되게 한다.
-export async function resolveVideoUri(assetId: string): Promise<string | null> {
-  try {
-    const permission = await getPermissionsAsync(false, LIBRARY_GRANULAR_PERMISSIONS); // 조회만, OS 팝업 유발 안 함
-    if (!permission.granted) return null;
-    const asset = new Asset(assetId);
-    return await asset.getUri();
-  } catch {
-    return null;
-  }
+  return { status: 'saved', ref: { uri } };
 }

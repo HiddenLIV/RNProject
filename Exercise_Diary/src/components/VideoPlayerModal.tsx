@@ -1,45 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, View } from 'react-native';
-import Text from './AppText';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
+
 import { useTranslation } from '../lib/i18n';
 import { useAccentColors } from '../lib/ThemeContext';
-import { resolveVideoUri } from '../lib/video';
-import { fontSize, radius, spacing } from '../theme';
+import { radius, spacing } from '../theme';
 
 type Props = {
-  assetId: string | null;
+  uri: string | null;
   onClose: () => void;
 };
 
-// uri: undefined=조회 중, null=못 찾음(권한 없음·삭제됨), string=재생 가능
-export default function VideoPlayerModal({ assetId, onClose }: Props) {
+export default function VideoPlayerModal({ uri, onClose }: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
-  const [uri, setUri] = useState<string | null | undefined>(undefined);
 
-  useEffect(() => {
-    if (!assetId) {
-      // 모달이 닫히는 경우 — source를 비워 플레이어가 재생성·해제되게 해서 재생을 멈춘다.
-      setUri(undefined);
-      return;
-    }
-    let cancelled = false;
-    setUri(undefined);
-    resolveVideoUri(assetId).then((resolved) => {
-      if (!cancelled) setUri(resolved);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [assetId]);
-
-  const player = useVideoPlayer(uri ?? null, (p) => {
+  const player = useVideoPlayer(uri, (p) => {
     p.play();
   });
 
-  if (!assetId) return null;
+  if (!uri) return null;
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
@@ -54,9 +34,7 @@ export default function VideoPlayerModal({ assetId, onClose }: Props) {
             <Ionicons name="close" size={22} color={accent.text} />
           </Pressable>
           <View style={[styles.videoArea, { backgroundColor: accent.card }]}>
-            {uri === undefined && <ActivityIndicator color={accent.primaryText} />}
-            {uri === null && <Text style={[styles.notFound, { color: accent.textMuted }]}>{t.videoPlayer.notFound}</Text>}
-            {uri && <VideoView player={player} style={styles.video} nativeControls />}
+            <VideoView player={player} style={styles.video} nativeControls />
           </View>
         </View>
       </View>
@@ -92,10 +70,5 @@ const styles = StyleSheet.create({
   video: {
     width: '100%',
     height: '100%',
-  },
-  notFound: {
-    fontSize: fontSize.base,
-    textAlign: 'center',
-    paddingHorizontal: spacing.lg,
   },
 });

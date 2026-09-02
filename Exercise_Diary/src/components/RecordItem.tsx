@@ -14,7 +14,7 @@ type Props = {
   isBest: boolean;
   onDelete: (id: string) => void;
   onEdit: (record: TimeRecord) => void;
-  onViewVideo: (assetId: string) => void;
+  onViewVideo: (uri: string) => void;
 };
 
 // 날짜는 섹션 헤더가 보여주므로 행에는 시각만 표시한다
@@ -58,10 +58,10 @@ export default function RecordItem({ record, isBest, onDelete, onEdit, onViewVid
         </Text>
       </View>
       <View style={styles.actions}>
-        {record.videoRef && (
+        {record.videoRef?.uri && (
           <Pressable
             style={styles.videoButton}
-            onPress={() => onViewVideo(record.videoRef!.assetId)}
+            onPress={() => onViewVideo(record.videoRef!.uri)}
             hitSlop={12}
             accessibilityLabel={t.records.videoAccessibility}
           >

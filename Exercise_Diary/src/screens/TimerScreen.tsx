@@ -120,7 +120,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
                 onGuideVideoChange={onGuideVideoChange}
               />
               <CaptureVideoRow
-                capturedAssetId={video.capturedVideo?.assetId}
+                capturedUri={video.capturedVideo?.uri}
                 busy={video.busy}
                 onCapture={video.handleCapturePress}
                 onViewCaptured={() => video.setViewingVideo(true)}
@@ -258,7 +258,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
             </View>
             {video.capturedVideo && (
               <CaptureVideoRow
-                capturedAssetId={video.capturedVideo.assetId}
+                capturedUri={video.capturedVideo.uri}
                 onViewCaptured={() => video.setViewingVideo(true)}
               />
             )}
@@ -305,7 +305,7 @@ export default function TimerScreen({ exercise, onGuideVideoChange }: Props) {
         onClose={video.closePermissionModal}
       />
       <VideoPlayerModal
-        assetId={video.viewingVideo ? (video.capturedVideo?.assetId ?? null) : null}
+        uri={video.viewingVideo ? (video.capturedVideo?.uri ?? null) : null}
         onClose={() => video.setViewingVideo(false)}
       />
     </KeyboardAvoidingView>

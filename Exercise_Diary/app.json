@@ -29,11 +29,7 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
-        "android.permission.READ_MEDIA_VIDEO"
+        "android.permission.RECORD_AUDIO"
       ],
       "package": "com.hiddenlab.hiddenreps"
     },
@@ -54,11 +50,9 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "촬영한 영상을 갤러리에서 불러와 다시 재생하려면 사진 접근 권한이 필요합니다.",
+          "photosPermission": false,
           "savePhotosPermission": "촬영한 영상을 갤러리에 저장하려면 사진 접근 권한이 필요합니다.",
-          "granularPermissions": [
-            "video"
-          ]
+          "granularPermissions": []
         }
       ],
       "expo-localization",
