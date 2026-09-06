@@ -1,0 +1,398 @@
+<meta charset="UTF-8">
+<title>나의 운동 일지 — 수동 배포 가이드 (업데이트)</title>
+<style>
+  :root {
+    --ink: #17222c;
+    --ink-soft: #3d4a56;
+    --paper: #eef1ee;
+    --paper-raised: #e3e7e2;
+    --line: rgba(23, 34, 44, 0.14);
+    --copper: #b3641f;
+    --copper-ink: #7a4413;
+    --plum: #93386f;
+    --ok: #386b52;
+    --ok-bg: rgba(56, 107, 82, 0.12);
+    --warn: #a04516;
+    --warn-bg: rgba(160, 69, 22, 0.12);
+    --pend: #5a6470;
+    --pend-bg: rgba(90, 100, 112, 0.1);
+    --card: #ffffff;
+    --shadow: rgba(23, 34, 44, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e9ece7;
+      --ink-soft: #aab3ac;
+      --paper: #131a20;
+      --paper-raised: #1a2229;
+      --line: rgba(233, 236, 231, 0.14);
+      --copper: #e0975a;
+      --copper-ink: #f0b483;
+      --plum: #d381b1;
+      --ok: #6fbb96;
+      --ok-bg: rgba(111, 187, 150, 0.14);
+      --warn: #e0975a;
+      --warn-bg: rgba(224, 151, 90, 0.14);
+      --pend: #9aa3ac;
+      --pend-bg: rgba(154, 163, 172, 0.14);
+      --card: #1a2229;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #e9ece7; --ink-soft: #aab3ac; --paper: #131a20; --paper-raised: #1a2229;
+    --line: rgba(233, 236, 231, 0.14); --copper: #e0975a; --copper-ink: #f0b483; --plum: #d381b1;
+    --ok: #6fbb96; --ok-bg: rgba(111, 187, 150, 0.14); --warn: #e0975a; --warn-bg: rgba(224, 151, 90, 0.14);
+    --pend: #9aa3ac; --pend-bg: rgba(154, 163, 172, 0.14); --card: #1a2229; --shadow: rgba(0, 0, 0, 0.35);
+  }
+  :root[data-theme="light"] {
+    --ink: #17222c; --ink-soft: #3d4a56; --paper: #eef1ee; --paper-raised: #e3e7e2;
+    --line: rgba(23, 34, 44, 0.14); --copper: #b3641f; --copper-ink: #7a4413; --plum: #93386f;
+    --ok: #386b52; --ok-bg: rgba(56, 107, 82, 0.12); --warn: #a04516; --warn-bg: rgba(160, 69, 22, 0.12);
+    --pend: #5a6470; --pend-bg: rgba(90, 100, 112, 0.1); --card: #ffffff; --shadow: rgba(23, 34, 44, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard", "Apple SD Gothic Neo", Helvetica, Arial, sans-serif;
+    line-height: 1.7;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif KR", serif; }
+  h1, h2, h3 { text-wrap: balance; font-weight: 700; margin: 0; }
+  a { color: var(--copper-ink); text-decoration-thickness: 1px; }
+
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 28px 120px;
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: 56px;
+  }
+
+  .masthead {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 8px;
+  }
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--copper-ink);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--copper-ink); display: inline-block; }
+  .masthead h1 { font-size: clamp(28px, 4vw, 42px); line-height: 1.2; }
+  .masthead .sub { color: var(--ink-soft); font-size: 16.5px; max-width: 66ch; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+  .tag {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 3px;
+    color: var(--ink-soft); background: var(--card);
+  }
+  .tag.accent { color: var(--plum); border-color: rgba(147,56,111,0.35); }
+  .tag.warn { color: var(--warn); border-color: rgba(160,69,22,0.35); }
+
+  .rail { align-self: start; position: sticky; top: 32px; display: flex; flex-direction: column; gap: 2px; }
+  .rail a {
+    display: flex; gap: 10px; align-items: baseline; padding: 7px 8px; border-radius: 4px;
+    color: var(--ink-soft); text-decoration: none; font-size: 13.5px;
+  }
+  .rail a:hover { background: var(--paper-raised); color: var(--ink); }
+  .rail .n { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; color: var(--copper-ink); min-width: 18px; }
+  .rail .divider { height: 1px; background: var(--line); margin: 10px 4px; }
+
+  main { min-width: 0; display: flex; flex-direction: column; gap: 64px; }
+  section { scroll-margin-top: 28px; max-width: 72ch; }
+  section.wide { max-width: none; }
+
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; }
+  .sec-head .num {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif; font-size: 15px; color: var(--copper-ink);
+    border: 1px solid var(--line); border-radius: 50%; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .sec-head h2 { font-size: 23px; font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+
+  p { margin: 0 0 14px; color: var(--ink); }
+  p:last-child { margin-bottom: 0; }
+  strong { color: var(--ink); }
+
+  h3.sub-head { font-size: 16px; font-family: "Iowan Old Style", Palatino, Georgia, serif; margin: 26px 0 10px; }
+  h3.sub-head:first-child { margin-top: 0; }
+
+  ul, ol { padding-left: 22px; margin: 0 0 14px; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--copper); background: var(--paper-raised); padding: 14px 18px;
+    border-radius: 0 6px 6px 0; font-size: 15px; margin: 16px 0;
+  }
+  .callout strong { color: var(--copper-ink); }
+  .callout.plum { border-left-color: var(--plum); }
+  .callout.plum strong { color: var(--plum); }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.warn strong { color: var(--warn); }
+
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.88em;
+    background: var(--paper-raised); padding: 1px 6px; border-radius: 3px;
+  }
+
+  .code-block { margin: 14px 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--card); box-shadow: 0 1px 2px var(--shadow); }
+  .code-block .cap {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-soft); padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--paper-raised);
+  }
+  .code-block pre { margin: 0; padding: 14px 18px; overflow-x: auto; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13.5px; line-height: 1.65; }
+  .code-block .cmt { color: var(--ink-soft); }
+
+  .table-wrap { overflow-x: auto; margin: 14px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  table.status { min-width: 640px; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11.5px; letter-spacing: 0.02em; padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+  }
+  .pill.ok { background: var(--ok-bg); color: var(--ok); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.pend { background: var(--pend-bg); color: var(--pend); }
+  .pill::before { content: "●"; font-size: 8px; }
+
+  .platform-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; box-shadow: 0 1px 2px var(--shadow); margin: 18px 0; }
+  .platform-card .badge {
+    display: inline-flex; align-items: center; gap: 8px; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 4px; margin-bottom: 14px;
+  }
+  .badge.aos { background: rgba(147,56,111,0.12); color: var(--plum); }
+  .badge.ios { background: rgba(160,69,22,0.12); color: var(--warn); }
+  .platform-card h4 { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-size: 16.5px; margin: 0 0 10px; }
+  .platform-card p, .platform-card li { font-size: 14.5px; }
+  .platform-card ul { margin-bottom: 0; }
+
+  .checklist { display: flex; flex-direction: column; gap: 4px; margin: 14px 0; }
+  .cl-item { display: flex; gap: 12px; align-items: flex-start; padding: 11px 14px; border-radius: 7px; cursor: pointer; border: 1px solid transparent; }
+  .cl-item:hover { background: var(--paper-raised); }
+  .cl-item input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--copper); flex-shrink: 0; }
+  .cl-item span { font-size: 15px; }
+  .cl-item.done span { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--line); }
+  .cl-reset {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; color: var(--ink-soft); background: none;
+    border: 1px solid var(--line); border-radius: 5px; padding: 6px 10px; cursor: pointer; margin-top: 8px;
+  }
+  .cl-reset:hover { background: var(--paper-raised); }
+  .cl-progress { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; color: var(--ink-soft); margin-bottom: 10px; }
+
+  .linklist { display: flex; flex-direction: column; gap: 8px; }
+  .linklist a { font-size: 14.5px; word-break: break-all; }
+  .linklist .l-label { color: var(--ink); font-size: 14.5px; }
+
+  footer { grid-column: 1 / -1; border-top: 1px solid var(--line); margin-top: 24px; padding-top: 20px; font-size: 13px; color: var(--ink-soft); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .rail { position: static; flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    .rail a { flex-shrink: 0; }
+    .rail .divider { display: none; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    section { animation: rise 0.5s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="shell">
+  <div class="masthead">
+    <div class="eyebrow">배포 매니페스트 · 업데이트 · Exercise Diary</div>
+    <h1 class="serif">나의 운동 일지 — 수동 배포 가이드 (업데이트)</h1>
+    <p class="sub">Android는 이미 Google Play 프로덕션 트랙에 라이브 상태다. 이 문서는 <strong>최초 스토어 등록이 아니라, 이후 새 버전을 수동으로 빌드·제출하는 절차</strong>만 다룬다. 최초 등록 과정은 <code>구글플레이 배포 가이드.html</code> / <code>앱스토어 배포 가이드.html</code>에 남아 있다.</p>
+    <div class="meta-row">
+      <span class="tag">SDK 57 · RN 0.86</span>
+      <span class="tag">패키지 com.hiddenlab.hiddenreps</span>
+      <span class="tag accent">Android · 프로덕션 라이브</span>
+      <span class="tag warn">iOS · 미배포</span>
+      <span class="tag">갱신일 2026-09-06</span>
+    </div>
+  </div>
+
+  <nav class="rail">
+    <a href="#status"><span class="n">00</span> 현재 상태</a>
+    <a href="#when"><span class="n">01</span> 언제 쓰나</a>
+    <div class="divider"></div>
+    <a href="#pre"><span class="n">02</span> 사전 확인</a>
+    <a href="#version"><span class="n">03</span> 버전 올리기</a>
+    <a href="#build"><span class="n">04</span> 빌드</a>
+    <a href="#submit"><span class="n">05</span> 제출</a>
+    <div class="divider"></div>
+    <a href="#minversion"><span class="n">06</span> 구버전 안내 동기화</a>
+    <a href="#ota"><span class="n">07</span> OTA 미지원 주의</a>
+    <a href="#checklist"><span class="n">08</span> 체크리스트</a>
+    <a href="#links">부록 · 링크</a>
+  </nav>
+
+  <main>
+
+    <section id="status" class="wide">
+      <div class="sec-head"><span class="num">00</span><h2 class="serif">현재 상태 (2026-09-06 기준 실제 확인)</h2></div>
+      <div class="table-wrap">
+        <table class="status">
+          <thead><tr><th>항목</th><th>상태</th><th>비고</th></tr></thead>
+          <tbody>
+            <tr><td>Android</td><td><span class="pill ok">프로덕션 라이브</span></td><td><code>app.json</code> version <code>1.0.6</code>, <code>docs/version.json</code> minVersion도 <code>1.0.6</code>으로 동기화됨</td></tr>
+            <tr><td>iOS</td><td><span class="pill pend">미배포</span></td><td><code>docs/version.json</code>의 <code>storeUrl</code>이 자리표시자 ID(<code>id0000000000</code>) — 실제 등록 전까지 이 문서의 iOS 안내는 참고만</td></tr>
+            <tr><td>EAS Submit (Android)</td><td><span class="pill ok">설정됨</span></td><td><code>eas.json</code> <code>submit.production.android.track: "production"</code>, <code>releaseStatus: "draft"</code>, 서비스 계정 키 <code>hiddenlabs-58e6a5a2b633.json</code> 저장소 루트에 존재</td></tr>
+            <tr><td>OTA 업데이트(EAS Update)</td><td><span class="pill warn">미설정</span></td><td><code>expo-updates</code> 패키지가 설치돼 있지 않음 — JS/에셋만 바뀐 변경도 <strong>반드시 재빌드+재제출</strong>해야 함 (07단계 참고)</td></tr>
+            <tr><td>스토어 자동 배포(CI)</td><td><span class="pill pend">없음</span></td><td><code>.github/workflows/exercise-diary-ci.yml</code>은 타입체크·유닛테스트·린트만 수행 — 빌드/제출은 항상 수동</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="callout"><strong>즉 지금 "배포"는 예외 상황이 아니라 유일한 경로다</strong> — 자동 배포 파이프라인이 없으므로, 새 버전을 사용자에게 전달하는 방법은 이 문서의 절차뿐이다.</p>
+    </section>
+
+    <section id="when" class="wide">
+      <div class="sec-head"><span class="num">01</span><h2 class="serif">언제 이 문서를 쓰나</h2></div>
+      <p style="max-width:72ch">버그 수정, 새 기능, 텍스트/디자인 변경 등 <strong>어떤 종류의 변경이든</strong> — main 브랜치에 반영된 코드를 실제 사용자에게 전달하려면 이 절차를 거쳐야 한다. "코드만 고치고 커밋·푸시"까지는 저장소 상태만 바꿀 뿐, 스토어에 설치된 앱은 전혀 바뀌지 않는다.</p>
+    </section>
+
+    <section id="pre">
+      <div class="sec-head"><span class="num">02</span><h2 class="serif">사전 확인</h2></div>
+      <div class="code-block">
+        <div class="cap">터미널</div>
+        <pre>npx eas-cli whoami          <span class="cmt"># 로그인 계정 확인 (0hiddenlab1@gmail.com)</span>
+git status                   <span class="cmt"># 배포하려는 커밋이 실제로 반영돼 있는지 확인</span>
+ls hiddenlabs-*.json         <span class="cmt"># Play 서비스 계정 키 파일 존재 확인 (.gitignore 처리됨, 커밋 안 됨)</span></pre>
+      </div>
+      <p class="callout warn"><strong>이 저장소 환경에서는 <code>npx eas ...</code>가 "could not determine executable" 오류로 실패한다.</strong> 반드시 패키지명을 명시한 <code>npx eas-cli ...</code>를 쓴다.</p>
+    </section>
+
+    <section id="version">
+      <div class="sec-head"><span class="num">03</span><h2 class="serif">버전 올리기</h2></div>
+      <p><code>app.json</code>의 <code>expo.version</code>을 새 값으로 올린다. Android <code>versionCode</code>/iOS <code>buildNumber</code>는 <code>eas.json</code>의 <code>appVersionSource: "remote"</code> + <code>build.production.autoIncrement: true</code> 덕분에 EAS가 자동으로 관리하므로 손댈 필요 없다.</p>
+      <div class="code-block">
+        <div class="cap">app.json</div>
+        <pre>"version": "1.0.7"   <span class="cmt">// 예: 1.0.6 → 1.0.7</span></pre>
+      </div>
+    </section>
+
+    <section id="build">
+      <div class="sec-head"><span class="num">04</span><h2 class="serif">빌드</h2></div>
+      <div class="platform-card">
+        <div class="badge aos">Android</div>
+        <h4 class="serif">EAS Build</h4>
+        <div class="code-block" style="margin:10px 0 0">
+          <div class="cap">터미널</div>
+          <pre><span class="cmt"># 로컬 빌드 — 이 맥에 Java/Android SDK/NDK가 있어 큐 대기 없이 즉시 진행 (권장)</span>
+npx eas-cli build --platform android --profile production --local --non-interactive --output ./build-production.aab
+
+<span class="cmt"># 또는 클라우드 빌드 — Free 플랜은 큐 대기가 있을 수 있음</span>
+npx eas-cli build --platform android --profile production --non-interactive</pre>
+        </div>
+      </div>
+      <div class="platform-card">
+        <div class="badge ios">iOS</div>
+        <h4 class="serif">아직 해당 없음</h4>
+        <p>iOS는 최초 스토어 등록 전이라 이 "업데이트" 절차의 대상이 아니다. 최초 배포를 시작하려면 <code>앱스토어 배포 가이드.html</code>을 먼저 따른다 (단, 그 문서는 2026-08-10 기준 초안이라 <code>eas.json</code>·계정 상태를 실행 전에 다시 확인할 것).</p>
+      </div>
+    </section>
+
+    <section id="submit">
+      <div class="sec-head"><span class="num">05</span><h2 class="serif">제출</h2></div>
+      <div class="code-block">
+        <div class="cap">터미널</div>
+        <pre>npx eas-cli submit --platform android --profile production --path ./build-production.aab --non-interactive</pre>
+      </div>
+      <p><code>eas.json</code>의 <code>submit.production.android.track</code>이 <code>"production"</code>이므로 프로덕션 트랙으로 바로 올라간다. 단 <code>releaseStatus: "draft"</code>가 남아있으면 <strong>Play Console에서 수동으로 "검토를 위해 전송"을 눌러야</strong> 실제 배포된다 — 이 값이 왜 남아있는지, 최근 업데이트에서도 필요한지는 실제 제출 결과를 보고 판단한다 (최초 배포 때는 신규 계정 심사 대기로 인한 임시 조치였다).</p>
+    </section>
+
+    <section id="minversion" class="wide">
+      <div class="sec-head"><span class="num">06</span><h2 class="serif">구버전 사용자에게 업데이트 안내 띄우기</h2></div>
+      <p style="max-width:72ch"><strong>스토어 배포와 앱 내 "업데이트 안내 바텀시트"는 서로 다른 이벤트다.</strong> 이 안내(<code>src/lib/forceUpdate.ts</code>)는 <code>docs/version.json</code>의 <code>minVersion</code>과 설치된 버전을 비교해서만 뜬다 — 03단계에서 <code>app.json</code>만 올리고 이 단계를 빠뜨리면 기존 사용자는 새 버전이 나온 걸 전혀 알 수 없다.</p>
+      <ol>
+        <li>이번 릴리스가 구버전 사용자에게 <strong>꼭</strong> 업데이트를 유도해야 하는 릴리스인지 판단한다 (버그 픽스·중요 변경이면 예, 사소한 개선이면 생략 가능).</li>
+        <li><code>docs/version.json</code>의 <code>android.minVersion</code>을 방금 배포한 <code>app.json</code>의 <code>version</code> 값으로 올린다.</li>
+        <li><code>gh-pages</code> 브랜치를 <code>git worktree add</code>로 임시 워크트리에 연결해, 그 워크트리의 <code>version.json</code>에 같은 내용을 반영·커밋·푸시한다 (<code>docs/privacy-policy.html</code> 배포와 같은 방식). 현재 로컬에 상시 워크트리는 없으므로 매번 새로 붙였다 정리한다.</li>
+        <li>gh-pages 응답에 <code>cache-control: max-age=600</code>이 있어 재배포 직후 최대 10분은 CDN에 이전 값이 남을 수 있다.</li>
+      </ol>
+      <p class="callout plum"><strong>이 저장소 규칙</strong> — 배포를 요청받으면 사용자에게 다시 물어보지 않고 <code>docs/version.json</code> 갱신과 gh-pages 재배포까지 항상 함께 진행한다.</p>
+    </section>
+
+    <section id="ota" class="wide">
+      <div class="sec-head"><span class="num">07</span><h2 class="serif">주의 — OTA(EAS Update) 아직 미설정</h2></div>
+      <p style="max-width:72ch"><code>expo-updates</code> 패키지가 프로젝트에 설치돼 있지 않다. 즉 <code>npx eas-cli update --branch production</code> 같은 OTA 배포는 <strong>현재 이 프로젝트에서 동작하지 않는다</strong> — 텍스트 한 줄, 색상 하나만 바뀐 경우에도 04·05단계(전체 재빌드 + 재제출 + 스토어 재심사)를 그대로 거쳐야 한다. OTA를 도입하려면 별도로 <code>expo-updates</code> 설치와 <code>runtimeVersion</code>/채널 설정이 선행돼야 하며, 이는 이 문서의 범위 밖이다.</p>
+    </section>
+
+    <section id="checklist" class="wide">
+      <div class="sec-head"><span class="num">08</span><h2 class="serif">업데이트 배포 체크리스트</h2></div>
+      <div class="cl-progress" id="cl-progress">0 / 6 완료</div>
+      <div class="checklist" id="checklist">
+        <label class="cl-item"><input type="checkbox" data-key="version-bump"><span>app.json의 version 값 올림 (03)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="build"><span>eas-cli build로 .aab 빌드 완료 (04)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="submit"><span>eas-cli submit으로 프로덕션 트랙 업로드, 필요시 Play Console에서 "검토를 위해 전송" 클릭 (05)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="minversion-decide"><span>이번 릴리스가 구버전 사용자에게 강제 안내가 필요한지 판단 (06-1)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="version-json"><span>필요하다면 docs/version.json의 minVersion 갱신 (06-2)</span></label>
+        <label class="cl-item"><input type="checkbox" data-key="gh-pages"><span>gh-pages 워크트리로 version.json 재배포·커밋·푸시 (06-3)</span></label>
+      </div>
+      <button class="cl-reset" id="cl-reset">체크 초기화</button>
+    </section>
+
+    <section id="links">
+      <div class="sec-head"><span class="num">·</span><h2 class="serif">부록 — 참고 링크</h2></div>
+      <div class="linklist">
+        <div><span class="l-label">EAS Build</span> — <a href="https://docs.expo.dev/build/introduction/" target="_blank" rel="noopener">docs.expo.dev/build/introduction</a></div>
+        <div><span class="l-label">EAS Submit</span> — <a href="https://docs.expo.dev/submit/introduction/" target="_blank" rel="noopener">docs.expo.dev/submit/introduction</a></div>
+        <div><span class="l-label">최초 등록 절차 (Android)</span> — <a href="./구글플레이 배포 가이드.html">구글플레이 배포 가이드.html</a></div>
+        <div><span class="l-label">최초 등록 절차 (iOS)</span> — <a href="./앱스토어 배포 가이드.html">앱스토어 배포 가이드.html</a></div>
+        <div><span class="l-label">Play Console</span> — <a href="https://play.google.com/console/" target="_blank" rel="noopener">play.google.com/console</a></div>
+      </div>
+    </section>
+
+    <footer>Exercise Diary · 수동 배포 매니페스트 · docs/guides/수동 배포 가이드.html</footer>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var STORAGE_KEY = "exercise-diary-manual-deploy-checklist-v1";
+    var items = Array.prototype.slice.call(document.querySelectorAll("#checklist input[type=checkbox]"));
+    var progressEl = document.getElementById("cl-progress");
+    function load() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch (e) { return {}; } }
+    function save(state) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+    function render() {
+      var state = load();
+      var done = 0;
+      items.forEach(function (cb) {
+        var checked = !!state[cb.dataset.key];
+        cb.checked = checked;
+        cb.closest(".cl-item").classList.toggle("done", checked);
+        if (checked) done++;
+      });
+      progressEl.textContent = done + " / " + items.length + " 완료";
+    }
+    items.forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        var state = load();
+        state[cb.dataset.key] = cb.checked;
+        save(state);
+        render();
+      });
+    });
+    document.getElementById("cl-reset").addEventListener("click", function () { save({}); render(); });
+    render();
+  })();
+</script>
