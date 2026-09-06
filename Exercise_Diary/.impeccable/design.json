@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-23T00:00:00Z",
+  "title": "Design System: HiddenReps",
+  "note": "React Native / Expo project — no HTML/CSS component snippets are included (the live web panel's shadow-DOM renderer doesn't apply to native components). This sidecar carries only the metadata DESIGN.md's frontmatter can't hold.",
+  "extensions": {
+    "colorMeta": {
+      "magenta-primary": { "role": "primary", "displayName": "Deep Magenta", "canonical": "#9B2791" },
+      "magenta-pressed": { "role": "primary-pressed", "displayName": "Deep Magenta Pressed", "canonical": "#6D1B66" },
+      "magenta-soft": { "role": "primary-soft", "displayName": "Deep Magenta Soft", "canonical": "#331C31" },
+      "magenta-accent": { "role": "accent", "displayName": "Aurora Pink", "canonical": "#C67AC9" },
+      "magenta-accent-soft": { "role": "accent-soft", "displayName": "Aurora Pink Soft", "canonical": "#332038" },
+      "orange-primary": { "role": "primary-preset", "displayName": "Strava Orange", "canonical": "#FC4C02" },
+      "mint-primary": { "role": "primary-preset", "displayName": "Whoop Mint", "canonical": "#00D9A3" },
+      "red-primary": { "role": "primary-preset", "displayName": "Peloton Red", "canonical": "#E62B2B" },
+      "blue-primary": { "role": "primary-preset", "displayName": "MyFitnessPal Blue", "canonical": "#0072CE" },
+      "bg-dark": { "role": "neutral", "displayName": "Void", "canonical": "#141013" },
+      "card-dark": { "role": "neutral", "displayName": "Charcoal Card", "canonical": "#211A20" },
+      "card-muted-dark": { "role": "neutral", "displayName": "Charcoal Card Muted", "canonical": "#282029" },
+      "text-dark": { "role": "neutral", "displayName": "Warm White", "canonical": "#F5F3EE" },
+      "text-muted-dark": { "role": "neutral", "displayName": "Ash", "canonical": "#9A8F96" },
+      "text-faint-dark": { "role": "neutral", "displayName": "Ash Faint", "canonical": "#635760" },
+      "border-dark": { "role": "neutral", "displayName": "Hairline", "canonical": "#2C232A" },
+      "bg-light": { "role": "neutral", "displayName": "Porcelain", "canonical": "#F7F4F5" },
+      "card-light": { "role": "neutral", "displayName": "White Card", "canonical": "#FFFFFF" },
+      "card-muted-light": { "role": "neutral", "displayName": "Porcelain Muted", "canonical": "#F0EBEC" },
+      "text-light": { "role": "neutral", "displayName": "Ink", "canonical": "#1E1A1C" },
+      "text-muted-light": { "role": "neutral", "displayName": "Warm Gray", "canonical": "#6B6067" },
+      "text-faint-light": { "role": "neutral", "displayName": "Warm Gray Faint", "canonical": "#8B8085" },
+      "border-light": { "role": "neutral", "displayName": "Hairline Light", "canonical": "#E4DEE0" },
+      "danger": { "role": "error", "displayName": "Danger", "canonical": "#FF453A" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "측정 화면 카운트다운 숫자 전용." },
+      "headline": { "displayName": "Headline", "purpose": "진행 중인 운동 시간(TimeDisplay), MM:SS.ss." },
+      "title": { "displayName": "Title", "purpose": "홈 화면 헤더 타이틀." },
+      "titleSecondary": { "displayName": "Title Secondary", "purpose": "카드/바텀시트 타이틀." },
+      "body": { "displayName": "Body", "purpose": "본문, 입력창, 버튼 라벨." },
+      "label": { "displayName": "Label", "purpose": "태그, 배지, 토스트 — 굵은 소형 라벨." }
+    },
+    "shadows": [
+      { "name": "cardShadow", "value": "offset(0,2) opacity 0.14 radius 6 elevation 1, color #000", "purpose": "정적 카드/컨테이너의 옅은 톤 신호." },
+      { "name": "buttonShadowShape", "value": "offset(0,4) opacity 0.18 radius 10 elevation 3, shadowColor = 호출부 강조색", "purpose": "강조색 배경 위 FAB/토스트 등 떠 있는 요소 (Tinted Shadow Rule)." }
+    ]
+  },
+  "components": [],
+  "narrative": {
+    "northStar": "The Focused Rep",
+    "overview": "HiddenReps는 헬스장이나 집에서 혼자, 짧은 세션을 반복하며 쓰는 도구다. 화면은 어두운 배경(#141013) 위에 단 하나의 강조색(마젠타 계열 프리셋 중 선택된 것)만 또렷하게 떠오르는 구성을 유지한다 — 운동 중 곁눈질로도 '지금 뭘 봐야 하는지'가 즉시 읽혀야 하기 때문이다. 장식은 최소화하고, 큰 표 형태의 숫자(경과 시간·카운트다운)를 화면의 실질적 주인공으로 둔다. 컴포넌트 언어는 Material Design 3에서 형태(필드, pill 태그, extended FAB, 톤 기반 elevation)를 빌려오되 Material의 시스템 컬러 롤 대신 프로젝트 고유의 다크 우선 팔레트로 다시 칠했다. 두 플랫폼(iOS/Android)에서 동일한 모습을 유지하며 OS 네이티브 룩을 그대로 따르지 않는다.",
+    "keyCharacteristics": [
+      "다크 우선, 라이트는 동등한 완성도로 지원되는 2차 모드",
+      "화면당 강조색은 하나 — 5개 프리셋 중 사용자가 고른 것",
+      "큰 표 숫자(96/72pt, ExtraBold, tabular-nums)가 콘텐츠의 시각적 무게중심",
+      "M3에서 빌려온 형태 언어 + 프로젝트 고유 팔레트",
+      "그림자는 옅은 톤 신호일 뿐, 구조적 깊이를 만들지 않는다"
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "화면에 강조색은 하나뿐이다(선택된 프리셋). 여러 프리셋 색을 한 화면에 섞지 않는다.", "section": "colors" },
+      { "name": "The Fixed-Role Text Rule", "body": "primary/accent는 색이 고정되지 않은 표면 위 텍스트·아이콘에 직접 쓰지 않는다. primaryText/accentText(라이트에서 primaryPressed로 대체)를 쓴다.", "section": "colors" },
+      { "name": "The Faux-Bold Ban", "body": "커스텀 폰트에 fontWeight를 얹으면 합성 볼드로 흐려진다. AppText가 fontWeight를 실제 Pretendard 굵기 파일로 치환한다.", "section": "typography" },
+      { "name": "The Tinted Shadow Rule", "body": "강조색 배경 위 요소의 그림자는 검정이 아니라 그 배경색을 shadowColor로 쓴다.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do 텍스트는 항상 AppText를 통해 렌더링한다.",
+      "Do 강조색이 필요한 곳은 useAccentColors()의 현재 프리셋 값을 쓴다.",
+      "Do 강조색 배경 위 그림자는 shadowColor를 강조색으로 지정한다.",
+      "Do 새 화면·컴포넌트는 spacing/radius/fontSize 스케일 값만 쓴다.",
+      "Do 색상 작업 전 src/theme.ts, src/lib/themePresets.ts를 직접 확인한다."
+    ],
+    "donts": [
+      "Don't iOS/Android에서 서로 다른 네이티브 룩을 입히지 않는다.",
+      "Don't 진한 드롭섀도우로 구조적 깊이를 만들지 않는다.",
+      "Don't 밝은 프리셋의 primary/accent를 라이트 모드 배경 위 텍스트로 직접 쓰지 않는다.",
+      "Don't 한 화면에 두 개 이상의 프리셋 강조색을 동시에 노출하지 않는다."
+    ]
+  }
+}
