@@ -306,6 +306,8 @@ const ko: Translations = {
     emptySinceReset: '리셋 이후 기록 없음',
     videoAccessibility: '촬영 영상 보기',
     setsAndReps: (sets, reps) => `${sets}세트 · ${reps}회`,
+    setsRepsVolume: (sets, reps, volume, unitLabel) =>
+      `${sets}세트 · ${reps}회 · ${volume}${unitLabel}`,
     setSummary: (reps, weight, weightUnitLabel) =>
       weight != null && weightUnitLabel ? `${weight}${weightUnitLabel}×${reps}회` : `${reps}회`,
   },

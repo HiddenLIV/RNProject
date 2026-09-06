@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Translations, useTranslation } from '../lib/i18n';
-import { isToday, totalReps } from '../lib/records';
+import { formatRepsSummary, isToday } from '../lib/records';
 import { useAccentColors } from '../lib/ThemeContext';
 import { RepsRecord } from '../lib/types';
 import { fontSize, radius, spacing } from '../theme';
@@ -11,6 +11,7 @@ import Text from './AppText';
 type Props = {
   record: RepsRecord;
   isBest: boolean;
+  usesWeight?: boolean;
   onDelete: (id: string) => void;
   onEdit: (record: RepsRecord) => void;
   onViewVideo: (uri: string) => void;
@@ -31,7 +32,14 @@ function formatSet(
   return t.records.setSummary(set.reps, set.weight, set.weight != null ? unitLabel : undefined);
 }
 
-export default function RepsRecordItem({ record, isBest, onDelete, onEdit, onViewVideo }: Props) {
+export default function RepsRecordItem({
+  record,
+  isBest,
+  usesWeight,
+  onDelete,
+  onEdit,
+  onViewVideo,
+}: Props) {
   const accent = useAccentColors();
   const t = useTranslation();
   return (
@@ -47,7 +55,7 @@ export default function RepsRecordItem({ record, isBest, onDelete, onEdit, onVie
           <Text
             style={[styles.duration, { color: accent.text }, isBest && { color: accent.accent }]}
           >
-            {t.records.setsAndReps(record.sets.length, totalReps(record))}
+            {formatRepsSummary(record, usesWeight, t)}
           </Text>
           {isBest && (
             <View style={[styles.bestBadge, { backgroundColor: accent.primary }]}>

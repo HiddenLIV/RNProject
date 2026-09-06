@@ -1,4 +1,4 @@
-import { totalReps } from './records';
+import { totalReps, totalVolumeKg } from './records';
 import { getRecords, getRepsRecords } from './storage';
 import { Exercise } from './types';
 
@@ -62,7 +62,13 @@ export async function getExerciseDatedValues(exercise: Exercise): Promise<DatedV
     return records.map((r) => ({ measuredAt: r.measuredAt, value: r.durationMs }));
   }
   const records = await getRepsRecords(exercise.id);
-  return records.map((r) => ({ measuredAt: r.measuredAt, value: totalReps(r) }));
+  // usesWeight인 운동은 bestRepsRecord(records.ts)와 동일한 기준(kg 환산 볼륨)으로 PR을
+  // 판정한다 — 기록 화면의 "최고 기록"과 홈 화면의 "PR 경신"이 같은 기록을 두고 서로 다른
+  // 결론을 내지 않도록 두 곳에서 같은 비교 함수를 쓴다.
+  return records.map((r) => ({
+    measuredAt: r.measuredAt,
+    value: exercise.usesWeight ? totalVolumeKg(r) : totalReps(r),
+  }));
 }
 
 // 오름차순으로 훑으며 그 시점까지의 최댓값을 갱신한 기록만 "PR 갱신 이벤트"로 센다.

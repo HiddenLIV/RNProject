@@ -12,7 +12,7 @@ import { formatDuration } from '../components/TimeDisplay';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import { showAlert } from '../lib/alert';
 import { Translations, useTranslation } from '../lib/i18n';
-import { bestRepsRecord, bestTimeRecord, totalReps } from '../lib/records';
+import { bestRepsRecord, bestTimeRecord, formatRepsSummary } from '../lib/records';
 import { getRecords, getRepsRecords, removeRecord, removeRepsRecord } from '../lib/storage';
 import { useAccentColors } from '../lib/ThemeContext';
 import { Exercise, RepsRecord, TimeRecord } from '../lib/types';
@@ -219,7 +219,7 @@ function RepsRecordsScreen({ exercise }: Props) {
     confirmResetBest(t, () => updateSettings({ bestRecordResetAt: new Date().toISOString() }));
   };
 
-  const bestRecord = bestRepsRecord(records, settings.bestRecordResetAt);
+  const bestRecord = bestRepsRecord(records, settings.bestRecordResetAt, exercise.usesWeight);
   const bestState: BestCardState | null =
     records.length === 0
       ? null
@@ -227,7 +227,7 @@ function RepsRecordsScreen({ exercise }: Props) {
         ? {
             kind: 'value',
             date: formatDateTitle(bestRecord.measuredAt, t.weekdays),
-            value: t.records.setsAndReps(bestRecord.sets.length, totalReps(bestRecord)),
+            value: formatRepsSummary(bestRecord, exercise.usesWeight, t),
           }
         : { kind: 'emptySinceReset' };
 
@@ -256,6 +256,7 @@ function RepsRecordsScreen({ exercise }: Props) {
             <RepsRecordItem
               record={item}
               isBest={item.id === bestRecord?.id}
+              usesWeight={exercise.usesWeight}
               onDelete={handleDelete}
               onEdit={setEditingRecord}
               onViewVideo={setViewingUri}

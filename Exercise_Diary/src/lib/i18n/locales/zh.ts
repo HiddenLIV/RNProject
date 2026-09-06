@@ -302,6 +302,8 @@ const zh: Translations = {
     emptySinceReset: '重置后暂无记录',
     videoAccessibility: '查看拍摄的视频',
     setsAndReps: (sets, reps) => `${sets}组 · ${reps}次`,
+    setsRepsVolume: (sets, reps, volume, unitLabel) =>
+      `${sets}组 · ${reps}次 · ${volume}${unitLabel}`,
     setSummary: (reps, weight, weightUnitLabel) =>
       weight != null && weightUnitLabel ? `${weight}${weightUnitLabel} × ${reps}次` : `${reps}次`,
   },

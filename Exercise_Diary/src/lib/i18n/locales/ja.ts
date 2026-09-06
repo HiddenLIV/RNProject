@@ -302,6 +302,8 @@ const ja: Translations = {
     emptySinceReset: 'リセット後の記録なし',
     videoAccessibility: '撮影した動画を見る',
     setsAndReps: (sets, reps) => `${sets}セット・${reps}回`,
+    setsRepsVolume: (sets, reps, volume, unitLabel) =>
+      `${sets}セット・${reps}回・${volume}${unitLabel}`,
     setSummary: (reps, weight, weightUnitLabel) =>
       weight != null && weightUnitLabel ? `${weight}${weightUnitLabel}×${reps}回` : `${reps}回`,
   },

@@ -294,6 +294,8 @@ const en = {
     deleteAccessibility: 'Delete record',
     videoAccessibility: 'View recorded video',
     setsAndReps: (sets: number, reps: number) => `${sets} sets · ${reps} reps`,
+    setsRepsVolume: (sets: number, reps: number, volume: number, unitLabel: string) =>
+      `${sets} sets · ${reps} reps · ${volume}${unitLabel}`,
     setSummary: (reps: number, weight?: number, weightUnitLabel?: string) =>
       weight != null && weightUnitLabel ? `${weight}${weightUnitLabel} × ${reps} reps` : `${reps} reps`,
     editAccessibility: 'Edit record',

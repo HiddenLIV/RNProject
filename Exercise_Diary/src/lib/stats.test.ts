@@ -20,6 +20,17 @@ function makeRepsExercise(id: string): Exercise {
   return { id, name: `reps-${id}`, icon: 'barbell-outline', measureType: 'reps' };
 }
 
+function makeWeightedRepsExercise(id: string, weightUnit: 'kg' | 'lb' = 'kg'): Exercise {
+  return {
+    id,
+    name: `weighted-reps-${id}`,
+    icon: 'barbell-outline',
+    measureType: 'reps',
+    usesWeight: true,
+    weightUnit,
+  };
+}
+
 beforeEach(async () => {
   await AsyncStorage.clear();
 });
@@ -164,5 +175,87 @@ describe('getHomeStats', () => {
     const stats = await getHomeStats([exercise]);
 
     expect(stats.weeklyPrCount).toBe(1);
+  });
+
+  test('무게 있는 운동은 횟수가 적어도 볼륨이 크면 PR로 센다', async () => {
+    const exercise = makeWeightedRepsExercise('bench');
+    const earlier = new Date(today.getTime() - 60_000);
+    await addRepsRecord(exercise.id, {
+      id: 'bench-1',
+      measuredAt: earlier.toISOString(),
+      sets: [{ reps: 20, weight: 10 }], // 볼륨 200
+      weightUnit: 'kg',
+    });
+    await addRepsRecord(exercise.id, {
+      id: 'bench-2',
+      measuredAt: today.toISOString(),
+      sets: [{ reps: 15, weight: 20 }], // 볼륨 300 — 횟수는 더 적지만 볼륨은 더 큼
+      weightUnit: 'kg',
+    });
+
+    const stats = await getHomeStats([exercise]);
+
+    expect(stats.weeklyPrCount).toBe(2); // 첫 기록 + 볼륨 갱신된 두 번째 기록
+  });
+
+  test('무게 있는 운동은 횟수가 많아도 볼륨이 작으면 PR로 세지 않는다', async () => {
+    const exercise = makeWeightedRepsExercise('bench');
+    const earlier = new Date(today.getTime() - 60_000);
+    await addRepsRecord(exercise.id, {
+      id: 'bench-1',
+      measuredAt: earlier.toISOString(),
+      sets: [{ reps: 15, weight: 20 }], // 볼륨 300
+      weightUnit: 'kg',
+    });
+    await addRepsRecord(exercise.id, {
+      id: 'bench-2',
+      measuredAt: today.toISOString(),
+      sets: [{ reps: 30, weight: 5 }], // 볼륨 150 — 횟수는 더 많지만 볼륨은 더 작음
+      weightUnit: 'kg',
+    });
+
+    const stats = await getHomeStats([exercise]);
+
+    expect(stats.weeklyPrCount).toBe(1); // 첫 기록만 PR
+  });
+
+  test('무게 없는 운동은 기존과 동일하게 횟수 기준으로 PR을 센다(회귀 없음)', async () => {
+    const exercise = makeRepsExercise('pushup');
+    const earlier = new Date(today.getTime() - 60_000);
+    await addRepsRecord(exercise.id, {
+      id: 'pushup-1',
+      measuredAt: earlier.toISOString(),
+      sets: [{ reps: 10 }],
+    });
+    await addRepsRecord(exercise.id, {
+      id: 'pushup-2',
+      measuredAt: today.toISOString(),
+      sets: [{ reps: 8 }], // 이전보다 횟수가 적음 — PR 아님
+    });
+
+    const stats = await getHomeStats([exercise]);
+
+    expect(stats.weeklyPrCount).toBe(1);
+  });
+
+  test('kg/lb 단위가 섞인 기록도 환산해 올바르게 PR을 판정한다', async () => {
+    const exercise = makeWeightedRepsExercise('bench');
+    const earlier = new Date(today.getTime() - 60_000);
+    await addRepsRecord(exercise.id, {
+      id: 'bench-1',
+      measuredAt: earlier.toISOString(),
+      sets: [{ reps: 10, weight: 20 }], // 200kg
+      weightUnit: 'kg',
+    });
+    await addRepsRecord(exercise.id, {
+      id: 'bench-2',
+      measuredAt: today.toISOString(),
+      sets: [{ reps: 5, weight: 100 }], // 100lb×5 ≈ 226.8kg — 환산하면 더 큼
+      weightUnit: 'lb',
+    });
+
+    const stats = await getHomeStats([exercise]);
+
+    expect(stats.weeklyPrCount).toBe(2);
   });
 });
