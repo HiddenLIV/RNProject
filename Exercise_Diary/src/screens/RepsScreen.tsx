@@ -235,6 +235,7 @@ const RepsScreen = forwardRef<RepsScreenHandle, Props>(function RepsScreen(
       setError(t.reps.errorNoSets);
       return;
     }
+    if (rest.phase === 'resting') rest.skip(); // 기록 저장 시 진행 중이던 휴식은 초기화한다
     setSaving(true);
     await addRepsRecord(exercise.id, {
       id: createId(),
